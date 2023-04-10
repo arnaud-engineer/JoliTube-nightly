@@ -1,0 +1,417 @@
+@font-face {
+    font-family: 'Spartan';
+    src: url('rsrc/fonts/leaguespartan-bold-webfont.eot');
+    src: url('rsrc/fonts/leaguespartan-bold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('rsrc/fonts/leaguespartan-bold-webfont.woff2') format('woff2'),
+         url('rsrc/fonts/leaguespartan-bold-webfont.woff') format('woff'),
+         url('rsrc/fonts/leaguespartan-bold-webfont.ttf') format('truetype'),
+         url('rsrc/fonts/leaguespartan-bold-webfont.svg#league_spartanbold') format('svg');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+
+
+
+
+
+:root
+{
+	--headerHeight: 10vh;
+	--videoWidth: min(calc(16 * 100vh / 9), 100vw);
+	--videoHeight: min(calc(9 * 100vw / 16), 100vh);
+
+	--playerHeight: calc((100vh - 2 * var(--headerHeight)) / 3);
+	--currentChannelHeight: calc(var(--playerHeight) / 3);
+
+	--backgroundColor: #00000060;
+
+	--h1FontSize: max(min(3.6vh, 3.6vw), 21px);
+	--h2FontSize: calc(.8 * var(--h1FontSize));
+	--h3FontSize: calc(.5 * var(--h1FontSize));
+
+
+
+	font-family: Spartan, Arial;
+	color: white;
+}
+
+*
+{
+	margin: 0;
+	padding: 0;
+}
+
+
+
+/* ----------------------------------------------
+ * Scrollbar
+ * src : https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_custom_scrollbar;
+ * ---------------------------------------------- */
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+
+
+
+/* =========================================================================
+	PAGE WEB
+   ========================================================================= */
+
+
+	/* ------------------------------------
+		BACKGROUND
+	   ------------------------------------ */
+
+	#background
+	{
+		position: fixed;
+		top: 0px;
+		left: 0px;
+		width: 100vw;
+		height: 100vh;
+
+		background-color: black;
+
+		z-index: 1;
+
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+	}
+
+
+	#player
+	{
+			overflow: hidden;
+	width: 100%;
+	/* Keep it the right aspect-ratio */
+	aspect-ratio: 16/9;
+	/* No clicking/hover effects */
+	pointer-events: none;
+	}
+
+	#player iframe
+	{
+		/* HIDE YOUTUBE INFO */
+		/* https://codepen.io/adamgreenough/pen/bGrgoNb */
+		/* Extend it beyond the viewport... */
+		width: 300%;
+		height: 100%;
+		/* ...and bring it back again */
+		margin-left: -100%;
+	}
+
+
+
+	/* ------------------------------------
+		HEADER
+	   ------------------------------------ */
+
+		header
+		{
+			position: fixed;
+			top: calc(.25 * var(--headerHeight));
+			left: calc(50vw - var(--videoWidth) / 2 + .25 * var(--headerHeight));
+			width: calc(var(--videoWidth) / 4);
+			height: var(--headerHeight);
+
+			overflow: hidden;
+
+			z-index: 10;
+
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			align-content: center;
+			justify-content: center;
+		}
+
+			#siteLogo
+			{
+				display: block;
+				height: calc(.7 * var(--headerHeight));
+				max-width: calc(var(--videoWidth) / 4);
+
+				margin: auto;
+			}
+
+				#siteLogo img{
+					display: block;
+					height: 100%;
+					width: auto;
+					max-width: calc(var(--videoWidth) / 4 - .5 * var(--headerHeight));
+
+					margin-left: calc(.25 * var(--headerHeight));
+					margin-right: calc(.25 * var(--headerHeight));
+
+					filter: drop-shadow(0 0 7.5px black);
+				}
+
+	/* ------------------------------------
+		CHANNELS
+	   ------------------------------------ */
+
+		#channels
+		{
+			position: fixed;
+			top: calc(1.5 * var(--headerHeight));
+			left: calc(50vw - var(--videoWidth) / 2 + .25 * var(--headerHeight));
+			width: calc(var(--videoWidth) / 4);
+			height: calc(100vh - 2 * var(--headerHeight));
+
+			background-color: var(--backgroundColor);
+
+			z-index: 10;
+
+			filter: drop-shadow(0 0 5px black);
+
+			overflow: hidden;
+
+			text-transform: uppercase;
+		}
+
+			#channelsTitle
+			{
+				width: calc(100% - .25 * var(--headerHeight));
+				height: calc(.75 * var(--headerHeight));
+				padding: calc(.125 * var(--headerHeight));
+
+				border-bottom: 2px solid #FFFFFF75;
+
+				overflow: hidden;
+
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				align-content: center;
+				justify-content: center;
+			}
+
+				#channelsCategorieBack
+				{
+					width: 16%;
+					height: calc(.75 * var(--headerHeight));
+
+					display: flex;
+					flex-direction: row;
+					align-items: center;
+					align-content: center;
+					justify-content: center;
+
+					font-size: calc(1.8 * var(--h1FontSize));
+				}
+
+				#channelsCategorieName
+				{
+					width: 84%;
+					height: calc(.75 * var(--headerHeight));
+					margin-left: calc(.125 * var(--headerHeight));
+					margin-right: calc(.125 * var(--headerHeight));
+
+					display: flex;
+					flex-direction: row;
+					align-items: center;
+					align-content: center;
+					justify-content: center;
+
+					font-size: var(--h1FontSize);
+				}
+
+
+
+
+
+
+
+
+				#menuBar
+				{
+					height: calc(100% - .75 * var(--headerHeight));;
+					overflow:scroll !important;
+					margin-left: 7%;
+				}
+
+					.elementMenuBar
+					{
+						height: calc(1.25 * var(--headerHeight));
+						width: 93%;
+						border-bottom: 1px solid #FFFFFF50;
+
+						display: flex;
+						flex-direction: row;
+						align-items: center;
+						justify-content: space-around;
+						align-content: center;
+
+						cursor: pointer;
+					}
+
+						.elementMenuBar.selected
+						{
+							background-color: #FF0000;
+						}
+
+						.logoElementMenuBar
+						{
+							width: calc(1.25 * var(--headerHeight));
+
+						}
+
+							.logoElementMenuBar img
+							{
+								height: calc(.75 * var(--headerHeight));
+								width: calc(.875 * var(--headerHeight));
+								margin: calc(.25 * var(--headerHeight));
+								margin-left: calc(.125 * var(--headerHeight));
+							}
+
+						.titlesElementMenuBar
+						{
+							width: 100%;
+
+						}
+
+							.titlesElementMenuBar h1
+							{
+								font-size: var(--h2FontSize);
+								margin-bottom: calc(var(--headerHeight) / 16);
+							}
+
+							.titlesElementMenuBar h2
+							{
+								font-size: var(--h3FontSize);
+								margin-top: calc(var(--headerHeight) / 16);
+							}
+
+
+	/* ------------------------------------
+		PLAYER
+	   ------------------------------------ */
+
+		#menuControler
+		{
+			position: fixed;
+			bottom: calc(.5 * var(--headerHeight));
+			right: calc(50vw - var(--videoWidth) / 2 + .25 * var(--headerHeight));
+			width: calc(3 * var(--videoWidth) / 4  - 1 * var(--headerHeight));
+			height: calc((100vh - 2 * var(--headerHeight)) / 3);
+
+			background-color: var(--backgroundColor);
+
+			z-index: 10;
+
+			filter: drop-shadow(0 0 5px black);
+		}
+
+
+		#currentChannel
+		{
+			position: relative;
+			width: 100%;
+			height: var(--currentChannelHeight);
+		}
+
+			#currentChannelLogo
+			{
+				position: absolute;
+				top: 0;
+				left: 0;
+				height: calc(.8 * var(--currentChannelHeight));
+				width: auto;
+				padding: calc(.1 * var(--currentChannelHeight));
+			}
+
+
+
+
+			#currentChannelNameDisplay
+			{
+				position: absolute;
+				top: calc(.15 * var(--currentChannelHeight));
+				left: calc(1.15 * var(--currentChannelHeight));
+				font-size: var(--h1FontSize);
+				text-transform: uppercase;
+
+			}
+
+			#currentVideoNameDisplay
+			{
+				position: absolute;
+				bottom: calc(.15 * var(--currentChannelHeight));
+				left: calc(1.3 * var(--currentChannelHeight));
+				font-size: var(--h3FontSize);
+				text-transform: uppercase;
+
+			}
+
+
+
+		#playerControls
+		{
+			height: var(--currentChannelHeight);
+
+
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			align-content: center;
+		}
+
+		#playerControls > *
+		{
+			width: calc(.6 * var(--currentChannelHeight));
+			height: calc(.6 * var(--currentChannelHeight));
+			margin: calc(.2 * var(--currentChannelHeight));
+			margin-left: calc(.35 * var(--currentChannelHeight));
+			margin-right: calc(.35 * var(--currentChannelHeight));
+		}
+
+		#advancedControls
+		{
+			height: var(--currentChannelHeight);
+
+
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			align-content: center;
+
+			background-color: orange;
+		}
+
+			#advancedControls > img
+			{
+				width: calc(.6 * var(--currentChannelHeight));
+				height: calc(.6 * var(--currentChannelHeight));
+				margin: calc(.2 * var(--currentChannelHeight));
+				margin-left: calc(.35 * var(--currentChannelHeight));
+				margin-right: calc(.35 * var(--currentChannelHeight));
+			}
+
+
+
+
+

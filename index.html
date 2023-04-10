@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	    <title>JoliTube</title>
+	    <script src="script.js"></script>
+
+
+
+
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-ESDN5MBC9S"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+
+			gtag('config', 'G-ESDN5MBC9S');
+		</script>
+
+
+
+	    <link rel="stylesheet" href="style.css">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+
+	</head>
+
+	<body>
+
+		<div id="background">
+			<div id="player"></div>
+		</div>
+
+
+		<header>
+			<h1 id="siteName">
+				<a id="siteLogo" href="index.html"><img src="rsrc/JoliTubeLogo.svg"/></a>
+			</h1>
+		</header>
+
+		<div id="channels">
+			<h1 id="channelsTitle">
+				<span id="channelsCategorieBack"><</span>
+				<span id="channelsCategorieName">Generalist channels</span>
+			</h1>
+			<div id="menuBar">
+				
+			</div>
+		</div>
+
+		<div id="menuControler">
+			<div id="currentChannel">
+				<img id="currentChannelLogo" src="rsrc/mediaPlayer/backGreyed.png" />
+				<h1 id="currentChannelNameDisplay"></h1>
+				<h2 id="currentVideoNameDisplay"></h2>
+			</div>
+			<div id="playerControls">
+				<img id="previousVideo" src="rsrc/mediaPlayer/backGreyed.png" />
+				<img id="playVideo" src="rsrc/mediaPlayer/play.png" onclick="playOrPause();" />
+				<img id="nextVideo" src="rsrc/mediaPlayer/forwardGreyed.png" />
+			</div>
+			<div id="advancedControls">
+				<select id="selectAudio" name="selectAudio">
+					<option value="en">EN</option>
+					<option value="fr">FR</option>
+					<option value="auto" selected>Auto</option>
+				</select>
+				<select id="selectSubtitles" name="selectSubtitles">
+					<option value="en">EN</option>
+					<option value="fr">FR</option>
+					<option value="auto" selected>Auto</option>
+				</select>
+				<select id="selectResolution" name="selectResolution">
+					<option value="2160p">4K - 2160p</option>
+					<option value="1440p">HD - 1440p</option>
+					<option value="1080p">HD - 1080p</option>
+					<option value="720p">SD - 720p</option>
+					<option value="480p">SD - 480p</option>
+					<option value="360p">SD - 360p</option>
+					<option value="240p">SD - 240p</option>
+					<option value="144p">SD - 144p</option>
+					<option value="max">Max</option>
+					<option value="auto" selected>Auto</option>
+				</select>
+				<img id="fullscreen" src="rsrc/mediaPlayer/backGreyed.png" />
+			</div>
+		</div>
+
+
+<!--
+
+		<div id="content">
+
+			<div id="menuBar"></div>
+
+			<div id="menuControler">
+				<h1 id="currentChannelNameDisplay"></h1>
+				<h2 id="currentVideoNameDisplay"></h2>
+				<div id="playerControls">
+					<img id="previousVideo" src="rsrc/mediaPlayer/backGreyed.png" />
+					<img id="playVideo" src="rsrc/mediaPlayer/play.png" onclick="playOrPause();" />
+					<img id="nextVideo" src="rsrc/mediaPlayer/forwardGreyed.png" />
+				</div>
+			</div>
+
+			<div id="ytPlayerContainer">
+				<div id="player"></div>
+			</div>
+
+			<div id="ytPlayerContainerLayer">
+				<div id="alertMsg"></div>
+			</div>
+
+		</div>
+-->
+	</body>
+</html>
