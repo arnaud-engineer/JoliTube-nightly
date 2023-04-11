@@ -105,6 +105,8 @@
     //Playback variables
     var currentBackToTheFutureCount = 0;
 
+    var videotime = 0;
+
     //YouTube player required variables
     var player;
     var tag;
@@ -144,6 +146,32 @@
     /* -----------------------------
         CONTROL PANEL
        ----------------------------- */
+
+
+        function requestFullScreen() {
+
+          var el = document.body;
+
+          // Supports most browsers and their versions.
+          var requestMethod = el.requestFullScreen || el.webkitRequestFullScreen 
+          || el.mozRequestFullScreen || el.msRequestFullScreen;
+
+          if (requestMethod) {
+
+            // Native full screen.
+            requestMethod.call(el);
+
+          } else if (typeof window.ActiveXObject !== "undefined") {
+
+            // Older IE.
+            var wscript = new ActiveXObject("WScript.Shell");
+
+            if (wscript !== null) {
+              wscript.SendKeys("{F11}");
+            }
+          }
+        }
+
 
         // PLAY OR PAUSE THE VIDEO DEPENDING ON THE CURRENT STATE
         function playOrPause()
@@ -278,10 +306,63 @@
             currentVideoIndex=n;
         }
 
+        function updateDuration()
+        {
+            let t = player.getCurrentTime();
+            videotime = t;
+            let timecodeHH = Math.floor(t / 60 / 60);
+            let timecodeMM = Math.floor((t % 3600) / 60);
+            let timecodeSS = Math.floor(t % 60);
+
+            if(timecodeHH < 10 && (!(timecodeHH !== 0))) {
+                timecodeHH = "0" + timecodeHH;
+            }
+            if(timecodeMM < 10) {
+                timecodeMM = "0" + timecodeMM;
+            }
+            if(timecodeSS < 10) {
+                timecodeSS = "0" + timecodeSS;
+            }
+
+
+            if(!(timecodeHH !== 0)) {
+                t = timecodeHH + ":" + timecodeMM + ":" + timecodeSS;
+            }
+            else {
+                t = timecodeMM + ":" + timecodeSS;
+            }
+            document.getElementById("currentVideoTime").innerHTML = t;
+
+
+            let d = player.getDuration();
+            let durationHH = Math.floor(d / 60 / 60);
+            let durationMM = Math.floor((d % 3600) / 60);
+            let durationSS = Math.floor(d % 60);
+
+            if(durationHH < 10 && (!(durationHH !== 0))) {
+                durationHH = "0" + durationHH;
+            }
+            if(durationMM < 10) {
+                durationMM = "0" + durationMM;
+            }
+            if(durationSS < 10) {
+                durationSS = "0" + durationSS;
+            }
+
+            if(!(durationHH !== 0)) {
+                d = durationHH + ":" + durationMM + ":" + durationSS;
+            }
+            else {
+                d = durationMM + ":" + durationSS;
+            }
+            document.getElementById("currentVideoDuration").innerHTML = d;
+        }
+
         // UPDATE THE VIDEO TITLE IN THE CONTROL PANEL
         function updateVideoTitle()
         {
-            document.getElementById("currentVideoNameDisplay").innerHTML = player.getVideoData().title;
+            document.getElementById("currentVideoNameDisplay").innerHTML = "<a href='" + player.getVideoUrl() + "' target='_blank'>" + player.getVideoData().title + "</a>";
+            updateDuration();
         }
 
         // RETURN A NON-PLAYED RANDOM VIDEO INDEX
@@ -335,7 +416,7 @@
             // disable the controls
             disablePlayer();
             // Reset the player
-            document.getElementById("background").innerHTML = '<div id="player"></div>';
+            document.getElementById("playerContainer").innerHTML = '<div id="player"></div>';
             // Update the global variables
             playlistID = playID;
             playlistNbVideos = playNbVideos;
@@ -427,6 +508,8 @@
                     fs: 0
                 }
             });
+
+            let timeupdater = setInterval(function () { updateDuration(); }, 100);
         }
 
 /* =========================================================================
@@ -484,6 +567,13 @@
 
         initYT();
 
+        window.addEventListener("message", function(event) {
+            try {
+                updateDuration();
+            }
+            catch(e) {}
+        });
+
         /*
         Fix required for safari fullscreen
         setTimeout(() => {
@@ -520,7 +610,11 @@
 
         document.getElementById("player").removeAttribute("allowfullscreen");
         document.getElementById("player").setAttribute("allowFullScreen", "");
-
+/*
+        player.addEventListener('timeupdate', e => {
+            updateDuration();
+        });
+*/
         // TODO c'est là le pb, on rend le bouton dispo alors que pas chargé
         setTimeout(() => {
             updatePlayerState();

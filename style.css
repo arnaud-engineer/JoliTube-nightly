@@ -18,18 +18,25 @@
 
 :root
 {
-	--headerHeight: 10vh;
+	--headerHeight: 15vh;
+	--channelHeight: 10vh;
 	--videoWidth: min(calc(16 * 100vh / 9), 100vw);
 	--videoHeight: min(calc(9 * 100vw / 16), 100vh);
 
 	--playerHeight: calc((100vh - 2 * var(--headerHeight)) / 3);
+
+
 	--currentChannelHeight: calc(var(--playerHeight) / 3);
+	--dataHeight: calc(3 * var(--playerHeight) / 6);
+	--controlsHeight: calc(2 * var(--playerHeight) / 6);
+	--settingsHeight: calc(1 * var(--playerHeight) / 6);
 
 	--backgroundColor: #00000060;
 
 	--h1FontSize: max(min(3.6vh, 3.6vw), 21px);
 	--h2FontSize: calc(.8 * var(--h1FontSize));
-	--h3FontSize: calc(.5 * var(--h1FontSize));
+	--h3FontSize: calc(.6 * var(--h1FontSize));
+	--h4FontSize: calc(.4 * var(--h1FontSize));
 
 
 
@@ -98,20 +105,28 @@
 		flex-direction: row;
 		align-items: center;
 		justify-content: center;
+
+		overflow: hidden;
 	}
 
 
-	#player
+	#playerContainer
 	{
 			overflow: hidden;
-	width: 100%;
-	/* Keep it the right aspect-ratio */
-	aspect-ratio: 16/9;
-	/* No clicking/hover effects */
-	pointer-events: none;
+			/* Keep it the right aspect-ratio */
+			height: 100vh;
+			width: calc(16 * 100vh / 9);
+			aspect-ratio: 16/9;
+			/* No clicking/hover effects */
+			pointer-events: none;
+
+				margin: none;
+				padding: none;
+
+				background-color: black;
 	}
 
-	#player iframe
+	#player
 	{
 		/* HIDE YOUTUBE INFO */
 		/* https://codepen.io/adamgreenough/pen/bGrgoNb */
@@ -119,6 +134,8 @@
 		width: 300%;
 		height: 100%;
 		/* ...and bring it back again */
+		margin: none;
+		padding: none;
 		margin-left: -100%;
 	}
 
@@ -132,7 +149,7 @@
 		{
 			position: fixed;
 			top: calc(.25 * var(--headerHeight));
-			left: calc(50vw - var(--videoWidth) / 2 + .25 * var(--headerHeight));
+			left: calc(50vw - var(--videoWidth) / 2 + .25 * var(--channelHeight));
 			width: calc(var(--videoWidth) / 4);
 			height: var(--headerHeight);
 
@@ -176,9 +193,10 @@
 		{
 			position: fixed;
 			top: calc(1.5 * var(--headerHeight));
-			left: calc(50vw - var(--videoWidth) / 2 + .25 * var(--headerHeight));
+			left: calc(50vw - var(--videoWidth) / 2 + .25 * var(--channelHeight));
+			bottom: calc(.5 * var(--channelHeight));
 			width: calc(var(--videoWidth) / 4);
-			height: calc(100vh - 2 * var(--headerHeight));
+			/*height: calc(100vh - 1.75 * var(--headerHeight));*/
 
 			background-color: var(--backgroundColor);
 
@@ -193,9 +211,9 @@
 
 			#channelsTitle
 			{
-				width: calc(100% - .25 * var(--headerHeight));
-				height: calc(.75 * var(--headerHeight));
-				padding: calc(.125 * var(--headerHeight));
+				width: calc(100% - .25 * var(--channelHeight));
+				height: calc(.75 * var(--channelHeight));
+				padding: calc(.125 * var(--channelHeight));
 
 				border-bottom: 2px solid #FFFFFF75;
 
@@ -211,7 +229,7 @@
 				#channelsCategorieBack
 				{
 					width: 16%;
-					height: calc(.75 * var(--headerHeight));
+					height: calc(.75 * var(--channelHeight));
 
 					display: flex;
 					flex-direction: row;
@@ -225,9 +243,9 @@
 				#channelsCategorieName
 				{
 					width: 84%;
-					height: calc(.75 * var(--headerHeight));
-					margin-left: calc(.125 * var(--headerHeight));
-					margin-right: calc(.125 * var(--headerHeight));
+					height: calc(.75 * var(--channelHeight));
+					margin-left: calc(.125 * var(--channelHeight));
+					margin-right: calc(.125 * var(--channelHeight));
 
 					display: flex;
 					flex-direction: row;
@@ -247,14 +265,14 @@
 
 				#menuBar
 				{
-					height: calc(100% - .75 * var(--headerHeight));;
+					height: calc(100% - .75 * var(--channelHeight));;
 					overflow:scroll !important;
 					margin-left: 7%;
 				}
 
 					.elementMenuBar
 					{
-						height: calc(1.25 * var(--headerHeight));
+						height: calc(1.25 * var(--channelHeight));
 						width: 93%;
 						border-bottom: 1px solid #FFFFFF50;
 
@@ -274,16 +292,16 @@
 
 						.logoElementMenuBar
 						{
-							width: calc(1.25 * var(--headerHeight));
+							width: calc(1.25 * var(--channelHeight));
 
 						}
 
 							.logoElementMenuBar img
 							{
-								height: calc(.75 * var(--headerHeight));
-								width: calc(.875 * var(--headerHeight));
-								margin: calc(.25 * var(--headerHeight));
-								margin-left: calc(.125 * var(--headerHeight));
+								height: calc(.75 * var(--channelHeight));
+								width: calc(.875 * var(--channelHeight));
+								margin: calc(.25 * var(--channelHeight));
+								margin-left: calc(.125 * var(--channelHeight));
 							}
 
 						.titlesElementMenuBar
@@ -295,13 +313,13 @@
 							.titlesElementMenuBar h1
 							{
 								font-size: var(--h2FontSize);
-								margin-bottom: calc(var(--headerHeight) / 16);
+								margin-bottom: calc(var(--channelHeight) / 16);
 							}
 
 							.titlesElementMenuBar h2
 							{
 								font-size: var(--h3FontSize);
-								margin-top: calc(var(--headerHeight) / 16);
+								margin-top: calc(var(--channelHeight) / 16);
 							}
 
 
@@ -312,10 +330,10 @@
 		#menuControler
 		{
 			position: fixed;
-			bottom: calc(.5 * var(--headerHeight));
-			right: calc(50vw - var(--videoWidth) / 2 + .25 * var(--headerHeight));
-			width: calc(3 * var(--videoWidth) / 4  - 1 * var(--headerHeight));
-			height: calc((100vh - 2 * var(--headerHeight)) / 3);
+			bottom: calc(.5 * var(--channelHeight));
+			right: calc(50vw - var(--videoWidth) / 2 + .25 * var(--channelHeight));
+			width: calc(3 * var(--videoWidth) / 4  - 1 * var(--channelHeight));
+			height: calc((100vh - 2 * var(--channelHeight)) / 3);
 
 			background-color: var(--backgroundColor);
 
@@ -329,7 +347,9 @@
 		{
 			position: relative;
 			width: 100%;
-			height: var(--currentChannelHeight);
+			height: var(--dataHeight);
+
+			overflow: hidden;
 		}
 
 			#currentChannelLogo
@@ -337,9 +357,9 @@
 				position: absolute;
 				top: 0;
 				left: 0;
-				height: calc(.8 * var(--currentChannelHeight));
+				height: calc(.7 * var(--dataHeight));
 				width: auto;
-				padding: calc(.1 * var(--currentChannelHeight));
+				padding: calc(.15 * var(--dataHeight));
 			}
 
 
@@ -348,8 +368,8 @@
 			#currentChannelNameDisplay
 			{
 				position: absolute;
-				top: calc(.15 * var(--currentChannelHeight));
-				left: calc(1.15 * var(--currentChannelHeight));
+				top: calc(.25 * var(--dataHeight));
+				left: calc(1 * var(--dataHeight));
 				font-size: var(--h1FontSize);
 				text-transform: uppercase;
 
@@ -358,18 +378,53 @@
 			#currentVideoNameDisplay
 			{
 				position: absolute;
-				bottom: calc(.15 * var(--currentChannelHeight));
-				left: calc(1.3 * var(--currentChannelHeight));
+				bottom: calc(.25 * var(--dataHeight));
+				left: calc(1.05 * var(--dataHeight));
 				font-size: var(--h3FontSize);
 				text-transform: uppercase;
 
 			}
 
+			#currentVideoNameDisplay a
+			{
+				text-decoration: none;
+				color: white;
+			}
+
+
+			#videoData { 
+				width: 80%;
+			}
+
+			#videoDuration
+			{
+				position: absolute;
+				top: 0;
+				right: 0;
+				height: calc(.8 * var(--dataHeight));
+				width: 16%;
+				max-width: calc(10 * var(--h3FontSize));
+				padding: calc(.1 * var(--dataHeight));
+
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				justify-content: center;
+				align-content: center;
+				text-align: center;
+
+				font-size: var(--h3FontSize);
+			}
+
+				#currentVideoTime 					{ width: calc(4 * var(--h3FontSize)); }
+				#currentVideoTimeSeparator 	{ width: calc(1 * var(--h3FontSize)); }
+				#currentVideoDuration 			{ width: calc(4 * var(--h3FontSize)); }
+
 
 
 		#playerControls
 		{
-			height: var(--currentChannelHeight);
+			height: var(--controlsHeight);
 
 
 			display: flex;
@@ -381,34 +436,77 @@
 
 		#playerControls > *
 		{
-			width: calc(.6 * var(--currentChannelHeight));
-			height: calc(.6 * var(--currentChannelHeight));
-			margin: calc(.2 * var(--currentChannelHeight));
-			margin-left: calc(.35 * var(--currentChannelHeight));
-			margin-right: calc(.35 * var(--currentChannelHeight));
+			width: calc(.7 * var(--controlsHeight));
+			height: calc(.7 * var(--controlsHeight));
+			margin: calc(.15 * var(--controlsHeight));
+			margin-left: calc(.35 * var(--controlsHeight));
+			margin-right: calc(.35 * var(--controlsHeight));
 		}
 
 		#advancedControls
 		{
-			height: var(--currentChannelHeight);
+			height: var(--settingsHeight);
 
 
 			display: flex;
 			flex-direction: row;
 			align-items: center;
-			justify-content: center;
+			justify-content: space-between;
 			align-content: center;
-
-			background-color: orange;
 		}
 
-			#advancedControls > img
+			#settingsControls
+			{
+				margin-left: calc(.35 * var(--currentChannelHeight));
+					display: flex;
+				flex-direction: row;
+				align-items: center;
+				justify-content: space-between;
+				align-content: center;
+
+			}
+
+				#settingsControls label
+				{
+					display: block;
+					color: white;
+					text-transform: uppercase;
+					font-size: var(--h4FontSize);
+					font-weight: 300;
+				}
+
+				#settingsControls select
+				{
+					display: block;
+
+					border: none;
+					color: white;
+					text-transform: uppercase;
+					font-size: var(--h3FontSize);
+					font-weight: bold;
+
+					-webkit-appearance: none;
+	        -moz-appearance: none;
+	       	appearance: none;
+
+	       	text-align: right;
+	       	padding-right: 25px;
+
+	       	background: url("rsrc/mediaPlayer/select.png") 96% / var(--h4FontSize) no-repeat #ffffff00;
+				}
+
+				#selectAudio, #selectSubtitles	{ width: calc(4 * var(--h2FontSize)); margin-right: calc(.15 * var(--currentChannelHeight)); }
+				#selectResolution								{ width: calc(7 * var(--h2FontSize)); }
+
+			#fullscreen
 			{
 				width: calc(.6 * var(--currentChannelHeight));
 				height: calc(.6 * var(--currentChannelHeight));
 				margin: calc(.2 * var(--currentChannelHeight));
 				margin-left: calc(.35 * var(--currentChannelHeight));
 				margin-right: calc(.35 * var(--currentChannelHeight));
+
+				filter: invert(1);
 			}
 
 

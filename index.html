@@ -26,8 +26,10 @@
 
 	<body>
 
-		<div id="background">
-			<div id="player"></div>
+		<div id="background" onclick="playOrPause();">
+			<div id="playerContainer">
+				<div id="player"></div>
+			</div>
 		</div>
 
 
@@ -47,41 +49,59 @@
 			</div>
 		</div>
 
+
+
 		<div id="menuControler">
+
 			<div id="currentChannel">
-				<img id="currentChannelLogo" src="rsrc/mediaPlayer/backGreyed.png" />
-				<h1 id="currentChannelNameDisplay"></h1>
-				<h2 id="currentVideoNameDisplay"></h2>
+				<div id="videoData">
+					<img id="currentChannelLogo" src="rsrc/mediaPlayer/backGreyed.png" />
+					<h1 id="currentChannelNameDisplay"></h1>
+					<h2 id="currentVideoNameDisplay"></h2>
+				</div>
+
+				<div id="videoDuration">
+					<div id="currentVideoTime"></div>
+					<div id="currentVideoTimeSeparator">&nbsp;/&nbsp;</div>
+					<div id="currentVideoDuration"></div>
+				</div>
 			</div>
+
 			<div id="playerControls">
 				<img id="previousVideo" src="rsrc/mediaPlayer/backGreyed.png" />
 				<img id="playVideo" src="rsrc/mediaPlayer/play.png" onclick="playOrPause();" />
 				<img id="nextVideo" src="rsrc/mediaPlayer/forwardGreyed.png" />
 			</div>
+
 			<div id="advancedControls">
-				<select id="selectAudio" name="selectAudio">
-					<option value="en">EN</option>
-					<option value="fr">FR</option>
-					<option value="auto" selected>Auto</option>
-				</select>
-				<select id="selectSubtitles" name="selectSubtitles">
-					<option value="en">EN</option>
-					<option value="fr">FR</option>
-					<option value="auto" selected>Auto</option>
-				</select>
-				<select id="selectResolution" name="selectResolution">
-					<option value="2160p">4K - 2160p</option>
-					<option value="1440p">HD - 1440p</option>
-					<option value="1080p">HD - 1080p</option>
-					<option value="720p">SD - 720p</option>
-					<option value="480p">SD - 480p</option>
-					<option value="360p">SD - 360p</option>
-					<option value="240p">SD - 240p</option>
-					<option value="144p">SD - 144p</option>
-					<option value="max">Max</option>
-					<option value="auto" selected>Auto</option>
-				</select>
-				<img id="fullscreen" src="rsrc/mediaPlayer/backGreyed.png" />
+				<div id="settingsControls">
+					<label>AUDIO</label>
+					<select id="selectAudio" name="selectAudio">
+						<option value="en">EN</option>
+						<option value="fr">FR</option>
+						<option value="auto" selected>AUTO</option>
+					</select>
+					<label>SOUS-TITRES</label>
+					<select id="selectSubtitles" name="selectSubtitles">
+						<option value="en">EN</option>
+						<option value="fr">FR</option>
+						<option value="auto" selected>AUTO</option>
+					</select>
+					<label>VIDEO</label>
+					<select id="selectResolution" name="selectResolution">
+						<option value="2160p">4K - 2160p</option>
+						<option value="1440p">HD - 1440p</option>
+						<option value="1080p">HD - 1080p</option>
+						<option value="720p">SD - 720p</option>
+						<option value="480p">SD - 480p</option>
+						<option value="360p">SD - 360p</option>
+						<option value="240p">SD - 240p</option>
+						<option value="144p">SD - 144p</option>
+						<option value="max">Max</option>
+						<option value="auto" selected>AUTO</option>
+					</select>
+				</div>
+				<img id="fullscreen" src="rsrc/mediaPlayer/fullscreen-icon.svg" onclick="requestFullScreen();" />
 			</div>
 		</div>
 
