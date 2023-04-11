@@ -1,3 +1,33 @@
+        class AppPreferences
+        {
+            constructor() {
+                this.preferredUnit = "cm";
+                this.theme = "auto";
+                this.fullscreenStatus = false;
+                this.showGraduations = true;
+
+                this.noUserInterraction = true;
+                this.cursorOnInterface = false;
+
+
+
+                //current channel
+                this.playName = null;
+                this.playID = null;
+                this.playNbVideos = null;
+                this.logo = null;
+
+
+                this.remoteDigitBuffer = null;
+
+
+
+                this.playing = false;
+            }
+        }
+
+        var app = new AppPreferences();
+
 /* =========================================================================
     CHANNELS LIST
    ========================================================================= */
@@ -143,10 +173,107 @@
             }, 1000);
         }
 
+
+
+
+
+
+    /*  ----------------------------------------
+         SHOW / HIDE INTERFACE
+        ---------------------------------------- */
+
+function showInterface()
+{
+    app.noUserInterraction = false;
+    let siteName = document.getElementById("siteName");
+    let channels = document.getElementById("channels");
+    let menuControler = document.getElementById("menuControler");
+
+
+    siteName.classList.add("displayed");
+    channels.classList.add("displayed");
+    menuControler.classList.add("displayed");
+    siteName.classList.remove("hidden");
+    channels.classList.remove("hidden");
+    menuControler.classList.remove("hidden"); 
+    app.noUserInterraction = true; 
+
+    document.getElementsByTagName('body')[0].classList.remove("nocursor");
+    document.getElementsByTagName('body')[0].classList.add("cursor");
+
+    setTimeout(() => {
+        hideInterface();
+    }, 3000);
+}
+
+function cursorEnterInterface()
+{
+    app.cursorOnInterface = true;
+}
+
+function cursorExitInterface()
+{
+    app.cursorOnInterface = false;
+}
+
+function hideInterface()
+{
+    let siteName = document.getElementById("siteName");
+    let channels = document.getElementById("channels");
+    let menuControler = document.getElementById("menuControler");
+
+    if(app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true) {
+        siteName.classList.add("hidden");
+        channels.classList.add("hidden");
+        menuControler.classList.add("hidden");
+        siteName.classList.remove("displayed");
+        channels.classList.remove("displayed");
+        menuControler.classList.remove("displayed");
+
+        document.getElementsByTagName('body')[0].classList.add("nocursor");
+        document.getElementsByTagName('body')[0].classList.remove("cursor");
+    }
+}
+
+    /*  ----------------------------------------
+         FULLSCREEN MODE
+        ---------------------------------------- */
+
+        function goFullScreen()
+        {
+            document.getElementById("fullscreen").setAttribute("display", "none");
+            app.fullscreenStatus = true;
+            // Go fullscreen
+            var body = document.getElementsByTagName("body")[0];
+            body.requestFullscreen();
+            // Fullscreen button evolves into end fullscreen button
+            document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-end-icon.svg");
+            document.getElementById("fullscreen").setAttribute("onmousedown", "endFullScreen();");
+            document.getElementById("fullscreen").setAttribute("display", "block");
+        }
+
+        function endFullScreen()
+        {
+            document.getElementById("fullscreen").setAttribute("display", "none");
+            // End fullscreen
+            document.exitFullscreen();
+            // End fullscreen button evolves into fullscreen button
+            document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-icon.svg");
+            document.getElementById("fullscreen").setAttribute("onmousedown", "goFullScreen();");
+            app.fullscreenStatus = false;
+            document.getElementById("fullscreen").setAttribute("display", "block");
+        }
+
+
+
     /* -----------------------------
         CONTROL PANEL
        ----------------------------- */
 
+
+
+
+/*
 
         function requestFullScreen() {
 
@@ -171,7 +298,7 @@
             }
           }
         }
-
+*/
 
         // PLAY OR PAUSE THE VIDEO DEPENDING ON THE CURRENT STATE
         function playOrPause()
@@ -181,11 +308,13 @@
             {
                 //document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.png";
                 player.pauseVideo();
+                app.playing = false;
             }
             else
             {
                 //document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.png";
                 player.playVideo();
+                app.playing = true;
             }
             updatePlayerState();
         }
@@ -242,12 +371,14 @@
        function playChannel()
        {
           player.playVideo();
+          app.playing = true;
           updatePlayerState();
        }
 
        function pauseChannel()
        {
           player.pauseVideo();
+          app.playing = false;
           updatePlayerState();
        }
 
@@ -361,7 +492,22 @@
         // UPDATE THE VIDEO TITLE IN THE CONTROL PANEL
         function updateVideoTitle()
         {
-            document.getElementById("currentVideoNameDisplay").innerHTML = "<a href='" + player.getVideoUrl() + "' target='_blank'>" + player.getVideoData().title + "</a>";
+            let vidTitle = null;
+            let vidUrl = null;
+            let elHtml = "-";
+            try {
+                vidTitle = player.getVideoData().title;
+                vidUrl = player.getVideoUrl();
+                if(vidTitle == undefined) {
+                    vidTitle = "-";
+                    elHtml = "vidTitle";
+                }
+                else {
+                    elHtml = "<a href='" + vidUrl + "' target='_blank'>" + vidTitle + "</a>";
+                }
+            } catch(e) {}
+
+            document.getElementById("currentVideoNameDisplay").innerHTML = elHtml;
             updateDuration();
         }
 
@@ -410,6 +556,12 @@
         CHANNEL LOADING
        ----------------------------- */
 
+        function loadSelectedChannelByNum(num)
+        {
+            let i = num - 1;
+            loadSelectedChannel(channelList[i][0], channelList[i][3], channelList[i][4], channelList[i][2]);
+        }
+
         // CHANGE THE CHANNEL IN THE PLAYER
         function loadSelectedChannel(playName, playID, playNbVideos, logo)
         {
@@ -422,10 +574,30 @@
             playlistNbVideos = playNbVideos;
             alreadyPlayed = [];
             alreadyPlayedErrors = [];
+
+            app.playName = playName;
+            app.playID = playID;
+            app.playNbVideos = playNbVideos;
+            app.logo = logo;
             // Initialise the player
             initYT();
             //Update the channel informations (global variables and display)
             menuUpdate(playName, logo);
+
+            console.log("CHANNEL : " + getCurrentChannelNum());
+        }
+
+        function getCurrentChannelNum() {
+            let res = null;
+            // for each channel in the menu
+            for(var i=0; i< channelList.length; i++ )
+            {
+                // highlight it only if its the current channel
+                if(channelList[i][0] == app.playName) {
+                    res = i + 1;
+                }
+            }
+            return res;
         }
 
         // UPDATE THE CHANNEL INFORMATIONS
@@ -565,8 +737,41 @@
         YOUTUBE PLAYER LOADING
        ----------------------------- */
 
+/*
+        document.getElementsByTagName('body')[0].addEventListener("onkeyup", function(event) {
+            console.log(event);
+            event.preventDefault();
+        });
+
+*/
+
+/*
+        if (window.document.addEventListener) {
+           window.document.addEventListener("keydown", alert("done"), false);
+        } else {
+           window.document.attachEvent("onkeydown", alert("done"));
+        }
+*/
         initYT();
 
+/*
+        document.onkeydown = function (e) {
+            alert("done");
+            e.preventDefault();
+        };
+
+        */
+/*
+        document.addEventListener("onkeypress", function(event) {
+            event.preventDefault();
+            return;
+        });
+
+        document.addEventListener("onkeyup", function(event) {
+            event.preventDefault();
+            return;
+        });
+*/
         window.addEventListener("message", function(event) {
             try {
                 updateDuration();
@@ -605,6 +810,7 @@
 
         // Force the data actualisation (just in case)
         player.playVideo();
+        app.playing = true;
         updateVideoTitle();
         menuUpdate(currentChannel, currentChannelLogo);
 
@@ -659,4 +865,140 @@
         // Play next video
         nextVideo();
         player.playVideo();
+        app.playing = true;
     }
+
+
+
+
+
+
+
+
+
+function loadSelectedChannelByRemote() {
+    setTimeout(() => {
+        let chNum = parseInt(app.remoteDigitBuffer);
+        loadSelectedChannelByNum(chNum);
+        app.remoteDigitBuffer = null;
+    }, 3000);
+}
+
+
+
+function addToRemoteDigitBuffer(digit)
+{
+    if(app.remoteDigitBuffer === null) {
+        app.remoteDigitBuffer = "";
+        app.remoteDigitBuffer += digit;
+        loadSelectedChannelByRemote();
+    }
+    else {
+        app.remoteDigitBuffer += digit;
+    }
+    console.log("CURRENT REMOTE ENTRY : " + app.remoteDigitBuffer);
+}
+
+
+
+
+function keyHandler()
+{
+    console.log(event.code);
+    showInterface();
+    switch(event.code)
+    {
+        case "KeyR":
+            loadSelectedChannel(app.playName, app.playID, app.playNbVideos, app.logo);
+            event.preventDefault();
+            break;
+        case "KeyF":
+            if(app.fullscreenStatus === false) { goFullScreen(); }
+            else                               { endFullScreen(); }
+            event.preventDefault();
+            break;
+        case "Escape":
+            endFullScreen();
+            event.preventDefault();
+            break;
+        case "Space":
+            if(app.fullscreenStatus === false) { playOrPause(); }
+            else                               { playOrPause(); }
+            event.preventDefault();
+            break;
+        case "ArrowUp":
+            try {
+                let prevCh = getCurrentChannelNum() - 1;
+                if(prevCh >= 0) {
+                    loadSelectedChannelByNum(prevCh);
+                } else if (prevCh == -1) {
+                    loadSelectedChannelByNum(channelList.length);
+                }
+            }
+            catch(e) { }
+            event.preventDefault();
+            break;
+        case "ArrowDown":
+            try {
+                let prevCh = getCurrentChannelNum() + 1;
+                if(prevCh <= channelList.length) {
+                    loadSelectedChannelByNum(prevCh);
+                } else if (prevCh > channelList.length) {
+                    loadSelectedChannelByNum(0);
+                }
+            }
+            catch(e) { }
+            event.preventDefault();
+            break;
+        case "Digit1" :
+            addToRemoteDigitBuffer("1");
+            event.preventDefault();
+            break;
+        case "Digit2" :
+            addToRemoteDigitBuffer("2");
+            event.preventDefault();
+            break;
+        case "Digit3" :
+            addToRemoteDigitBuffer("3");
+            event.preventDefault();
+            break;
+        case "Digit4" :
+            addToRemoteDigitBuffer("4");
+            event.preventDefault();
+            break;
+        case "Digit5" :
+            addToRemoteDigitBuffer("5");
+            event.preventDefault();
+            break;
+        case "Digit6" :
+            addToRemoteDigitBuffer("6");
+            event.preventDefault();
+            break;
+        case "Digit7" :
+            addToRemoteDigitBuffer("7");
+            event.preventDefault();
+            break;
+        case "Digit8" :
+            addToRemoteDigitBuffer("8");
+            event.preventDefault();
+            break;
+        case "Digit9" :
+            addToRemoteDigitBuffer("9");
+            event.preventDefault();
+            break;
+        case "Digit0" :
+            addToRemoteDigitBuffer("0");
+            event.preventDefault();
+            break;
+
+    }
+}
+
+
+
+
+
+
+
+
+

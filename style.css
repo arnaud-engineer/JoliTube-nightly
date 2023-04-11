@@ -31,7 +31,7 @@
 	--controlsHeight: calc(2 * var(--playerHeight) / 6);
 	--settingsHeight: calc(1 * var(--playerHeight) / 6);
 
-	--backgroundColor: #00000060;
+	--backgroundColor: #00000075;
 
 	--h1FontSize: max(min(3.6vh, 3.6vw), 21px);
 	--h2FontSize: calc(.8 * var(--h1FontSize));
@@ -84,6 +84,13 @@
 	PAGE WEB
    ========================================================================= */
 
+body.cursor {
+	cursor: auto;
+}
+
+body.nocursor {
+	cursor: none !important;
+}
 
 	/* ------------------------------------
 		BACKGROUND
@@ -138,6 +145,21 @@
 		padding: none;
 		margin-left: -100%;
 	}
+
+
+#siteName.displayed,
+#channels.displayed,
+#menuControler.displayed
+{
+	display: block;
+}
+
+#siteName.hidden,
+#channels.hidden,
+#menuControler.hidden
+{
+	display: none;
+}
 
 
 
@@ -203,6 +225,7 @@
 			z-index: 10;
 
 			filter: drop-shadow(0 0 5px black);
+			backdrop-filter: blur(10px);
 
 			overflow: hidden;
 
@@ -274,7 +297,7 @@
 					{
 						height: calc(1.25 * var(--channelHeight));
 						width: 93%;
-						border-bottom: 1px solid #FFFFFF50;
+						border-bottom: 1px solid #FFFFFF30;
 
 						display: flex;
 						flex-direction: row;
@@ -290,6 +313,26 @@
 							background-color: #FF0000;
 						}
 
+							.logoElementMenuBar
+							{
+								width: 20%;
+								height: calc(1 * var(--channelHeight));
+
+								display: flex;
+								flex-direction: row;
+								align-items: center;
+								justify-content: center;
+								align-content: center;
+							}
+
+								.logoElementMenuBar img
+								{
+									max-height: 100%;
+									max-width: 100%;
+									padding: 15%;
+								}
+
+/*
 						.logoElementMenuBar
 						{
 							width: calc(1.25 * var(--channelHeight));
@@ -303,10 +346,10 @@
 								margin: calc(.25 * var(--channelHeight));
 								margin-left: calc(.125 * var(--channelHeight));
 							}
-
+*/
 						.titlesElementMenuBar
 						{
-							width: 100%;
+							width: 73%;
 
 						}
 
@@ -318,7 +361,7 @@
 
 							.titlesElementMenuBar h2
 							{
-								font-size: var(--h3FontSize);
+								font-size: var(--h4FontSize);
 								margin-top: calc(var(--channelHeight) / 16);
 							}
 
@@ -336,6 +379,7 @@
 			height: calc((100vh - 2 * var(--channelHeight)) / 3);
 
 			background-color: var(--backgroundColor);
+			backdrop-filter: blur(10px);
 
 			z-index: 10;
 
@@ -352,23 +396,38 @@
 			overflow: hidden;
 		}
 
-			#currentChannelLogo
-			{
-				position: absolute;
-				top: 0;
-				left: 0;
-				height: calc(.7 * var(--dataHeight));
-				width: auto;
-				padding: calc(.15 * var(--dataHeight));
-			}
+							#currentChannelLogoContainer
+							{
+								position: absolute;
+								top: 0;
+								left: 0;
+								width: calc(.7 * var(--dataHeight));
+								height: calc(.7 * var(--dataHeight));
+								padding: calc(.15 * var(--dataHeight));
+								/*width: 20%;
+								height: calc(1 * var(--channelHeight));*/
 
+								display: flex;
+								flex-direction: row;
+								align-items: center;
+								justify-content: center;
+								align-content: center;
+
+							}
+
+								#currentChannelLogo
+								{
+									max-height: 100%;
+									max-width: 100%;
+									padding: 12%;
+								}
 
 
 
 			#currentChannelNameDisplay
 			{
 				position: absolute;
-				top: calc(.25 * var(--dataHeight));
+				top: calc(.2 * var(--dataHeight));
 				left: calc(1 * var(--dataHeight));
 				font-size: var(--h1FontSize);
 				text-transform: uppercase;

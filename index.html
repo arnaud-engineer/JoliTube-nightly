@@ -24,7 +24,7 @@
 
 	</head>
 
-	<body>
+	<body onmousemove="showInterface();" onkeydown="keyHandler();">
 
 		<div id="background" onclick="playOrPause();">
 			<div id="playerContainer">
@@ -33,13 +33,13 @@
 		</div>
 
 
-		<header>
+		<header onmouseenter="cursorEnterInterface();" onmouseleave="cursorExitInterface();">
 			<h1 id="siteName">
 				<a id="siteLogo" href="index.html"><img src="rsrc/JoliTubeLogo.svg"/></a>
 			</h1>
 		</header>
 
-		<div id="channels">
+		<div id="channels" onmouseenter="cursorEnterInterface();" onmouseleave="cursorExitInterface();">
 			<h1 id="channelsTitle">
 				<span id="channelsCategorieBack"><</span>
 				<span id="channelsCategorieName">Generalist channels</span>
@@ -51,11 +51,13 @@
 
 
 
-		<div id="menuControler">
+		<div id="menuControler" onmouseenter="cursorEnterInterface();" onmouseleave="cursorExitInterface();">
 
 			<div id="currentChannel">
 				<div id="videoData">
-					<img id="currentChannelLogo" src="rsrc/mediaPlayer/backGreyed.png" />
+					<div id="currentChannelLogoContainer">
+						<img id="currentChannelLogo" src="rsrc/mediaPlayer/backGreyed.png" />
+					</div>
 					<h1 id="currentChannelNameDisplay"></h1>
 					<h2 id="currentVideoNameDisplay"></h2>
 				</div>
@@ -101,7 +103,7 @@
 						<option value="auto" selected>AUTO</option>
 					</select>
 				</div>
-				<img id="fullscreen" src="rsrc/mediaPlayer/fullscreen-icon.svg" onclick="requestFullScreen();" />
+				<img id="fullscreen" src="rsrc/mediaPlayer/fullscreen-icon.svg" onmousedown="goFullScreen();" />
 			</div>
 		</div>
 
