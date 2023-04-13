@@ -4,7 +4,7 @@
                 this.preferredUnit = "cm";
                 this.theme = "auto";
                 this.fullscreenStatus = false;
-                this.showGraduations = true;
+                this.theaterOn = true;
 
                 this.noUserInterraction = true;
                 this.cursorOnInterface = false;
@@ -20,13 +20,66 @@
 
                 this.remoteDigitBuffer = null;
 
+                this.currentQuality = null;
+                this.availablesQualities = null;
+
+                this.priorityToMaxRes = true;
+                this.userSelectedMaxRes = "hd2160";
+
 
 
                 this.playing = false;
+
+
+
+                this.inputForbidden = false;
+
+
+
+
+
+                this.subtitlesOn = null;
+                this.currentSubtitlesLanguage = null;
+                this.subtitlesPrefList = ["off", "fr", "en-US"];
+                this.subtitlesPrefMatrice = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+                this.subtitlesManuallySelected = false;
             }
         }
 
         var app = new AppPreferences();
+
+
+        function updateLanguagesRanks(cLang) {
+            for(let i=0 ; i < app.subtitlesPrefList.length ; i++) {
+                console.log(cLang + " : " + app.subtitlesPrefMatrice[cLang][i] + " -- VS -- " + i + " : " + app.subtitlesPrefMatrice[i][cLang]);
+                if(app.subtitlesPrefMatrice[cLang][i] > app.subtitlesPrefMatrice[i][cLang]) {
+                    if (cLang > i) {
+                        app.subtitlesPrefList.splice(i, 0, app.subtitlesPrefList.splice(cLang, 1)[0]);
+                        app.subtitlesPrefMatrice.splice(i, 0, app.subtitlesPrefMatrice.splice(cLang, 1)[0]);
+                    }
+                }
+            }
+        }
+
+
+        function updateLanguagesStats(cLang, availableTracks)
+        {
+            for(let i=0 ; i < app.subtitlesPrefMatrice[cLang].length ; i++) {
+                for(let j=0 ; j < availableTracks.length ; j++) {
+                    if(app.subtitlesPrefList[i] === availableTracks[j].languageCode) {
+                        app.subtitlesPrefMatrice[cLang][i]++;
+                    }
+                }
+                if(app.subtitlesPrefList[i] === "off") {
+                    app.subtitlesPrefMatrice[cLang][app.subtitlesPrefList.indexOf("off")]++;
+                } 
+
+            }
+            updateLanguagesRanks(cLang);
+            console.log(app.subtitlesPrefList);
+            console.log(app.subtitlesPrefMatrice);
+        }
+
 
 /* =========================================================================
     CHANNELS LIST
@@ -41,8 +94,11 @@
           - Nb videos : Number of videos in the playlist (if higher than the real value, might cause bugs in the index random generation)
         */
 
+        var possibleQualitiesValues = ["hd2160", "hd1440", "hd1080", "hd720", "large", "hd720", "medium", "small", "tiny", "auto"];
+
         var channelList = [
         	// Premium
+            ["TEST","TEST","rsrc/channelsLogos/JoliTubePlus.png","PLEJ0pOW0FHeECH6Q4OuOSkujC8Grt11Vo","3"],
             ["JoliTube +","Les derniers ajouts","rsrc/channelsLogos/JoliTubePlus.png","PLEJ0pOW0FHeELfQtk-6za-V7Pirc15Nax","173"],
             ["JoliTube + Séries","Essayez des séries","rsrc/channelsLogos/JoliTubeSeries.png","PLEJ0pOW0FHeGn_AMco5NL9QbZPdaIJ0sK","87"],
             ["JoliTube + Cinéma","Pop-corn vendu séparément","rsrc/channelsLogos/JoliTubeCinema.png","PLEJ0pOW0FHeGv1QU3JIuqYnGoIP3a7J0r","17"],
@@ -129,7 +185,6 @@
     var alreadyPlayed = [];
     var alreadyPlayedErrors = [];
     var currentChannel = "";
-    var currentChannelLogo = "";
     var currentVideoIndex = -2;
 
     //Playback variables
@@ -249,6 +304,7 @@ function hideInterface()
             // Fullscreen button evolves into end fullscreen button
             document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-end-icon.svg");
             document.getElementById("fullscreen").setAttribute("onmousedown", "endFullScreen();");
+            body.setAttribute("ondblclick", "endFullScreen();");
             document.getElementById("fullscreen").setAttribute("display", "block");
         }
 
@@ -260,8 +316,51 @@ function hideInterface()
             // End fullscreen button evolves into fullscreen button
             document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-icon.svg");
             document.getElementById("fullscreen").setAttribute("onmousedown", "goFullScreen();");
+            var body = document.getElementsByTagName("body")[0];
+            body.setAttribute("ondblclick", "goFullScreen();");
             app.fullscreenStatus = false;
             document.getElementById("fullscreen").setAttribute("display", "block");
+
+        }
+
+        function togglePictureInPicture() {
+            console.log(document.getElementById("player"));
+            console.log("=========");
+            console.log(document.getElementsByTagName('video'));
+          if (document.getElementById("player").pictureInPictureElement) {
+            document.exitPictureInPicture();
+          } else if (document.pictureInPictureEnabled) {
+            document.getElementById("player").requestPictureInPicture();
+          }
+        }
+
+
+    /*  ----------------------------------------
+         FILL / THEATHER MODE
+        ---------------------------------------- */
+
+        function goFillMode()
+        {
+            document.getElementById("fillingmode").setAttribute("display", "none");
+            app.theaterOn = false;
+            // Go fullscreen
+            document.getElementById("playerContainer").classList.add("plain");
+            // Fullscreen button evolves into end fullscreen button
+            document.getElementById("fillingmode").setAttribute("src", "rsrc/mediaPlayer/theater-mode.svg");
+            document.getElementById("fillingmode").setAttribute("onmousedown", "goTheatherMode();");
+            document.getElementById("fillingmode").setAttribute("display", "block");
+        }
+
+        function goTheatherMode()
+        {
+            document.getElementById("fillingmode").setAttribute("display", "none");
+            app.theaterOn = true;
+            // Go fullscreen
+            document.getElementById("playerContainer").classList.remove("plain");
+            // Fullscreen button evolves into end fullscreen button
+            document.getElementById("fillingmode").setAttribute("src", "rsrc/mediaPlayer/fill-mode.svg");
+            document.getElementById("fillingmode").setAttribute("onmousedown", "goFillMode();");
+            document.getElementById("fillingmode").setAttribute("display", "block");
         }
 
 
@@ -300,24 +399,7 @@ function hideInterface()
         }
 */
 
-        // PLAY OR PAUSE THE VIDEO DEPENDING ON THE CURRENT STATE
-        function playOrPause()
-        {
-            var currentState = player.getPlayerState();
-            if(currentState == 1)
-            {
-                //document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.png";
-                player.pauseVideo();
-                app.playing = false;
-            }
-            else
-            {
-                //document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.png";
-                player.playVideo();
-                app.playing = true;
-            }
-            updatePlayerState();
-        }
+
 
         // PLAY THE PREVIOUS VIDEO
         function previousVideo()
@@ -368,30 +450,55 @@ function hideInterface()
         VIDEO CONTROL
        ----------------------------- */
 
+
+        // PLAY OR PAUSE THE VIDEO DEPENDING ON THE CURRENT STATE
+        function playOrPause()
+        {
+            //let currentState = player.getPlayerState(); -> 1 / 2
+
+            if(app.inputForbidden === false) {
+                let fromButton = "";
+                try {
+                    isFromPlayPauseButton = (event.originalTarget.src === document.getElementById("playVideo").src);
+                } catch(e) {}
+                if(app.cursorOnInterface === false || isFromPlayPauseButton) {
+                    if(app.playing === true) {
+                        app.inputForbidden = true;
+                        pauseChannel();
+                    }
+                    else if(app.playing === false)  {
+                        app.inputForbidden = true;
+                        playChannel();
+                    }
+                }
+            }
+
+            setTimeout(() => {
+                app.inputForbidden = false;
+            }, 300);
+
+
+        }
+
        function playChannel()
        {
-          player.playVideo();
-          app.playing = true;
-          updatePlayerState();
+            app.playing = true;
+            player.playVideo();
+            document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.png";
+            updatePlayerState();
        }
 
        function pauseChannel()
        {
-          player.pauseVideo();
-          app.playing = false;
-          updatePlayerState();
+            app.playing = false;
+            player.pauseVideo();
+            document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.png";
+            updatePlayerState();
        }
 
        // UPDATE THE ICON PLAY/PAUSE OF THE CONTROL PANEL DEPENDING ON THE PLAYER STATE
        function updatePlayerState()
        {
-            //play pause
-            var currentState = player.getPlayerState();
-            if(currentState == 0 || currentState == 2)
-                document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.png";
-            else if(currentState == 1)
-                document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.png";
-
             //back
             if(alreadyPlayed.length == 1 || alreadyPlayed.length == currentBackToTheFutureCount + 1)
             {
@@ -410,6 +517,9 @@ function hideInterface()
             document.getElementById("nextVideo").src = "rsrc/mediaPlayer/forward.png";
             document.getElementById("nextVideo").onclick = function() { nextVideo(); };
             document.getElementById("nextVideo").style.cursor = "pointer";
+
+
+
        }
 
        function disablePlayer()
@@ -429,64 +539,277 @@ function hideInterface()
         VIDEO LOADING
        ----------------------------- */
 
+        function userChangeQuality()
+        {
+            // If the user select a quality value < MAX RES
+            if(possibleQualitiesValues.indexOf(event.target.value) >= 1) {
+                app.userSelectedMaxRes = event.target.value;
+                app.priorityToMaxRes = false;
+            }
+            else if(possibleQualitiesValues.indexOf(event.target.value) == 0) {
+                app.userSelectedMaxRes = event.target.value;
+                app.priorityToMaxRes = true;
+            }
+            app.currentQuality = event.target.value;
+            loadQuality();
+        }
+
+        function setCaptionsWidth() {
+            let selectSubtitles = event.target;
+            let currentOption = selectSubtitles.selectedOptions[0];
+            let currentOptionLenght = currentOption.firstChild.length;
+            let currentOptionWidthVariable = currentOptionLenght * .8;
+            let currentOptionWidthFix = 3;
+            selectSubtitles.style.width = "calc(" + currentOptionWidthVariable + " * var(--h2FontSize) + " + currentOptionWidthFix + " * var(--h4FontSize))";
+        }
+
+        function setManualCaptionsWidth(currentOptionWidthVariable, currentOptionWidthFix) {
+            selectSubtitles.style.width = "calc(" + currentOptionWidthVariable + " * var(--h2FontSize) + " + currentOptionWidthFix + " * var(--h4FontSize))";
+        }   
+
+        function userChangeCaptions()
+        {
+            app.subtitlesManuallySelected = true;
+
+            let selectSubtitles = event.target;
+            let currentOption = selectSubtitles.selectedOptions[0];
+            let currentOptionLenght = currentOption.firstChild.length;
+            let currentOptionWidthVariable = currentOptionLenght * .8;
+            let currentOptionWidthFix = 3;
+
+
+            app.currentSubtitlesLanguage = currentOption.value;
+
+            if(app.currentSubtitlesLanguage === "off") {
+                app.subtitlesOn = false;
+            } else {
+                app.subtitlesOn = true;
+            }
+
+            loadCaptions();
+
+            console.log("LLLLLL : " + currentOption.value)
+
+            //console.log(currentOptionLenght);
+        }
+
+
+        function loadQuality()
+        {                
+            app.availablesQualities = player.getAvailableQualityLevels();
+
+            if(app.currentQuality == null) {
+                app.currentQuality = player.getPlaybackQuality();
+            }
+
+            if((!app.availablesQualities.includes(app.currentQuality)) || app.priorityToMaxRes) {
+                if(app.priorityToMaxRes) {
+                    app.currentQuality = app.availablesQualities[0];
+                }
+                else {
+                    let currentQualityIndex = possibleQualitiesValues.indexOf(app.currentQuality);
+                    for(let i=currentQualityIndex+1; i < possibleQualitiesValues.length ; i++) {
+                        if(app.availablesQualities.indexOf(possibleQualitiesValues[i]) >= 0) {
+                            app.currentQuality = app.availablesQualities.indexOf(possibleQualitiesValues[i]);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            let selectResolution = document.getElementById("selectResolution");
+
+            selectResolution.innerHTML = "";
+            for(let i=0; i < app.availablesQualities.length ; i++) {
+                let isSelected = "";
+                if(app.availablesQualities[i] === app.currentQuality) {
+                    isSelected = " selected";
+                }
+                switch(app.availablesQualities[i])
+                {
+                    case "hd2160" :
+                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">4K - 2160p</option>";
+                        break;
+                    case "hd1440" :
+                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HD - 1440p</option>";
+                        break;
+                    case "hd1080" :
+                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HD - 1080p</option>";
+                        break;
+                    case "hd720" :
+                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HQ - 720p</option>";
+                        break;
+                    case "large" :
+                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 480p</option>";
+                        break;
+                    case "medium" :
+                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 360p</option>";
+                        break;
+                    case "small" :
+                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 240p</option>";
+                        break;
+                    case "tiny" :
+                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 144p</option>";
+                        break;
+                    case "auto" :
+                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">AUTO</option>";
+                        break;
+                }
+            }
+
+            player.setPlaybackQuality(app.currentQuality);
+        }
+
+        function loadCaptions() {
+            try {
+                let captionsList = player.getOption('captions', 'tracklist');
+                let captionSelected = player.getOption('captions', 'track').languageCode;
+                let selectSubtitles = document.getElementById("selectSubtitles");
+
+                if(app.currentSubtitlesLanguage === null) {
+                    app.currentSubtitlesLanguage = captionSelected;
+                }
+
+                selectSubtitles.innerHTML = "";
+                console.log(player.getOption('captions', 'tracklist'));
+                if (captionsList.length === 0) {
+                    selectSubtitles.innerHTML += "<option value='off' selected>No Subtitles</option>";
+                    selectSubtitles.setAttribute("disabled", "");
+                    player.unloadModule("captions");
+                    setManualCaptionsWidth(10, 0);
+                }
+                else if (captionsList.length > 0) {
+                    player.loadModule("captions"); 
+
+                    if(!app.subtitlesManuallySelected) {
+                        let currentBestRankedLanguage = null;
+                        for(let i=0 ; i < captionsList.length ; i++) {
+                            for(let j=0 ; j < app.subtitlesPrefList.length ; j++) {
+                                if(currentBestRankedLanguage > j || currentBestRankedLanguage === null) {
+                                    if(captionsList[i].languageCode === app.subtitlesPrefList[j] || app.subtitlesPrefList.indexOf("off") === app.subtitlesPrefList[j]) {
+                                        currentBestRankedLanguage = j;
+                                    }
+                                }
+                            }
+                        }
+
+                        app.currentSubtitlesLanguage = app.subtitlesPrefList[currentBestRankedLanguage];
+                    } else {
+                        let selectedLang = app.subtitlesPrefList.indexOf(app.currentSubtitlesLanguage);
+                        if(selectedLang >= 0) {
+                            updateLanguagesStats(selectedLang, captionsList);
+                        }
+                    }
+                    
+                    for(let i=0 ; i < captionsList.length ; i++) {
+                        let isSelected = "";
+                        if(captionsList[i].languageCode === app.currentSubtitlesLanguage) {
+                            isSelected = " selected";
+                        }
+                        selectSubtitles.innerHTML += "<option value='" + captionsList[i].languageCode + "'" + isSelected + ">" + captionsList[i].languageName + "</option>";
+                    }
+                    let nosub = "";
+                    if(app.subtitlesOn === false) {
+                        nosub = " selected";
+                    }
+                    selectSubtitles.innerHTML += "<option value='off'" + nosub + ">Off</option>";
+
+                    selectSubtitles.removeAttribute("disabled");
+
+                    if(app.subtitlesOn === true) {
+                        player.setOption("captions", "track", {"languageCode": app.currentSubtitlesLanguage});
+                    } else {
+                        player.unloadModule("captions"); 
+                    }
+
+                    setCaptionsWidth();
+                    app.subtitlesManuallySelected = false;
+                }
+            }
+            catch(e) { /*console.log("ERR - NO CAPTIONS RETURNED ...");*/ }
+
+        }
+
         // LOAD THE N INDEX VIDEO
         function loadVideo(n)
         {
-            updateVideoTitle();
             player.playVideoAt(n);
             currentVideoIndex=n;
+            updateAllData();
+        }
+
+        function updateAllData()
+        {
+            updateVideoTitle();
+            updateDuration();
+            updatePlayerState();
+            loadQuality();
+            loadCaptions();
+            menuUpdate();
+
+            setTimeout(() => {
+                updateVideoTitle();
+                updateDuration();
+                updatePlayerState();
+                loadQuality();
+                loadCaptions();
+                menuUpdate();
+            }, 1000);
         }
 
         function updateDuration()
         {
-            let t = player.getCurrentTime();
-            videotime = t;
-            let timecodeHH = Math.floor(t / 60 / 60);
-            let timecodeMM = Math.floor((t % 3600) / 60);
-            let timecodeSS = Math.floor(t % 60);
+            try
+            {
+                let d = player.getDuration();
+                let durationHH = Math.floor(d / 60 / 60);
+                let durationMM = Math.floor((d % 3600) / 60);
+                let durationSS = Math.floor(d % 60);
 
-            if(timecodeHH < 10 && (!(timecodeHH !== 0))) {
-                timecodeHH = "0" + timecodeHH;
-            }
-            if(timecodeMM < 10) {
-                timecodeMM = "0" + timecodeMM;
-            }
-            if(timecodeSS < 10) {
-                timecodeSS = "0" + timecodeSS;
-            }
+                if(durationHH < 10 && durationHH !== 0) {
+                    durationHH = "0" + durationHH;
+                }
+                if(durationMM < 10) {
+                    durationMM = "0" + durationMM;
+                }
+                if(durationSS < 10) {
+                    durationSS = "0" + durationSS;
+                }
+
+                if(durationHH !== 0) {
+                    d = durationHH + ":" + durationMM + ":" + durationSS;
+                }
+                else {
+                    d = durationMM + ":" + durationSS;
+                }
+                document.getElementById("currentVideoDuration").innerHTML = d;
+
+                let t = player.getCurrentTime();
+                videotime = t;
+                let timecodeHH = Math.floor(t / 60 / 60);
+                let timecodeMM = Math.floor((t % 3600) / 60);
+                let timecodeSS = Math.floor(t % 60);
+
+                if(timecodeHH < 10 && timecodeHH !== 0) {
+                    timecodeHH = "0" + timecodeHH;
+                }
+                if(timecodeMM < 10) {
+                    timecodeMM = "0" + timecodeMM;
+                }
+                if(timecodeSS < 10) {
+                    timecodeSS = "0" + timecodeSS;
+                }
 
 
-            if(!(timecodeHH !== 0)) {
-                t = timecodeHH + ":" + timecodeMM + ":" + timecodeSS;
-            }
-            else {
-                t = timecodeMM + ":" + timecodeSS;
-            }
-            document.getElementById("currentVideoTime").innerHTML = t;
-
-
-            let d = player.getDuration();
-            let durationHH = Math.floor(d / 60 / 60);
-            let durationMM = Math.floor((d % 3600) / 60);
-            let durationSS = Math.floor(d % 60);
-
-            if(durationHH < 10 && (!(durationHH !== 0))) {
-                durationHH = "0" + durationHH;
-            }
-            if(durationMM < 10) {
-                durationMM = "0" + durationMM;
-            }
-            if(durationSS < 10) {
-                durationSS = "0" + durationSS;
-            }
-
-            if(!(durationHH !== 0)) {
-                d = durationHH + ":" + durationMM + ":" + durationSS;
-            }
-            else {
-                d = durationMM + ":" + durationSS;
-            }
-            document.getElementById("currentVideoDuration").innerHTML = d;
+                if(durationHH !== 0) {
+                    t = timecodeHH + ":" + timecodeMM + ":" + timecodeSS;
+                }
+                else {
+                    t = timecodeMM + ":" + timecodeSS;
+                }
+                document.getElementById("currentVideoTime").innerHTML = t;
+            } catch(e) {} 
+            
         }
 
         // UPDATE THE VIDEO TITLE IN THE CONTROL PANEL
@@ -503,13 +826,20 @@ function hideInterface()
                     elHtml = "vidTitle";
                 }
                 else {
-                    elHtml = "<a href='" + vidUrl + "' target='_blank'>" + vidTitle + "</a>";
+                    let authorText = "";
+                    if (player.playerInfo.videoData.author.length > 0) {
+                        authorText = " (by " + player.playerInfo.videoData.author + ")";
+                    }
+                    elHtml = "<a href='" + vidUrl + "' target='_blank'>" + vidTitle + authorText + "</a>";
                 }
             } catch(e) {}
 
             document.getElementById("currentVideoNameDisplay").innerHTML = elHtml;
-            updateDuration();
         }
+
+
+
+
 
         // RETURN A NON-PLAYED RANDOM VIDEO INDEX
         function getRandomVideoNumber()
@@ -547,9 +877,6 @@ function hideInterface()
             // Temporaraly disable the player to ensure fast user won't cause bugs
             // Will be reactivated during the state change when the video will be loaded
             disablePlayer();
-            /*setTimeout(() => {
-                updatePlayerState();
-            }, 1000);*/
         }
 
     /* -----------------------------
@@ -568,7 +895,17 @@ function hideInterface()
             // disable the controls
             disablePlayer();
             // Reset the player
-            document.getElementById("playerContainer").innerHTML = '<div id="player"></div>';
+            //document.getElementById("playerContainer").innerHTML = '<div id="player"></div>';
+            document.getElementById("playerContainer").innerHTML = "" +
+            '<div id="playerContainer" class="">' +
+                '<div id="cropping-div" style="">' +
+                    '<div id="div-to-crop" style="">' +
+                      '<div id="player-wrapper">' +
+                        '<div id="player"></div>' +
+                      '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
             // Update the global variables
             playlistID = playID;
             playlistNbVideos = playNbVideos;
@@ -582,9 +919,11 @@ function hideInterface()
             // Initialise the player
             initYT();
             //Update the channel informations (global variables and display)
-            menuUpdate(playName, logo);
+            updateAllData();
 
             console.log("CHANNEL : " + getCurrentChannelNum());
+            playChannel();
+
         }
 
         function getCurrentChannelNum() {
@@ -601,14 +940,11 @@ function hideInterface()
         }
 
         // UPDATE THE CHANNEL INFORMATIONS
-        function menuUpdate(playName, logo)
+        function menuUpdate()
         {
-            // Update the global variable
-            currentChannel=playName;
-            currentChannelLogo=logo;
             // Update the control panel display
-            document.getElementById("currentChannelNameDisplay").innerHTML = playName;
-            document.getElementById("currentChannelLogo").src = logo;
+            document.getElementById("currentChannelNameDisplay").innerHTML = app.playName;
+            document.getElementById("currentChannelLogo").src = app.logo;
             // Update the selection in the lateral menu
             var childDivs = document.getElementsByClassName('elementMenuBar');
             // for each channel in the menu
@@ -617,7 +953,7 @@ function hideInterface()
                 // reset the background color
                 childDivs[i].classList.remove("selected");
                 // highlight it only if its the current channel
-                if(childDivs[i].innerHTML.includes("<h1>"+currentChannel+"</h1>"))
+                if(childDivs[i].innerHTML.includes("<h1>"+app.playName+"</h1>"))
                     childDivs[i].classList.add("selected");
             }
         }
@@ -641,7 +977,6 @@ function hideInterface()
             // Call of the YouTube API
             onYouTubeIframeAPIReady();
 
-            // document.querySelector('iframe').contentDocument.body.querySelector('#ytp-watermark').style.display = 'none !important';
         }
 
         // CALL THE YOUTUBE API TO GET A PLAYER
@@ -660,26 +995,25 @@ function hideInterface()
             currentVideoIndex=vidNumber;
             // Instanciation of the player
             player = new YT.Player('player', {
-                height: '100%',
-                width: '100%',
+                host: 'https://www.youtube-nocookie.com',
                 events: {
                     'onReady': onPlayerReady,
                     'onStateChange': onPlayerStateChange,
                     'onError': onPlayerError
                 },
                 playerVars: {
-                    color: "white",
+                    origin: window.location.host,
                     controls: 0,
                     modestbranding: 1,
                     playsinline: 1,
-                    rel: 0,
+                    //rel: 0,
                     enablejsapi: 1,
-                    listType: 'playlist',
                     list: playlistID,
-                    index: vidNumber,
-                    fs: 0
+                    index: vidNumber
                 }
             });
+
+            document.getElementById("player").src += "?rel=0";
 
             let timeupdater = setInterval(function () { updateDuration(); }, 100);
         }
@@ -695,20 +1029,27 @@ function hideInterface()
         // Set the default channel (first in the channelList)
         playlistID=channelList[0][3];
         playlistNbVideos=channelList[0][4];
-        currentChannel=channelList[0][0];
-        currentChannelLogo=channelList[0][2];
+        app.playName=channelList[0][0];
+        app.logo=channelList[0][2];
 
         //Generation of the miniatures for each channel (HTML)
         var menuBarContent = "";
         var channelMiniature = "";
         setTimeout(() => {// Wait the html to be loaded (TODO : event listener)
+            let i = 0;
             channelList.forEach(function miniaturesGeneration(currentChannel, index) {
+                i++;
+                let displayChannelNum = "" + i;
+                if (displayChannelNum.length === 1) {
+                    displayChannelNum = "0" + displayChannelNum;
+                }
                 channelMiniature = '' +
                   '<div class="elementMenuBar" onclick="loadSelectedChannel(\'' + currentChannel[0] + '\',\'' + currentChannel[3] + '\',' + currentChannel[4] + ',\'' + currentChannel[2] + '\')";>' +
                     '<div class="logoElementMenuBar">' +
                       '<img src="' + currentChannel[2] + '"/>' +
                     '</div>' +
                     '<div class="titlesElementMenuBar">' +
+                      '<h2 style="text-align: right;">' + displayChannelNum + '</h2>' +
                       '<h1>' + currentChannel[0] + '</h1>' +
                       '<h2>' + currentChannel[1] + '</h2>' +
                     '</div>' +
@@ -779,13 +1120,6 @@ function hideInterface()
             catch(e) {}
         });
 
-        /*
-        Fix required for safari fullscreen
-        setTimeout(() => {
-            document.querySelector("video").webkitEnterFullScreen ();
-        }, 3000);
-        */
-
 /* =========================================================================
     EVENT LISTENERS
    ========================================================================= */
@@ -810,21 +1144,19 @@ function hideInterface()
 
         // Force the data actualisation (just in case)
         player.playVideo();
-        app.playing = true;
-        updateVideoTitle();
-        menuUpdate(currentChannel, currentChannelLogo);
 
         document.getElementById("player").removeAttribute("allowfullscreen");
         document.getElementById("player").setAttribute("allowFullScreen", "");
+
+        //document.getElementById("player").setAttribute("height", "200%");
 /*
         player.addEventListener('timeupdate', e => {
             updateDuration();
         });
 */
         // TODO c'est là le pb, on rend le bouton dispo alors que pas chargé
-        setTimeout(() => {
-            updatePlayerState();
-        }, 1000);
+        updateAllData();
+        
     }
 
     // AT THE END OF THE CURRENT VIDEO
@@ -833,27 +1165,10 @@ function hideInterface()
         // ENDED VIDEO HANDLING
         if (event.data == YT.PlayerState.ENDED)
         {
-            //player.stopVideo();
             nextVideo();
             return;
         }
 
-        // CASE WHERE THE USER CHANGE THE VIDEO WITH THE YT PLAYER (bypass the behavior)
-        setTimeout(() => {
-            var p = player.getPlaylistIndex();
-            if(p == currentVideoIndex + 1)
-            {
-                nextVideo();
-            }
-            else if (p == currentVideoIndex - 1)
-            {
-                previousVideo();
-            }
-        }, 200);
-
-        // In case the user changes it from the youtube interface
-        updateVideoTitle();
-        updatePlayerState();
     }
 
     // AT ERROR (when the video has been delete, got private or forbidden
@@ -864,8 +1179,7 @@ function hideInterface()
         alreadyPlayedErrors.push(alreadyPlayed.pop());
         // Play next video
         nextVideo();
-        player.playVideo();
-        app.playing = true;
+        playChannel();
     }
 
 
@@ -904,7 +1218,7 @@ function addToRemoteDigitBuffer(digit)
 
 function keyHandler()
 {
-    console.log(event.code);
+    //console.log(event.code);
     showInterface();
     switch(event.code)
     {

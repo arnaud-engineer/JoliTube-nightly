@@ -24,11 +24,19 @@
 
 	</head>
 
-	<body onmousemove="showInterface();" onkeydown="keyHandler();">
+	<body onmousemove="showInterface();" onkeydown="keyHandler();" ondblclick="goFullScreen();">
 
 		<div id="background" onclick="playOrPause();">
 			<div id="playerContainer">
-				<div id="player"></div>
+				<div id="cropping-div" style="">
+			        <div id="div-to-crop" style="">
+			          <div id="player-wrapper">
+			            <!-- 1. The <iframe> (and video 
+			            player) will replace this <div> 
+			            tag. -->
+			            <div id="player"></div>
+			          </div>
+			        </div>
 			</div>
 		</div>
 
@@ -77,33 +85,24 @@
 
 			<div id="advancedControls">
 				<div id="settingsControls">
+					<!--
 					<label>AUDIO</label>
 					<select id="selectAudio" name="selectAudio">
 						<option value="en">EN</option>
 						<option value="fr">FR</option>
 						<option value="auto" selected>AUTO</option>
 					</select>
-					<label>SOUS-TITRES</label>
-					<select id="selectSubtitles" name="selectSubtitles">
-						<option value="en">EN</option>
-						<option value="fr">FR</option>
-						<option value="auto" selected>AUTO</option>
-					</select>
-					<label>VIDEO</label>
-					<select id="selectResolution" name="selectResolution">
-						<option value="2160p">4K - 2160p</option>
-						<option value="1440p">HD - 1440p</option>
-						<option value="1080p">HD - 1080p</option>
-						<option value="720p">SD - 720p</option>
-						<option value="480p">SD - 480p</option>
-						<option value="360p">SD - 360p</option>
-						<option value="240p">SD - 240p</option>
-						<option value="144p">SD - 144p</option>
-						<option value="max">Max</option>
-						<option value="auto" selected>AUTO</option>
-					</select>
+					-->
+					<!--<label>VIDEO</label>-->
+					<select id="selectResolution" name="selectResolution" onchange="userChangeQuality();" disabled></select>
+					<!--<label>SOUS-TITRES</label>-->
+					<select id="selectSubtitles" name="selectSubtitles" onchange="userChangeCaptions();"></select>
 				</div>
-				<img id="fullscreen" src="rsrc/mediaPlayer/fullscreen-icon.svg" onmousedown="goFullScreen();" />
+				<div id="modeControls">
+					<!--<img id="pictureInPicture" src="rsrc/mediaPlayer/fullscreen-icon.svg" onmousedown="togglePictureInPicture();" />-->
+					<img id="fillingmode" src="rsrc/mediaPlayer/fill-mode.svg" onmousedown="goFillMode();" />
+					<img id="fullscreen" src="rsrc/mediaPlayer/fullscreen-icon.svg" onmousedown="goFullScreen();" />
+				</div>
 			</div>
 		</div>
 

@@ -117,12 +117,18 @@ body.nocursor {
 	}
 
 
+
+
 	#playerContainer
 	{
+			position: relative;
 			overflow: hidden;
 			/* Keep it the right aspect-ratio */
-			height: 100vh;
-			width: calc(16 * 100vh / 9);
+			/*min-height: calc(9 * min(100vh, 100vw) / 16);*/
+			max-height: 100vh;
+			width: calc(16 * min(100vh, 100vw) / 9);
+			max-width: 100vw;
+			/*max-width: 120vw;*/
 			aspect-ratio: 16/9;
 			/* No clicking/hover effects */
 			pointer-events: none;
@@ -130,21 +136,42 @@ body.nocursor {
 				margin: none;
 				padding: none;
 
+
 				background-color: black;
 	}
 
-	#player
-	{
-		/* HIDE YOUTUBE INFO */
-		/* https://codepen.io/adamgreenough/pen/bGrgoNb */
-		/* Extend it beyond the viewport... */
-		width: 300%;
-		height: 100%;
-		/* ...and bring it back again */
-		margin: none;
-		padding: none;
-		margin-left: -100%;
-	}
+		#playerContainer.plain {
+			min-height: calc(9 * min(100vh, 100vw) / 16);
+			min-width: calc(16 * min(100vh, 100vw) / 9);
+			max-height: none;
+			max-width: none;
+		}
+
+		/* BASED ON : https://codepen.io/jonpad/pen/QWyWbJW */
+
+		#cropping-div {
+		  overflow: hidden;
+		}
+
+			#div-to-crop {
+			  overflow: hidden;
+			  margin-top: -51%;
+			  margin-bottom: -20%;
+			}
+
+				#player-wrapper {
+				  position: relative;
+				  overflow: hidden;
+				  padding-top: 128.25%;
+				}
+
+					#player {
+					  position: absolute;
+					  top: 0;
+					  width: 100%;
+					  height: 124%;
+					  
+					}
 
 
 #siteName.displayed,
@@ -520,7 +547,7 @@ body.nocursor {
 					display: flex;
 				flex-direction: row;
 				align-items: center;
-				justify-content: space-between;
+				justify-content: flex-start;
 				align-content: center;
 
 			}
@@ -548,14 +575,47 @@ body.nocursor {
 	        -moz-appearance: none;
 	       	appearance: none;
 
-	       	text-align: right;
+	       	text-align: left;
 	       	padding-right: 25px;
 
-	       	background: url("rsrc/mediaPlayer/select.png") 96% / var(--h4FontSize) no-repeat #ffffff00;
+	       	background: url("rsrc/mediaPlayer/select.png") 4% / var(--h4FontSize) no-repeat #ffffff00;/*#ffffff00;*/
+
+	       	overflow: visible;
 				}
 
-				#selectAudio, #selectSubtitles	{ width: calc(4 * var(--h2FontSize)); margin-right: calc(.15 * var(--currentChannelHeight)); }
-				#selectResolution								{ width: calc(7 * var(--h2FontSize)); }
+				#selectAudio			{  }
+				#selectSubtitles	{ padding-left: calc(3 * var(--h4FontSize)); overflow: visible; }
+				#selectResolution	{ width: calc(6 * var(--h2FontSize));}
+
+				#settingsControls select:disabled {
+					background: none;
+					opacity: .75;
+					padding-left: 0;
+				}
+
+
+			#pictureInPicture
+			{
+				width: calc(.6 * var(--currentChannelHeight));
+				height: calc(.6 * var(--currentChannelHeight));
+				margin: calc(.2 * var(--currentChannelHeight));
+				margin-left: calc(.35 * var(--currentChannelHeight));
+				margin-right: calc(.35 * var(--currentChannelHeight));
+
+				filter: invert(1);
+			}
+
+
+			#fillingmode
+			{
+				width: calc(.6 * var(--currentChannelHeight));
+				height: calc(.6 * var(--currentChannelHeight));
+				margin: calc(.2 * var(--currentChannelHeight));
+				margin-left: calc(.35 * var(--currentChannelHeight));
+				margin-right: calc(.35 * var(--currentChannelHeight));
+
+				filter: invert(1);
+			}
 
 			#fullscreen
 			{
