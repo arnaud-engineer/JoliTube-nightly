@@ -1,7 +1,6 @@
         class AppPreferences
         {
             constructor() {
-                this.preferredUnit = "cm";
                 this.theme = "auto";
                 this.fullscreenStatus = false;
                 this.theaterOn = true;
@@ -13,7 +12,8 @@
 
                 //current channel
                 this.playName = null;
-                this.playID = null;
+                this.playID = 1;
+                this.displayPlayID = "01";
                 this.playNbVideos = null;
                 this.logo = null;
 
@@ -33,6 +33,10 @@
 
 
                 this.inputForbidden = false;
+
+
+
+                this.userIsUpdatingTimeCode = false;
 
 
 
@@ -78,6 +82,23 @@
             updateLanguagesRanks(cLang);
             console.log(app.subtitlesPrefList);
             console.log(app.subtitlesPrefMatrice);
+        }
+
+
+
+
+        function userTimeCodeSingleton() {
+            userIsUpdatingTimeCode = true;
+        }
+
+        function userChangesTimeCode() {
+            try {
+                if(event.target.value >= 0) {
+                    let newTimeCode = Math.round(event.target.value / 100);
+                    player.seekTo(newTimeCode, true);
+                }
+            } catch(e) {}
+            userIsUpdatingTimeCode = false;
         }
 
 
@@ -539,6 +560,52 @@ function hideInterface()
         VIDEO LOADING
        ----------------------------- */
 
+        function userChangeVolume()
+        {
+            if(event.target.value >= 0) {
+                player.setVolume(event.target.value);
+                refreshVolume();
+            }
+        }
+
+        function increaseVolume()
+        {
+            try
+            {
+                let vol = player.getVolume();
+                let roundedVol = Math.ceil(10 * vol) / 10;
+                if(roundedVol === vol) {
+                    roundedVol += 10;
+                }
+                player.setVolume(roundedVol);
+
+                refreshVolume();
+            }
+            catch(e) {}
+        }
+
+        function decreaseVolume()
+        {
+            try
+            {
+                let vol = player.getVolume();
+                let roundedVol = Math.floor(10 * vol) / 10;
+                if(roundedVol === vol) {
+                    roundedVol -= 10;
+                }
+                player.setVolume(roundedVol);
+                refreshVolume();
+            }
+            catch(e) {}
+        }
+
+        function refreshVolume() {
+            document.getElementById("volume").value = player.getVolume();
+            document.getElementById("webkitProgressFillVolume").style.width = "calc(" + player.getVolume() + "% * .785)";
+        }
+
+
+
         function userChangeQuality()
         {
             // If the user select a quality value < MAX RES
@@ -746,6 +813,8 @@ function hideInterface()
             loadQuality();
             loadCaptions();
             menuUpdate();
+            refreshVolume();
+            document.getElementById("volume").value = player.getVolume();
 
             setTimeout(() => {
                 updateVideoTitle();
@@ -754,6 +823,8 @@ function hideInterface()
                 loadQuality();
                 loadCaptions();
                 menuUpdate();
+                refreshVolume();
+                document.getElementById("volume").value = player.getVolume();
             }, 1000);
         }
 
@@ -761,53 +832,64 @@ function hideInterface()
         {
             try
             {
-                let d = player.getDuration();
-                let durationHH = Math.floor(d / 60 / 60);
-                let durationMM = Math.floor((d % 3600) / 60);
-                let durationSS = Math.floor(d % 60);
+                if(app.userIsUpdatingTimeCode === false)
+                {
+                    let d = player.getDuration();
+                    let dTimeCode = d;
+                    let durationHH = Math.floor(d / 60 / 60);
+                    let durationMM = Math.floor((d % 3600) / 60);
+                    let durationSS = Math.floor(d % 60);
 
-                if(durationHH < 10 && durationHH !== 0) {
-                    durationHH = "0" + durationHH;
-                }
-                if(durationMM < 10) {
-                    durationMM = "0" + durationMM;
-                }
-                if(durationSS < 10) {
-                    durationSS = "0" + durationSS;
-                }
+                    if(durationHH < 10 && durationHH !== 0) {
+                        durationHH = "0" + durationHH;
+                    }
+                    if(durationMM < 10) {
+                        durationMM = "0" + durationMM;
+                    }
+                    if(durationSS < 10) {
+                        durationSS = "0" + durationSS;
+                    }
 
-                if(durationHH !== 0) {
-                    d = durationHH + ":" + durationMM + ":" + durationSS;
-                }
-                else {
-                    d = durationMM + ":" + durationSS;
-                }
-                document.getElementById("currentVideoDuration").innerHTML = d;
+                    if(durationHH !== 0) {
+                        d = durationHH + ":" + durationMM + ":" + durationSS;
+                    }
+                    else {
+                        d = durationMM + ":" + durationSS;
+                    }
+                    document.getElementById("currentVideoDuration").innerHTML = d;
 
-                let t = player.getCurrentTime();
-                videotime = t;
-                let timecodeHH = Math.floor(t / 60 / 60);
-                let timecodeMM = Math.floor((t % 3600) / 60);
-                let timecodeSS = Math.floor(t % 60);
+                    let t = player.getCurrentTime();
+                    let tTimeCode = t;
+                    videotime = t;
+                    let timecodeHH = Math.floor(t / 60 / 60);
+                    let timecodeMM = Math.floor((t % 3600) / 60);
+                    let timecodeSS = Math.floor(t % 60);
 
-                if(timecodeHH < 10 && timecodeHH !== 0) {
-                    timecodeHH = "0" + timecodeHH;
-                }
-                if(timecodeMM < 10) {
-                    timecodeMM = "0" + timecodeMM;
-                }
-                if(timecodeSS < 10) {
-                    timecodeSS = "0" + timecodeSS;
-                }
+                    if(timecodeHH < 10 && timecodeHH !== 0) {
+                        timecodeHH = "0" + timecodeHH;
+                    }
+                    if(timecodeMM < 10) {
+                        timecodeMM = "0" + timecodeMM;
+                    }
+                    if(timecodeSS < 10) {
+                        timecodeSS = "0" + timecodeSS;
+                    }
 
 
-                if(durationHH !== 0) {
-                    t = timecodeHH + ":" + timecodeMM + ":" + timecodeSS;
+                    if(durationHH !== 0) {
+                        t = timecodeHH + ":" + timecodeMM + ":" + timecodeSS;
+                    }
+                    else {
+                        t = timecodeMM + ":" + timecodeSS;
+                    }
+                    document.getElementById("currentVideoTime").innerHTML = t;
+
+
+                    // CURSOR UPDATE
+                    document.getElementById("progressionBar").max = Math.round(dTimeCode * 100);
+                    document.getElementById("progressionBar").value = Math.round(tTimeCode * 100);
+                    document.getElementById("webkitProgressFill").style.width = (tTimeCode / dTimeCode * 100) + "%";
                 }
-                else {
-                    t = timecodeMM + ":" + timecodeSS;
-                }
-                document.getElementById("currentVideoTime").innerHTML = t;
             } catch(e) {} 
             
         }
@@ -828,7 +910,7 @@ function hideInterface()
                 else {
                     let authorText = "";
                     if (player.playerInfo.videoData.author.length > 0) {
-                        authorText = " (by " + player.playerInfo.videoData.author + ")";
+                        authorText = " <span id='currentVideoAuthor'>(By " + player.playerInfo.videoData.author + ")</span>";
                     }
                     elHtml = "<a href='" + vidUrl + "' target='_blank'>" + vidTitle + authorText + "</a>";
                 }
@@ -913,7 +995,6 @@ function hideInterface()
             alreadyPlayedErrors = [];
 
             app.playName = playName;
-            app.playID = playID;
             app.playNbVideos = playNbVideos;
             app.logo = logo;
             // Initialise the player
@@ -939,11 +1020,20 @@ function hideInterface()
             return res;
         }
 
+        function formatChannelNum() {
+            let displayChannelNum = "" + app.playID;
+            if (displayChannelNum.length === 1) {
+                displayChannelNum = "0" + displayChannelNum;
+            }
+            app.displayPlayID = displayChannelNum;
+        }
+
         // UPDATE THE CHANNEL INFORMATIONS
         function menuUpdate()
         {
+            formatChannelNum();
             // Update the control panel display
-            document.getElementById("currentChannelNameDisplay").innerHTML = app.playName;
+            document.getElementById("currentChannelNameDisplay").innerHTML = "<span id='currentChannelNum'>" + app.displayPlayID + " </span> " + app.playName;
             document.getElementById("currentChannelLogo").src = app.logo;
             // Update the selection in the lateral menu
             var childDivs = document.getElementsByClassName('elementMenuBar');
@@ -953,8 +1043,10 @@ function hideInterface()
                 // reset the background color
                 childDivs[i].classList.remove("selected");
                 // highlight it only if its the current channel
-                if(childDivs[i].innerHTML.includes("<h1>"+app.playName+"</h1>"))
+                if(childDivs[i].innerHTML.includes("<h1>"+app.playName+"</h1>")) {
                     childDivs[i].classList.add("selected");
+                    app.playID = i + 1;
+                }
             }
         }
 
@@ -1302,6 +1394,14 @@ function keyHandler()
             break;
         case "Digit0" :
             addToRemoteDigitBuffer("0");
+            event.preventDefault();
+            break;
+        case "KeyQ":
+            increaseVolume();
+            event.preventDefault();
+            break;
+        case "KeyA":
+            decreaseVolume();
             event.preventDefault();
             break;
 

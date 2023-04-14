@@ -61,6 +61,11 @@
 
 		<div id="menuControler" onmouseenter="cursorEnterInterface();" onmouseleave="cursorExitInterface();">
 
+			<div id="progressionBarContainer">
+				<input id="progressionBar" type="range" name="progressionBar" min="0" max="100" value="0" oninput="userChangesTimeCode();" onclick="userTimeCodeSingleton();" />
+				<div id="webkitProgressFill"></div>
+			</div>
+
 			<div id="currentChannel">
 				<div id="videoData">
 					<div id="currentChannelLogoContainer">
@@ -100,6 +105,10 @@
 				</div>
 				<div id="modeControls">
 					<!--<img id="pictureInPicture" src="rsrc/mediaPlayer/fullscreen-icon.svg" onmousedown="togglePictureInPicture();" />-->
+					<div id="volumeBarContainer">
+						<input id="volume" type="range" name="volume" min="0" max="100" value="100" oninput="userChangeVolume();" />
+						<div id="webkitProgressFillVolume"></div>
+					</div>
 					<img id="fillingmode" src="rsrc/mediaPlayer/fill-mode.svg" onmousedown="goFillMode();" />
 					<img id="fullscreen" src="rsrc/mediaPlayer/fullscreen-icon.svg" onmousedown="goFullScreen();" />
 				</div>

@@ -113,6 +113,8 @@ body.nocursor {
 		align-items: center;
 		justify-content: center;
 
+		user-select: none;
+
 		overflow: hidden;
 	}
 
@@ -337,7 +339,7 @@ body.nocursor {
 
 						.elementMenuBar.selected
 						{
-							background-color: #FF0000;
+							background-color: #FFFFFF30;
 						}
 
 							.logoElementMenuBar
@@ -413,6 +415,104 @@ body.nocursor {
 			filter: drop-shadow(0 0 5px black);
 		}
 
+		#progressionBarContainer
+		{
+			position: absolute;
+			top: -12px;
+			left: 0;
+			width: 100%;
+			-webkit-margin-before: 2.5px; /* margin-top only for webkit */
+
+			z-index: 100;
+		}
+
+			#progressionBar
+			{
+				width: 100%;
+				-webkit-appearance: none;
+				background-color: #00000000;
+				height: fit-content;
+			}
+
+				#progressionBar:focus {
+					outline: none;
+				}
+
+				#progressionBar::-webkit-slider-runnable-track {
+					width: 100%;
+					height: 8px;
+					cursor: pointer;
+					animate: 0.2s;
+					box-shadow: 0px 0px 2px black;
+					background: #FFFFFF50; /* RED */
+					border-radius: 0;
+				}
+
+				#progressionBar::-moz-range-track {
+					width: 100%;
+					height: 8px;
+					cursor: pointer;
+					animate: 0.2s;
+					box-shadow: 0px 0px 2px black;
+					background: #FFFFFF50; /* RED */
+					border-radius: 0;
+				}
+
+				#progressionBar::-webkit-slider-thumb {
+					-webkit-appearance: none;
+					margin-top: -8px;
+
+					box-shadow: 0px 0px 4px black;
+					height: 24px;
+					width: 24px;
+					border: none;
+					border-radius: 24px;
+					background: red; /* #FF000095 */
+					cursor: pointer;
+
+					z-index: 110;
+				}
+
+					#progressionBar:focus::-webkit-slider-runnable-track {
+						/*background: yellow; /* #AC51B5 */
+					}
+
+
+				#progressionBar::-moz-range-thumb {
+					box-shadow: 0px 0px 4px black;
+					height: 24px;
+					width: 24px;
+					border: none;
+					border-radius: 24px;
+					background: red; /* #FF000095 */
+					cursor: pointer;
+
+					z-index: 110;
+				}
+
+/*
+				#progressionBar::-moz-range-progress {
+					background-color: red;
+					height: 8px;
+				}
+*/
+			#webkitProgressFill {
+				position: absolute;
+				top: 4.5px;
+				left: 0;
+				width: 100%;
+
+				z-index: -1;
+
+				width: 0%;
+				height: 8px;
+				background-color: red;
+
+				-webkit-margin-before: 5.5px; /* margin-top only for webkit */
+				pointer-events: none;
+			}
+
+
 
 		#currentChannel
 		{
@@ -461,6 +561,14 @@ body.nocursor {
 
 			}
 
+				#currentChannelNum
+				{
+					display: inline-block;
+					font-size: var(--h3FontSize);
+
+					transform: translateY(calc(0px - .1 * var(--h1FontSize)));
+				}
+
 			#currentVideoNameDisplay
 			{
 				position: absolute;
@@ -468,14 +576,24 @@ body.nocursor {
 				left: calc(1.05 * var(--dataHeight));
 				font-size: var(--h3FontSize);
 				text-transform: uppercase;
-
 			}
 
-			#currentVideoNameDisplay a
-			{
-				text-decoration: none;
-				color: white;
-			}
+				#currentVideoNameDisplay a
+				{
+					display: inline-block;
+					text-decoration: none;
+					color: white;
+
+					transition: all .3s ease-out;
+				}
+
+				#currentVideoAuthor
+				{
+					display: inline-block;
+					font-size: var(--h4FontSize);
+
+					transform: translateY(calc(0px - .1 * var(--h3FontSize)));
+				}
 
 
 			#videoData { 
@@ -527,6 +645,9 @@ body.nocursor {
 			margin: calc(.15 * var(--controlsHeight));
 			margin-left: calc(.35 * var(--controlsHeight));
 			margin-right: calc(.35 * var(--controlsHeight));
+
+			cursor: pointer;
+			transition: all .3s ease-out;
 		}
 
 		#advancedControls
@@ -584,7 +705,8 @@ body.nocursor {
 				}
 
 				#selectAudio			{  }
-				#selectSubtitles	{ padding-left: calc(3 * var(--h4FontSize)); overflow: visible; }
+				#selectSubtitles	{ padding-left: calc(3 * var(--h4FontSize)); overflow: visible; transition: all .3s ease-out; cursor:pointer; }
+					#selectSubtitles:disabled:hover	{ cursor:default; opacity:.75; transform:none; }
 				#selectResolution	{ width: calc(6 * var(--h2FontSize));}
 
 				#settingsControls select:disabled {
@@ -606,26 +728,164 @@ body.nocursor {
 			}
 
 
+			#modeControls {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				justify-content: center;
+
+				overflow: hidden;
+
+			}
+
+
+		#volumeBarContainer
+		{
+			position: relative;
+			width: 80px;
+			height: calc(.6 * var(--currentChannelHeight));
+
+			z-index: 100;
+
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+
+			margin-left: calc(.2 * var(--currentChannelHeight));
+			margin-right: calc(.2 * var(--currentChannelHeight));
+			transition: all .3s ease-out;
+		}
+
+			#volume
+			{
+				width: 100%;
+				-webkit-appearance: none;
+				background-color: #00000000;
+				z-index: 110;
+			}
+
+				#volume:focus {
+					outline: none;
+				}
+
+				#volume::-webkit-slider-runnable-track {
+					width: 100%;
+					height: 5px;
+					cursor: pointer;
+					animate: 0.2s;
+					box-shadow: 0px 0px 2px black;
+					background: #FFFFFF50; /* RED */
+					border-radius: 0;
+				}
+
+				#volume::-moz-range-track {
+					width: 100%;
+					height: 5px;
+					cursor: pointer;
+					animate: 0.2s;
+					box-shadow: 0px 0px 2px black;
+					background: #FFFFFF50; /* RED */
+					border-radius: 0;
+				}
+
+				#volume::-webkit-slider-thumb {
+					-webkit-appearance: none;
+					-webkit-margin-before: -6.5px; /* margin-top only for webkit */
+
+					box-shadow: 0px 0px 4px black;
+					height: 18px;
+					width: 18px;
+					border: none;
+					border-radius: 18px;
+					background: white; /* #FF000095 */
+					cursor: pointer;
+
+					z-index: 110;
+				}
+
+					#volume:focus::-webkit-slider-runnable-track {
+						/*background: yellow; /* #AC51B5 */
+					}
+
+
+				#volume::-moz-range-thumb {
+					box-shadow: 0px 0px 4px black;
+					height: 18px;
+					width: 18px;
+					border: none;
+					border-radius: 18px;
+					background: white; /* #FF000095 */
+					cursor: pointer;
+
+					z-index: 110;
+				}
+
+			#webkitProgressFillVolume {
+				position: absolute;
+				top: 0px;
+				left: 0;
+				width: 100%;
+
+				margin-top: calc(.6 * var(--currentChannelHeight) / 2 - 5px / 2);/*6.5px;*/
+
+				z-index: -1;
+
+				width: 0%;
+				height: 5px;
+				background-color: white;
+
+				-webkit-margin-before: calc(.6 * var(--currentChannelHeight) / 2 - 5px / 2); /* margin-top only for webkit */
+				pointer-events: none;
+			}
+
+
+
+
 			#fillingmode
 			{
+				display: inline-block;
 				width: calc(.6 * var(--currentChannelHeight));
 				height: calc(.6 * var(--currentChannelHeight));
 				margin: calc(.2 * var(--currentChannelHeight));
-				margin-left: calc(.35 * var(--currentChannelHeight));
-				margin-right: calc(.35 * var(--currentChannelHeight));
+				margin-left: calc(.2 * var(--currentChannelHeight));
+				margin-right: calc(.2 * var(--currentChannelHeight));
 
 				filter: invert(1);
+
+				cursor: pointer;
+				transition: all .3s ease-out;
 			}
 
 			#fullscreen
 			{
+				display: inline-block;
 				width: calc(.6 * var(--currentChannelHeight));
 				height: calc(.6 * var(--currentChannelHeight));
 				margin: calc(.2 * var(--currentChannelHeight));
-				margin-left: calc(.35 * var(--currentChannelHeight));
-				margin-right: calc(.35 * var(--currentChannelHeight));
+				margin-left: calc(.2 * var(--currentChannelHeight));
+				margin-right: calc(.2 * var(--currentChannelHeight));
 
 				filter: invert(1);
+
+				cursor: pointer;
+				transition: all .3s ease-out;
+			}
+
+			#fillingmode:hover,
+			#fullscreen:hover,
+			#volumeBarContainer:hover,
+			#playerControls > *:hover,
+			#selectSubtitles:hover
+			{
+				opacity: .8;
+				transform: scale(1.1);
+			}
+
+			#currentVideoNameDisplay a:hover
+			{
+				opacity: .8;
+				transform: scale(1.03);
 			}
 
 
