@@ -64,17 +64,17 @@
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: #f1f1f1; 
+  background: #00000030; 
 }
  
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #888; 
+  background: #FFFFFF50; 
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #555; 
+  background: #FFFFFF90; 
 }
 
 
@@ -117,7 +117,6 @@ body.nocursor {
 
 		overflow: hidden;
 	}
-
 
 
 
@@ -176,6 +175,53 @@ body.nocursor {
 					}
 
 
+
+
+
+
+	#alertMsg
+	{
+		position: fixed;
+		top: calc(.25 * var(--headerHeight));
+		left: calc(50vw - var(--videoWidth) / 2 + .25 * var(--channelHeight) + var(--videoWidth) / 4 + .5 * var(--headerHeight));
+		right: calc(50vw - var(--videoWidth) / 2 + .25 * var(--channelHeight));
+		height: max(var(--headerHeight) / 2, 36px);
+		margin-top: max(var(--headerHeight) / 2 / 2, 36px / 2);
+
+		background-color: red;
+
+		z-index: 20;
+
+		filter: drop-shadow(0 0 5px #FFFFFF50);
+		backdrop-filter: blur(10px);
+
+		text-transform: uppercase;
+		text-align: center;
+		margin: auto;
+
+		overflow: hidden;
+	}
+
+		#alertMsg h2
+		{
+			margin-top: calc(2 * max(var(--headerHeight) / 2, 36px) / 20);
+			font-size: var(--h1FontSize);
+			white-space: nowrap;
+		}
+
+		#alertMsg p
+		{
+			margin-top: calc(max(var(--headerHeight) / 2, 36px) / 20);
+			font-size: var(--h4FontSize);
+			white-space: nowrap;
+		}
+
+
+
+
+
+
+
 #siteName.displayed,
 #channels.displayed,
 #menuControler.displayed
@@ -213,6 +259,8 @@ body.nocursor {
 			align-items: center;
 			align-content: center;
 			justify-content: center;
+
+			transition: all .3s ease-out;
 		}
 
 			#siteLogo
@@ -335,6 +383,8 @@ body.nocursor {
 						align-content: center;
 
 						cursor: pointer;
+
+						position: relative;
 					}
 
 						.elementMenuBar.selected
@@ -382,16 +432,28 @@ body.nocursor {
 
 						}
 
+							.titlesElementMenuBar > *
+							{ background-color:none; }
+
+							.titlesElementMenuBar h3
+							{
+								font-size: var(--h4FontSize);
+								position: absolute;
+								top:0;
+								right: 0;
+								padding-top: calc(var(--channelHeight) / 4);
+								padding-right: calc(var(--channelHeight) / 4);
+							}
+
 							.titlesElementMenuBar h1
 							{
-								font-size: var(--h2FontSize);
+								font-size: var(--h3FontSize);
 								margin-bottom: calc(var(--channelHeight) / 16);
 							}
 
 							.titlesElementMenuBar h2
 							{
 								font-size: var(--h4FontSize);
-								margin-top: calc(var(--channelHeight) / 16);
 							}
 
 
@@ -419,8 +481,8 @@ body.nocursor {
 		{
 			position: absolute;
 			top: -12px;
-			left: 0;
-			width: 100%;
+			left: .25%;
+			width: 99.5%;
 			-webkit-margin-before: 2.5px; /* margin-top only for webkit */
 
 			z-index: 100;
@@ -872,6 +934,7 @@ body.nocursor {
 				transition: all .3s ease-out;
 			}
 
+			header:hover,
 			#fillingmode:hover,
 			#fullscreen:hover,
 			#volumeBarContainer:hover,

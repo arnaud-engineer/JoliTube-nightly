@@ -16,9 +16,21 @@
                 this.displayPlayID = "01";
                 this.playNbVideos = null;
                 this.logo = null;
+                this.channelNum = null;
+
+                this.firstVideoLoaded = false;
+                this.firstVideoDebug = false;
+
 
 
                 this.remoteDigitBuffer = null;
+
+
+
+                //current Video
+                this.videoTitle = null;
+                this.videoAuthor = null;
+
 
                 this.currentQuality = null;
                 this.availablesQualities = null;
@@ -95,6 +107,27 @@
             try {
                 if(event.target.value >= 0) {
                     let newTimeCode = Math.round(event.target.value / 100);
+                    player.seekTo(newTimeCode, true);
+                }
+            } catch(e) {}
+            userIsUpdatingTimeCode = false;
+        }
+
+        function forwardInVideo() {
+            try {
+                console.log(player.getCurrentTime());
+                if(player.getCurrentTime() >= 0) {
+                    let newTimeCode = Math.round(player.getCurrentTime() + 5);
+                    player.seekTo(newTimeCode, true);
+                }
+            } catch(e) {}
+            userIsUpdatingTimeCode = false;
+        }
+
+        function backwardInVideo() {
+            try {
+                if(player.getCurrentTime() >= 0) {
+                    let newTimeCode = Math.round(player.getCurrentTime() - 5);
                     player.seekTo(newTimeCode, true);
                 }
             } catch(e) {}
@@ -228,14 +261,14 @@
        ----------------------------- */
 
         // DISPLAY AN ALERT MESSAGE ON THE TOP OF THE PLAYER
-        function displayAlert(msgToDisplay)
+        function displayAlert(titleAlert, descrAlert)
         {
             // Replace the text
-            document.getElementById("alertMsg").innerHTML = msgToDisplay;
+            document.getElementById("alertMsg").innerHTML = "<h2>" + titleAlert + "</h2><p>" + descrAlert + "</p>";
             // Display the message element for 5 seconds
-            document.getElementById("ytPlayerContainerLayer").style.display = "block";
+            document.getElementById("alertMsg").style.display = "block";
             setTimeout(() => {
-                document.getElementById("ytPlayerContainerLayer").style.display = "none";
+                document.getElementById("alertMsg").style.display = "none";
             }, 5000);
         }
 
@@ -503,18 +536,22 @@ function hideInterface()
 
        function playChannel()
        {
-            app.playing = true;
-            player.playVideo();
-            document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.png";
-            updatePlayerState();
+            try {
+                player.playVideo();
+                app.playing = true;
+                document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.png";
+                updatePlayerState();
+            } catch(e) {}
        }
 
        function pauseChannel()
        {
-            app.playing = false;
-            player.pauseVideo();
-            document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.png";
-            updatePlayerState();
+            try {
+                player.pauseVideo();
+                app.playing = false;
+                document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.png";
+                updatePlayerState();
+            } catch(e) {}
        }
 
        // UPDATE THE ICON PLAY/PAUSE OF THE CONTROL PANEL DEPENDING ON THE PLAYER STATE
@@ -562,10 +599,14 @@ function hideInterface()
 
         function userChangeVolume()
         {
-            if(event.target.value >= 0) {
-                player.setVolume(event.target.value);
-                refreshVolume();
+            try
+            {
+                if(event.target.value >= 0) {
+                    player.setVolume(event.target.value);
+                    refreshVolume();
+                }
             }
+            catch(e) {}
         }
 
         function increaseVolume()
@@ -600,8 +641,12 @@ function hideInterface()
         }
 
         function refreshVolume() {
-            document.getElementById("volume").value = player.getVolume();
-            document.getElementById("webkitProgressFillVolume").style.width = "calc(" + player.getVolume() + "% * .785)";
+            try
+            {
+                document.getElementById("volume").value = player.getVolume();
+                document.getElementById("webkitProgressFillVolume").style.width = "calc(" + player.getVolume() + "% * .785)";
+            }
+            catch(e) {}
         }
 
 
@@ -662,69 +707,72 @@ function hideInterface()
 
 
         function loadQuality()
-        {                
-            app.availablesQualities = player.getAvailableQualityLevels();
+        {        
+            try {
+                app.availablesQualities = player.getAvailableQualityLevels();
 
-            if(app.currentQuality == null) {
-                app.currentQuality = player.getPlaybackQuality();
-            }
-
-            if((!app.availablesQualities.includes(app.currentQuality)) || app.priorityToMaxRes) {
-                if(app.priorityToMaxRes) {
-                    app.currentQuality = app.availablesQualities[0];
+                if(app.currentQuality == null) {
+                    app.currentQuality = player.getPlaybackQuality();
                 }
-                else {
-                    let currentQualityIndex = possibleQualitiesValues.indexOf(app.currentQuality);
-                    for(let i=currentQualityIndex+1; i < possibleQualitiesValues.length ; i++) {
-                        if(app.availablesQualities.indexOf(possibleQualitiesValues[i]) >= 0) {
-                            app.currentQuality = app.availablesQualities.indexOf(possibleQualitiesValues[i]);
-                            break;
+
+                if((!app.availablesQualities.includes(app.currentQuality)) || app.priorityToMaxRes) {
+                    if(app.priorityToMaxRes) {
+                        app.currentQuality = app.availablesQualities[0];
+                    }
+                    else {
+                        let currentQualityIndex = possibleQualitiesValues.indexOf(app.currentQuality);
+                        for(let i=currentQualityIndex+1; i < possibleQualitiesValues.length ; i++) {
+                            if(app.availablesQualities.indexOf(possibleQualitiesValues[i]) >= 0) {
+                                app.currentQuality = app.availablesQualities.indexOf(possibleQualitiesValues[i]);
+                                break;
+                            }
                         }
                     }
                 }
-            }
 
-            let selectResolution = document.getElementById("selectResolution");
+                let selectResolution = document.getElementById("selectResolution");
 
-            selectResolution.innerHTML = "";
-            for(let i=0; i < app.availablesQualities.length ; i++) {
-                let isSelected = "";
-                if(app.availablesQualities[i] === app.currentQuality) {
-                    isSelected = " selected";
+                selectResolution.innerHTML = "";
+                for(let i=0; i < app.availablesQualities.length ; i++) {
+                    let isSelected = "";
+                    if(app.availablesQualities[i] === app.currentQuality) {
+                        isSelected = " selected";
+                    }
+                    switch(app.availablesQualities[i])
+                    {
+                        case "hd2160" :
+                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">4K - 2160p</option>";
+                            break;
+                        case "hd1440" :
+                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HD - 1440p</option>";
+                            break;
+                        case "hd1080" :
+                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HD - 1080p</option>";
+                            break;
+                        case "hd720" :
+                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HQ - 720p</option>";
+                            break;
+                        case "large" :
+                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 480p</option>";
+                            break;
+                        case "medium" :
+                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 360p</option>";
+                            break;
+                        case "small" :
+                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 240p</option>";
+                            break;
+                        case "tiny" :
+                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 144p</option>";
+                            break;
+                        case "auto" :
+                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">AUTO</option>";
+                            break;
+                    }
                 }
-                switch(app.availablesQualities[i])
-                {
-                    case "hd2160" :
-                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">4K - 2160p</option>";
-                        break;
-                    case "hd1440" :
-                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HD - 1440p</option>";
-                        break;
-                    case "hd1080" :
-                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HD - 1080p</option>";
-                        break;
-                    case "hd720" :
-                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HQ - 720p</option>";
-                        break;
-                    case "large" :
-                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 480p</option>";
-                        break;
-                    case "medium" :
-                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 360p</option>";
-                        break;
-                    case "small" :
-                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 240p</option>";
-                        break;
-                    case "tiny" :
-                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 144p</option>";
-                        break;
-                    case "auto" :
-                        selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">AUTO</option>";
-                        break;
-                }
-            }
 
-            player.setPlaybackQuality(app.currentQuality);
+                player.setPlaybackQuality(app.currentQuality);
+            } catch(e) { }       
+            
         }
 
         function loadCaptions() {
@@ -800,9 +848,11 @@ function hideInterface()
         // LOAD THE N INDEX VIDEO
         function loadVideo(n)
         {
-            player.playVideoAt(n);
-            currentVideoIndex=n;
-            updateAllData();
+            try {
+                player.playVideoAt(n);
+                currentVideoIndex=n;
+                updateAllData();
+            } catch(e) {}
         }
 
         function updateAllData()
@@ -814,7 +864,6 @@ function hideInterface()
             loadCaptions();
             menuUpdate();
             refreshVolume();
-            document.getElementById("volume").value = player.getVolume();
 
             setTimeout(() => {
                 updateVideoTitle();
@@ -824,7 +873,18 @@ function hideInterface()
                 loadCaptions();
                 menuUpdate();
                 refreshVolume();
-                document.getElementById("volume").value = player.getVolume();
+            }, 1000);
+        }
+
+        function updateRealTimeData()
+        {
+            updateDuration();
+            refreshVolume();
+
+            setTimeout(() => {
+                updateDuration();;
+                menuUpdate();
+                refreshVolume();
             }, 1000);
         }
 
@@ -905,14 +965,19 @@ function hideInterface()
                 vidUrl = player.getVideoUrl();
                 if(vidTitle == undefined) {
                     vidTitle = "-";
-                    elHtml = "vidTitle";
+                    elHtml = "-";
                 }
                 else {
                     let authorText = "";
                     if (player.playerInfo.videoData.author.length > 0) {
-                        authorText = " <span id='currentVideoAuthor'>(By " + player.playerInfo.videoData.author + ")</span>";
+                        authorText = " ➥ <span id='currentVideoAuthor'> " + player.playerInfo.videoData.author + "</span>"; // ➤ ☛
                     }
                     elHtml = "<a href='" + vidUrl + "' target='_blank'>" + vidTitle + authorText + "</a>";
+                }
+                app.videoTitle = vidTitle;
+                app.videoAuthor = player.playerInfo.videoData.author;
+                if(app.vidTitle !== "-") {
+                    app.firstVideoLoaded = true;
                 }
             } catch(e) {}
 
@@ -928,15 +993,16 @@ function hideInterface()
         {
             // Range definition
             var min=0; 
-            var max=playlistNbVideos; 
-            if(playlistNbVideos > 200) //limitation of the YouTube API
+            var max=parseInt(playlistNbVideos); 
+            if(parseInt(playlistNbVideos) > 200) //limitation of the YouTube API
                 max=200;
             // Generation of the random index
-            var n = Math.floor(Math.random() * (max - min)) + min;
+            var n = Math.floor(Math.random() * max);
             // TODO : bug if the last two elements to play randomly are consecutives
-            while(alreadyPlayed.includes(n) || alreadyPlayedErrors.includes(n) || n + 1 == currentVideoIndex || n - 1 == currentVideoIndex)
+            if(alreadyPlayed.includes(n) || alreadyPlayedErrors.includes(n)) //  || n + 1 == currentVideoIndex || n - 1 == currentVideoIndex
             {
                 n = getRandomVideoNumber();
+                console.log(n);
             }
             return n;
         }
@@ -945,10 +1011,10 @@ function hideInterface()
         function loadRandomVideo()
         {
             // If every video had been played, inform the user
-            if(alreadyPlayed.length + alreadyPlayedErrors.length >= playlistNbVideos)
+            if(alreadyPlayed.length + alreadyPlayedErrors.length >= parseInt(playlistNbVideos))
             {
                 alreadyPlayed = [];
-                displayAlert("Vous avez lu toutes les vidéos de cette chaîne");
+                displayAlert("vous avez vu toutes les vidéos de " + app.playName + " !", "Vous pouvez éteindre JoliTube et reprendre une activité normale");
             }
             // While necessary, generate a new index for the playlist
             var num = getRandomVideoNumber();
@@ -974,11 +1040,12 @@ function hideInterface()
         // CHANGE THE CHANNEL IN THE PLAYER
         function loadSelectedChannel(playName, playID, playNbVideos, logo)
         {
+            app.firstVideoLoaded = false;
             // disable the controls
             disablePlayer();
             // Reset the player
             //document.getElementById("playerContainer").innerHTML = '<div id="player"></div>';
-            document.getElementById("playerContainer").innerHTML = "" +
+            document.getElementById("playerContainer").outerHTML = "" +
             '<div id="playerContainer" class="">' +
                 '<div id="cropping-div" style="">' +
                     '<div id="div-to-crop" style="">' +
@@ -1000,8 +1067,8 @@ function hideInterface()
             // Initialise the player
             initYT();
             //Update the channel informations (global variables and display)
+            app.channelNum = getCurrentChannelNum();
             updateAllData();
-
             console.log("CHANNEL : " + getCurrentChannelNum());
             playChannel();
 
@@ -1033,7 +1100,7 @@ function hideInterface()
         {
             formatChannelNum();
             // Update the control panel display
-            document.getElementById("currentChannelNameDisplay").innerHTML = "<span id='currentChannelNum'>" + app.displayPlayID + " </span> " + app.playName;
+            document.getElementById("currentChannelNameDisplay").innerHTML = "<span id='currentChannelNum'>" + app.displayPlayID + " - </span> " + app.playName;
             document.getElementById("currentChannelLogo").src = app.logo;
             // Update the selection in the lateral menu
             var childDivs = document.getElementsByClassName('elementMenuBar');
@@ -1081,33 +1148,37 @@ function hideInterface()
                 alreadyPlayedErrors=[];
             }
 
-            // Pick a random video and update alreadyPlayed
-            var vidNumber=getRandomVideoNumber();
-            alreadyPlayed.push(vidNumber);
-            currentVideoIndex=vidNumber;
-            // Instanciation of the player
-            player = new YT.Player('player', {
-                host: 'https://www.youtube-nocookie.com',
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange,
-                    'onError': onPlayerError
-                },
-                playerVars: {
-                    origin: window.location.host,
-                    controls: 0,
-                    modestbranding: 1,
-                    playsinline: 1,
-                    //rel: 0,
-                    enablejsapi: 1,
-                    list: playlistID,
-                    index: vidNumber
-                }
-            });
+            try
+            {
+                // Pick a random video and update alreadyPlayed
+                var vidNumber=getRandomVideoNumber();
+                alreadyPlayed.push(vidNumber);
+                currentVideoIndex=vidNumber;
+                // Instanciation of the player
+                player = new YT.Player('player', {
+                    host: 'https://www.youtube-nocookie.com',
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange,
+                        'onError': onPlayerError
+                    },
+                    playerVars: {
+                        origin: window.location.host,
+                        controls: 0,
+                        modestbranding: 1,
+                        playsinline: 1,
+                        //rel: 0,
+                        enablejsapi: 1,
+                        list: playlistID,
+                        index: vidNumber
+                    }
+                });
 
-            document.getElementById("player").src += "?rel=0";
+                document.getElementById("player").src += "?rel=0";
 
-            let timeupdater = setInterval(function () { updateDuration(); }, 100);
+                let timeupdater = setInterval(function () { updateRealTimeData(); }, 100);
+
+            } catch(e) {}
         }
 
 /* =========================================================================
@@ -1141,9 +1212,9 @@ function hideInterface()
                       '<img src="' + currentChannel[2] + '"/>' +
                     '</div>' +
                     '<div class="titlesElementMenuBar">' +
-                      '<h2 style="text-align: right;">' + displayChannelNum + '</h2>' +
                       '<h1>' + currentChannel[0] + '</h1>' +
                       '<h2>' + currentChannel[1] + '</h2>' +
+                      '<h3>' + displayChannelNum + '</h3>' +
                     '</div>' +
                   '</div>';
 
@@ -1216,38 +1287,77 @@ function hideInterface()
     EVENT LISTENERS
    ========================================================================= */
 
+
+    function firstVideoDebugTimer()
+    {
+        setTimeout(() => {
+            if((app.firstVideoDebug) && (!app.firstVideoLoaded)) {
+                app.firstVideoDebug = true;
+                loadSelectedChannelByNum(app.channelNum);
+                firstVideoDebugTimer();
+            } else if ((app.firstVideoDebug) && alreadyPlayed.length === alreadyPlayedErrors.length) {
+                app.firstVideoDebug = true;
+                loadSelectedChannelByNum(app.channelNum);
+                firstVideoDebugTimer();
+            } else {
+                app.firstVideoDebug = false;
+            }
+        }, 2000);
+    }
+
     // FIRST LOADING
     function onPlayerReady(event)
     {
         // IF PB LOAD FIRST VIDEO
-        if (player.getPlayerState() == -1)
+        try
         {
-            initYT();
-            return;
-        }
-
-        // QUICK FIX : Sometimes, the first registered index is false (-3 to +3 decallage to reality)
-        var playIndex = player.getPlaylistIndex();
-        if(playIndex != alreadyPlayed[0])
-        {
-            alreadyPlayed = [];
-            alreadyPlayed.push(playIndex);
-        }
-
-        // Force the data actualisation (just in case)
-        player.playVideo();
-
-        document.getElementById("player").removeAttribute("allowfullscreen");
-        document.getElementById("player").setAttribute("allowFullScreen", "");
-
-        //document.getElementById("player").setAttribute("height", "200%");
+            if (player.getPlayerState() === -1 || player.getPlayerState() === undefined)
+            {
+                if(!app.firstVideoDebug) {
+                    app.firstVideoDebug = true;
+                    app.firstVideoLoaded = false;
+                    initYT();
+                    firstVideoDebugTimer();
+                    return;
+                }
+            }
+        } catch(e) {}
 /*
-        player.addEventListener('timeupdate', e => {
-            updateDuration();
-        });
+        try
+        {
+            if (event.target.getPlayerState() === -1 || event.target.getPlayerState() === undefined)
+            {
+                app.firstVideoLoaded = false;
+                initYT();
+                return;
+            }
+        } catch(e) {}
 */
-        // TODO c'est là le pb, on rend le bouton dispo alors que pas chargé
-        updateAllData();
+        try
+        {
+            // QUICK FIX : Sometimes, the first registered index is false (-3 to +3 decallage to reality)
+            var playIndex = player.getPlaylistIndex();
+            if(playIndex != alreadyPlayed[0])
+            {
+                alreadyPlayed = [];
+                alreadyPlayed.push(playIndex);
+            }
+
+            // Force the data actualisation (just in case)
+            player.playVideo();
+
+            document.getElementById("player").removeAttribute("allowfullscreen");
+            document.getElementById("player").setAttribute("allowFullScreen", "");
+
+            //document.getElementById("player").setAttribute("height", "200%");
+    /*
+            player.addEventListener('timeupdate', e => {
+                updateDuration();
+            });
+    */
+            // TODO c'est là le pb, on rend le bouton dispo alors que pas chargé
+            updateAllData();
+        } catch(e) {}
         
     }
 
@@ -1255,11 +1365,25 @@ function hideInterface()
     function onPlayerStateChange(event)
     {
         // ENDED VIDEO HANDLING
-        if (event.data == YT.PlayerState.ENDED)
-        {
+        if (event.data === YT.PlayerState.ENDED && app.firstVideoLoaded) {
             nextVideo();
-            return;
         }
+        else if (event.data === -1 && (!app.firstVideoLoaded)) {
+            //do {
+            /*
+                setTimeout(() => {
+                    if(!app.firstVideoLoaded) {
+                        loadSelectedChannelByNum(getCurrentChannelNum());
+                    }
+                }, 1000);
+                */
+            //} while(!app.firstVideoLoaded)
+        }
+        else if (app.videoTitle !== player.getVideoData().title) {}
+        {
+            updateAllData();
+        }
+
 
     }
 
@@ -1323,6 +1447,11 @@ function keyHandler()
             else                               { endFullScreen(); }
             event.preventDefault();
             break;
+        case "KeyT":
+            if(app.theaterOn === false) { goTheatherMode(); }
+            else                        { goFillMode(); }
+            event.preventDefault();
+            break;
         case "Escape":
             endFullScreen();
             event.preventDefault();
@@ -1354,6 +1483,14 @@ function keyHandler()
                 }
             }
             catch(e) { }
+            event.preventDefault();
+            break;
+        case "ArrowLeft":
+            try { backwardInVideo(); }catch(e) { }
+            event.preventDefault();
+            break;
+        case "ArrowRight":
+            try { forwardInVideo(); }catch(e) { }
             event.preventDefault();
             break;
         case "Digit1" :
