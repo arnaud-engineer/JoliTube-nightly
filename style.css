@@ -767,9 +767,14 @@ body.nocursor {
 				}
 
 				#selectAudio			{  }
+
+				#selectResolution	{ width: calc(6 * var(--h2FontSize));}
+
+				#selectSpeed	{ padding-left: calc(3 * var(--h4FontSize)); overflow: visible; transition: all .3s ease-out; cursor:pointer; }
+					#selectSpeed:disabled:hover	{ cursor:default; opacity:.75; transform:none; }
+
 				#selectSubtitles	{ padding-left: calc(3 * var(--h4FontSize)); overflow: visible; transition: all .3s ease-out; cursor:pointer; }
 					#selectSubtitles:disabled:hover	{ cursor:default; opacity:.75; transform:none; }
-				#selectResolution	{ width: calc(6 * var(--h2FontSize));}
 
 				#settingsControls select:disabled {
 					background: none;
@@ -818,6 +823,15 @@ body.nocursor {
 			margin-right: calc(.2 * var(--currentChannelHeight));
 			transition: all .3s ease-out;
 		}
+
+			#volumeBarContainer.disabled {
+				opacity: .5;
+				cursor: default;
+			}
+
+			#volumeBarContainer.disabled:hover,
+			#volumeBarContainer.disabled:hover *
+			{ opacity: .5 !important; transform: none !important; cursor: default !important; }
 
 			#volume
 			{
@@ -904,22 +918,9 @@ body.nocursor {
 
 
 
-			#fillingmode
-			{
-				display: inline-block;
-				width: calc(.6 * var(--currentChannelHeight));
-				height: calc(.6 * var(--currentChannelHeight));
-				margin: calc(.2 * var(--currentChannelHeight));
-				margin-left: calc(.2 * var(--currentChannelHeight));
-				margin-right: calc(.2 * var(--currentChannelHeight));
-
-				filter: invert(1);
-
-				cursor: pointer;
-				transition: all .3s ease-out;
-			}
-
-			#fullscreen
+			#fillingmode,
+			#fullscreen,
+			#mute
 			{
 				display: inline-block;
 				width: calc(.6 * var(--currentChannelHeight));
@@ -938,8 +939,10 @@ body.nocursor {
 			#fillingmode:hover,
 			#fullscreen:hover,
 			#volumeBarContainer:hover,
+			#mute:hover,
 			#playerControls > *:hover,
-			#selectSubtitles:hover
+			#selectSubtitles:hover,
+			#selectSpeed:hover
 			{
 				opacity: .8;
 				transform: scale(1.1);

@@ -5,8 +5,16 @@
                 this.fullscreenStatus = false;
                 this.theaterOn = true;
 
+                this.hidingTimerOn = false;
+                this.NbHidingTimer = 0;
+                this.displayTimerOn = false;
+                this.NbDisplayTimer = 0;
                 this.noUserInterraction = true;
+                this.userNotChoosingSubtitles = true;
+                this.userNotChoosingSpeed = true;
                 this.cursorOnInterface = false;
+
+                this.totalTimeToHide = 3000;
 
 
 
@@ -37,6 +45,8 @@
 
                 this.priorityToMaxRes = true;
                 this.userSelectedMaxRes = "hd2160";
+
+                this.muteOn = false;
 
 
 
@@ -305,19 +315,31 @@ function showInterface()
     siteName.classList.remove("hidden");
     channels.classList.remove("hidden");
     menuControler.classList.remove("hidden"); 
-    app.noUserInterraction = true; 
+    //setTimeout(() => {
+    app.noUserInterraction = true;
+    //}, 3000);
 
     document.getElementsByTagName('body')[0].classList.remove("nocursor");
     document.getElementsByTagName('body')[0].classList.add("cursor");
-
+    app.displayTimerOn = true;
+    app.NbDisplayTimer++;
+    autoHide();
     setTimeout(() => {
-        hideInterface();
-    }, 3000);
+        if(app.NbDisplayTimer > 0) {
+            app.NbDisplayTimer--;
+        }
+        if(app.NbDisplayTimer === 0) {
+            app.displayTimerOn = false;
+        }
+
+    }, app.totalTimeToHide / 2);
+
 }
 
 function cursorEnterInterface()
 {
     app.cursorOnInterface = true;
+    showInterface();
 }
 
 function cursorExitInterface()
@@ -331,17 +353,53 @@ function hideInterface()
     let channels = document.getElementById("channels");
     let menuControler = document.getElementById("menuControler");
 
-    if(app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true) {
-        siteName.classList.add("hidden");
-        channels.classList.add("hidden");
-        menuControler.classList.add("hidden");
-        siteName.classList.remove("displayed");
-        channels.classList.remove("displayed");
-        menuControler.classList.remove("displayed");
+    siteName.classList.add("hidden");
+    channels.classList.add("hidden");
+    menuControler.classList.add("hidden");
+    siteName.classList.remove("displayed");
+    channels.classList.remove("displayed");
+    menuControler.classList.remove("displayed");
 
-        document.getElementsByTagName('body')[0].classList.add("nocursor");
-        document.getElementsByTagName('body')[0].classList.remove("cursor");
-    }
+    document.getElementsByTagName('body')[0].classList.add("nocursor");
+    document.getElementsByTagName('body')[0].classList.remove("cursor");
+}
+
+function autoHide()
+{
+    setTimeout(() => {
+        try
+        {
+            if(app.NbHidingTimer > 0) {
+                app.NbHidingTimer--;
+            }
+            
+            if(app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {   
+                app.NbHidingTimer++;
+                if(app.hidingTimerOn === false) {
+                    app.hidingTimerOn = true;
+                    //setTimeout(() => {
+                        autoHide();
+                    //}, 3000);
+                }
+                else if(app.hidingTimerOn === true) {
+                    if(app.NbHidingTimer === 1) {
+                        setTimeout(() => {
+                            if(app.hidingTimerOn === true && app.NbHidingTimer === 1 && app.displayTimerOn === false) {
+                                hideInterface();
+                                app.hidingTimerOn = false;
+                            }
+                            else {
+                                autoHide();
+                            }
+                        }, app.totalTimeToHide / 2);
+                    }
+                }
+            } else if(app.hidingTimerOn === true) {
+                autoHide();
+            }
+        }
+        catch(e) {}
+    }, app.totalTimeToHide / 2);
 }
 
     /*  ----------------------------------------
@@ -540,7 +598,6 @@ function hideInterface()
                 player.playVideo();
                 app.playing = true;
                 document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.png";
-                updatePlayerState();
             } catch(e) {}
        }
 
@@ -550,7 +607,6 @@ function hideInterface()
                 player.pauseVideo();
                 app.playing = false;
                 document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.png";
-                updatePlayerState();
             } catch(e) {}
        }
 
@@ -576,6 +632,14 @@ function hideInterface()
             document.getElementById("nextVideo").onclick = function() { nextVideo(); };
             document.getElementById("nextVideo").style.cursor = "pointer";
 
+            try {
+                if(player.getPlayerState() === 1 && app.playing === false) {
+                    playChannel();
+                } else if(player.getPlayerState() === 0 && app.playing === true) {
+                    pauseChannel();
+                }
+            } catch(e) {}
+
 
 
        }
@@ -596,6 +660,22 @@ function hideInterface()
     /* -----------------------------
         VIDEO LOADING
        ----------------------------- */
+
+
+        function muteOrUnmute() {
+            try {
+                if(player.isMuted() === true) {
+                    player.unMute();
+                    document.getElementById("volume").removeAttribute("disabled");
+                    document.getElementById("volumeBarContainer").classList.remove("disabled");
+                } else if(player.isMuted() === false) {
+                    player.mute();
+                    document.getElementById("volume").setAttribute("disabled", "");
+                    document.getElementById("volumeBarContainer").classList.add("disabled");
+                }
+                refreshVolume();
+            } catch(e) {}
+        }
 
         function userChangeVolume()
         {
@@ -679,6 +759,24 @@ function hideInterface()
             selectSubtitles.style.width = "calc(" + currentOptionWidthVariable + " * var(--h2FontSize) + " + currentOptionWidthFix + " * var(--h4FontSize))";
         }   
 
+        function userChangeSpeed()
+        {
+            try {
+                let options = document.getElementById("selectSpeed");
+                player.setPlaybackRate(parseFloat(event.target.value));
+                for(let i=0; i<options.length ; I++) {
+                    options[i].removeAttribute("selected");
+                    if(options[i].value === event.target.value) {
+                        options[i].addAttribute("selected", "");
+                    }
+                }
+                app.userNotChoosingSpeed = true;
+                app.inputForbidden = false;
+            } catch(e) {}
+        }
+
+        function userIsChoosingSpeed() { app.userNotChoosingSpeed = false; app.inputForbidden = true; }
+
         function userChangeCaptions()
         {
             app.subtitlesManuallySelected = true;
@@ -700,10 +798,14 @@ function hideInterface()
 
             loadCaptions();
 
-            console.log("LLLLLL : " + currentOption.value)
+            console.log("LLLLLL : " + currentOption.value);
 
             //console.log(currentOptionLenght);
+
+            app.userNotChoosingSubtitles = true;
         }
+
+        function userIsChoosingCaptions() { app.userNotChoosingSubtitles = false; }
 
 
         function loadQuality()
@@ -880,11 +982,12 @@ function hideInterface()
         {
             updateDuration();
             refreshVolume();
+            updatePlayerState();
 
             setTimeout(() => {
                 updateDuration();;
-                menuUpdate();
                 refreshVolume();
+                updatePlayerState();
             }, 1000);
         }
 
@@ -1141,6 +1244,7 @@ function hideInterface()
         // CALL THE YOUTUBE API TO GET A PLAYER
         function onYouTubeIframeAPIReady()
         {
+            app.realTimeDataMonitored = false;
             //Quick fix degeux
             if(alreadyPlayed.length != 0 || alreadyPlayedErrors.length != 0)
             {
@@ -1176,7 +1280,7 @@ function hideInterface()
 
                 document.getElementById("player").src += "?rel=0";
 
-                let timeupdater = setInterval(function () { updateRealTimeData(); }, 100);
+                //let interfaceAutoHidding = setInterval(function () { autoHide(); }, 100);
 
             } catch(e) {}
         }
@@ -1364,6 +1468,10 @@ function hideInterface()
     // AT THE END OF THE CURRENT VIDEO
     function onPlayerStateChange(event)
     {
+        if(app.realTimeDataMonitored === false) {
+            let timeupdater = setInterval(function () { updateRealTimeData(); }, 100);
+            app.realTimeDataMonitored = true;
+        }
         // ENDED VIDEO HANDLING
         if (event.data === YT.PlayerState.ENDED && app.firstVideoLoaded) {
             nextVideo();

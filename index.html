@@ -102,11 +102,19 @@
 					-->
 					<!--<label>VIDEO</label>-->
 					<select id="selectResolution" name="selectResolution" onchange="userChangeQuality();" disabled></select>
+					<select id="selectSpeed" name="selectSpeed" onchange="userChangeSpeed();" onclick="userIsChoosingSpeed();">
+						<option value='0.25'>x 0.25</option>
+						<option value='0.5'>x 0.5</option>
+						<option value='1' selected>x 1</option>
+						<option value='1.5'>x 1.5</option>
+						<option value='2'>x 2</option>
+					</select>
 					<!--<label>SOUS-TITRES</label>-->
-					<select id="selectSubtitles" name="selectSubtitles" onchange="userChangeCaptions();"></select>
+					<select id="selectSubtitles" name="selectSubtitles" onchange="userChangeCaptions();" onclick="userIsChoosingCaptions();"></select>
 				</div>
 				<div id="modeControls">
 					<!--<img id="pictureInPicture" src="rsrc/mediaPlayer/fullscreen-icon.svg" onmousedown="togglePictureInPicture();" />-->
+					<img id="mute" src="rsrc/mediaPlayer/fill-mode.svg" onmousedown="muteOrUnmute();" />
 					<div id="volumeBarContainer">
 						<input id="volume" type="range" name="volume" min="0" max="100" value="100" oninput="userChangeVolume();" />
 						<div id="webkitProgressFillVolume"></div>
