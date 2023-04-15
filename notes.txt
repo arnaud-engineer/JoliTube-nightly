@@ -1,32 +1,21 @@
-playerInfo: {…}
-​
+https://www.sitepoint.com/community/t/youtube-api-how-to-display-closed-captions-in-my-own-div/374755/3
 
 
 
 
-playbackRate: 1
 
 
-​
-availablePlaybackRates: (8) […]
-​​
-0: 0.25
-​​
-1: 0.5
-​​
-2: 0.75
-​​
-3: 1
-​​
-4: 1.25
-​​
-5: 1.5
-​​
-6: 1.75
-​​
-7: 2
-​​
-length: 8
+
+
+
+onError
+    Cet événement se déclenche si une erreur se produit sur le lecteur. L'API envoie un objet event à la fonction de l'écouteur d'événements. La valeur de la propriété data de cet objet est un entier qui identifie le type de l'erreur qui s'est produite. Les valeurs possibles sont :
+
+        2 : la requête contient une valeur incorrecte pour un paramètre. Par exemple, cette erreur se produit si vous spécifiez un ID vidéo ne comportant pas 11 caractères, ou si l'ID vidéo contient des caractères incorrects, tels que des points d'exclamation ou des astérisques.
+        5 : le contenu demandé ne peut pas être lu dans un lecteur HTML5 ou une autre erreur liée au lecteur HTML5 s'est produite.
+        100 : impossible de trouver la vidéo demandée. Cette erreur se produit lorsqu'une vidéo a été supprimée (pour une raison quelconque) ou a été rendue privée.
+        101 : le propriétaire de la vidéo demandée n'autorise pas sa lecture dans des lecteurs intégrés.
+        150 : cette erreur est la même que celle définie par la valeur 101. Il s'agit simplement d'une erreur 101 masquée.
 
 
 
@@ -48,106 +37,4 @@ length: 8
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-playerInfo: {…}
-​
-apiInterface: (63) […]
-​
-availablePlaybackRates: (8) […]
-​
-availableQualityLevels: (7) […]
-​
-currentTime: 73.285496
-​
-currentTimeLastUpdated_: 1681297867.274
-​
-debugText: '{\n  "debug_videoId": "Ryk0eny1j0M",\n  "debug_playbackQuality": "unknown",\n  "debug_date": "Wed Apr 12 2023 13:00:45 GMT+0200 (heure d’été d’Europe centrale)"\n}'
-​
-duration: 210.561
-​
-mediaReferenceTime: 73.285496
-​
-muted: false
-​
-option: null
-​
-options: []
-​
-playbackQuality: "hd720"
-​
-playbackRate: 1
-​
-playerMode: {}
-​
-playerState: 1
-​
-playlist: (90) […]
-​
-playlistId: "PLEJ0pOW0FHeF7sE3tM3HsrAEhdQaNT1Zl"
-​
-playlistIndex: 62
-​
-size: {…}
-​
-sphericalProperties: {}
-​
-videoBytesLoaded: 0.811346830609657
-​
-videoBytesTotal: 1
-​
-videoData: {…}
-	​​
-	allowLiveDvr: false
-	​​
-	author: "Dingoman9126"
-	​​
-	backgroundable: false
-	​​
-	cpn: "tOSVZzJX0XMMgvLq"
-	​​
-	errorCode: null
-	​​
-	eventId: "gZE2ZI2BBrHasALdn4LwBg"
-	​​
-	hasProgressBarBoundaries: false
-	​​
-	isListed: true
-	​​
-	isLive: false
-	​​
-	isManifestless: false
-	​​
-	isMultiChannelAudio: false  // TODO
-	​​
-	isPlayable: true
-	​​
-	isPremiere: false
-	​​
-	isWindowedLive: false
-	​​
-	itct: "CAAQu2kiEwjNxeCtmqT-AhUxLUwKHd2PAG4="
-	​​
-	list: "PLEJ0pOW0FHeF7sE3tM3HsrAEhdQaNT1Zl"
-	​​
-	paidContentOverlayDurationMs: 0
-	​​
-	progressBarEndPositionUtcTimeMillis: null
-	​​
-	progressBarStartPositionUtcTimeMillis: null
-	​​
-	title: `(Student Project) Scene from "The Boy Who Couldn't Sleep & Never Had To"`
-	​​
-	video_id: "l8NOu446NLM"
-	​​
-	video_quality: "hd720"
+isMultiChannelAudio: false  // TODO

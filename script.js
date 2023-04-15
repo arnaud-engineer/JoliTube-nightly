@@ -1,8 +1,23 @@
+var range = n => [...Array(n).keys()]
+
+/* Randomize array in-place using Durstenfeld shuffle algorithm : https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array */
+function shuffleArray(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+    return array;
+}
+
+
         class AppPreferences
         {
             constructor() {
-                this.theme = "auto";
                 this.fullscreenStatus = false;
+
+
                 this.theaterOn = true;
 
                 this.hidingTimerOn = false;
@@ -36,6 +51,16 @@
 
 
                 //current Video
+
+                this.currentVideoIndex = null;
+                this.randomPlaylist = [];
+                this.alreadyPlayed = [];
+                this.alreadyPlayedErrors = [];
+
+                this.currentBackToTheFutureCount = 0;
+
+
+
                 this.videoTitle = null;
                 this.videoAuthor = null;
 
@@ -47,6 +72,8 @@
                 this.userSelectedMaxRes = "hd2160";
 
                 this.muteOn = false;
+
+                this.speed = 1;
 
 
 
@@ -132,6 +159,7 @@
                 }
             } catch(e) {}
             userIsUpdatingTimeCode = false;
+            showInterface();
         }
 
         function backwardInVideo() {
@@ -142,6 +170,7 @@
                 }
             } catch(e) {}
             userIsUpdatingTimeCode = false;
+            showInterface();
         }
 
 
@@ -246,13 +275,10 @@
     var playlistNbVideos = 0;
 
     //Already played videos
-    var alreadyPlayed = [];
-    var alreadyPlayedErrors = [];
     var currentChannel = "";
-    var currentVideoIndex = -2;
+    app.currentVideoIndex = -2;
 
     //Playback variables
-    var currentBackToTheFutureCount = 0;
 
     var videotime = 0;
 
@@ -321,6 +347,8 @@ function showInterface()
 
     document.getElementsByTagName('body')[0].classList.remove("nocursor");
     document.getElementsByTagName('body')[0].classList.add("cursor");
+    document.getElementById("background").classList.remove("nocursor");
+    document.getElementById("background").classList.add("cursor");
     app.displayTimerOn = true;
     app.NbDisplayTimer++;
     autoHide();
@@ -360,8 +388,38 @@ function hideInterface()
     channels.classList.remove("displayed");
     menuControler.classList.remove("displayed");
 
-    document.getElementsByTagName('body')[0].classList.add("nocursor");
     document.getElementsByTagName('body')[0].classList.remove("cursor");
+    document.getElementById("background").focus();
+    /*
+    document.getElementById("background").classList.remove("cursor");
+    document.getElementById("background").classList.add("nocursor");
+    document.getElementById("playerContainer").classList.remove("cursor");
+    document.getElementById("playerContainer").classList.add("nocursor");
+    document.getElementById("cropping-div").classList.remove("cursor");
+    document.getElementById("cropping-div").classList.add("nocursor");
+    document.getElementById("div-to-crop").classList.remove("cursor");
+    document.getElementById("div-to-crop").classList.add("nocursor");
+    document.getElementById("player-wrapper").classList.remove("cursor");
+    document.getElementById("player-wrapper").classList.add("nocursor");
+    */
+
+    setTimeout(() => {
+        document.getElementsByTagName('body')[0].classList.add("nocursor");
+        /*
+        document.getElementById("background").classList.remove("cursor");
+        document.getElementById("background").classList.add("nocursor");
+        document.getElementById("playerContainer").classList.remove("cursor");
+        document.getElementById("playerContainer").classList.add("nocursor");
+        document.getElementById("cropping-div").classList.remove("cursor");
+        document.getElementById("cropping-div").classList.add("nocursor");
+        document.getElementById("div-to-crop").classList.remove("cursor");
+        document.getElementById("div-to-crop").classList.add("nocursor");
+        document.getElementById("player-wrapper").classList.remove("cursor");
+        document.getElementById("player-wrapper").classList.add("nocursor");
+        */
+    }, 500);
+
+    //url('rsrc/mediaPlayer/voidcursor.png'), 
 }
 
 function autoHide()
@@ -408,8 +466,8 @@ function autoHide()
 
         function goFullScreen()
         {
-            document.getElementById("fullscreen").setAttribute("display", "none");
             app.fullscreenStatus = true;
+            document.getElementById("fullscreen").setAttribute("display", "none");
             // Go fullscreen
             var body = document.getElementsByTagName("body")[0];
             body.requestFullscreen();
@@ -418,6 +476,7 @@ function autoHide()
             document.getElementById("fullscreen").setAttribute("onmousedown", "endFullScreen();");
             body.setAttribute("ondblclick", "endFullScreen();");
             document.getElementById("fullscreen").setAttribute("display", "block");
+            updateRealTimeData();
         }
 
         function endFullScreen()
@@ -430,8 +489,10 @@ function autoHide()
             document.getElementById("fullscreen").setAttribute("onmousedown", "goFullScreen();");
             var body = document.getElementsByTagName("body")[0];
             body.setAttribute("ondblclick", "goFullScreen();");
-            app.fullscreenStatus = false;
             document.getElementById("fullscreen").setAttribute("display", "block");
+            app.fullscreenStatus = false;
+            showInterface();
+            updateRealTimeData();
 
         }
 
@@ -461,6 +522,7 @@ function autoHide()
             document.getElementById("fillingmode").setAttribute("src", "rsrc/mediaPlayer/theater-mode.svg");
             document.getElementById("fillingmode").setAttribute("onmousedown", "goTheatherMode();");
             document.getElementById("fillingmode").setAttribute("display", "block");
+            showInterface();
         }
 
         function goTheatherMode()
@@ -473,6 +535,7 @@ function autoHide()
             document.getElementById("fillingmode").setAttribute("src", "rsrc/mediaPlayer/fill-mode.svg");
             document.getElementById("fillingmode").setAttribute("onmousedown", "goFillMode();");
             document.getElementById("fillingmode").setAttribute("display", "block");
+            showInterface();
         }
 
 
@@ -517,45 +580,50 @@ function autoHide()
         function previousVideo()
         {
             // If this is the first played video, do nothing
-            if(alreadyPlayed.length <= 1)
+            if(app.alreadyPlayed.length <= 1)
             {
                 return;
             }
             else
             {
                 // Take note we are going back in the already played videos
-                currentBackToTheFutureCount++;
+                app.currentBackToTheFutureCount++;
                 // Get the index of the previous video
-                var indexToPlay=alreadyPlayed[0];
-                if(alreadyPlayed.length-currentBackToTheFutureCount-1 > 0)
-                    indexToPlay = alreadyPlayed[alreadyPlayed.length-currentBackToTheFutureCount-1];
-                // Play the video
-                loadVideo(indexToPlay);
+                var indexToPlay=app.alreadyPlayed[0];
+                if (app.alreadyPlayed.length - app.currentBackToTheFutureCount - 1 >= 0) {
+                    indexToPlay = app.alreadyPlayed[app.alreadyPlayed.length - app.currentBackToTheFutureCount - 1];
+                    loadVideo(indexToPlay);
+                }
             }
         }
 
         // PLAY THE NEXT VIDEO (NEXT IN THE BACKTOTHEFUTURE ORDER OR NEW RANDOM ONE)
         function nextVideo()
         {
-            var indexToPlay = 0;
-            // If we already used the forward button, get the next video index
-            if(currentBackToTheFutureCount > 0)
-            {
-                // Decrease the current position in the backtothefuture list
-                currentBackToTheFutureCount--;
-                // Get the index
-                if(alreadyPlayed.length-currentBackToTheFutureCount-1 > 0)
+            document.getElementById("playerContainer").classList.remove("displayed");
+            document.getElementById("playerContainer").classList.add("hidden");
+
+            setTimeout(() => {
+                var indexToPlay = 0;
+                // If we already used the forward button, get the next video index
+                if(app.currentBackToTheFutureCount > 0)
                 {
-                    indexToPlay = alreadyPlayed[alreadyPlayed.length-currentBackToTheFutureCount-1];
+                    // Decrease the current position in the backtothefuture list
+                    app.currentBackToTheFutureCount--;
+                    // Get the index
+                    if(app.alreadyPlayed.length-app.currentBackToTheFutureCount-1 > 0)
+                    {
+                        indexToPlay = app.alreadyPlayed[app.alreadyPlayed.length-app.currentBackToTheFutureCount-1];
+                    }
+                    //Play the video
+                    loadVideo(indexToPlay);
                 }
-                //Play the video
-                loadVideo(indexToPlay);
-            }
-            // If we are in the present, load a new random video
-            else
-            {
-                loadRandomVideo();
-            }
+                // If we are in the present, load a new random video
+                else
+                {
+                    loadRandomVideo();
+                }
+            }, 150);
         }
 
     /* -----------------------------
@@ -566,10 +634,8 @@ function autoHide()
         // PLAY OR PAUSE THE VIDEO DEPENDING ON THE CURRENT STATE
         function playOrPause()
         {
-            //let currentState = player.getPlayerState(); -> 1 / 2
-
-            if(app.inputForbidden === false) {
-                let fromButton = "";
+            if((!app.inputForbidden)) {
+                let isFromPlayPauseButton = false;
                 try {
                     isFromPlayPauseButton = (event.originalTarget.src === document.getElementById("playVideo").src);
                 } catch(e) {}
@@ -583,13 +649,10 @@ function autoHide()
                         playChannel();
                     }
                 }
+                setTimeout(() => {
+                    app.inputForbidden = false;
+                }, 300);
             }
-
-            setTimeout(() => {
-                app.inputForbidden = false;
-            }, 300);
-
-
         }
 
        function playChannel()
@@ -597,7 +660,13 @@ function autoHide()
             try {
                 player.playVideo();
                 app.playing = true;
-                document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.png";
+                setTimeout(() => {
+                    if(app.playing === true) {
+                        document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.png";
+                        showInterface();
+                        app.inputForbidden = false;
+                    }
+                }, 300);
             } catch(e) {}
        }
 
@@ -606,7 +675,13 @@ function autoHide()
             try {
                 player.pauseVideo();
                 app.playing = false;
-                document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.png";
+                setTimeout(() => {
+                    if(app.playing === false) {
+                        document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.png";
+                        showInterface();
+                        app.inputForbidden = false;
+                    }
+                }, 300);
             } catch(e) {}
        }
 
@@ -614,7 +689,7 @@ function autoHide()
        function updatePlayerState()
        {
             //back
-            if(alreadyPlayed.length == 1 || alreadyPlayed.length == currentBackToTheFutureCount + 1)
+            if(app.alreadyPlayed.length === 1 || app.alreadyPlayed.length === app.currentBackToTheFutureCount + 1)
             {
                 document.getElementById("previousVideo").src = "rsrc/mediaPlayer/backGreyed.png";
                 document.getElementById("previousVideo").onclick = "";
@@ -764,12 +839,15 @@ function autoHide()
             try {
                 let options = document.getElementById("selectSpeed");
                 player.setPlaybackRate(parseFloat(event.target.value));
+                app.speed = parseFloat(event.target.value);
+                
                 for(let i=0; i<options.length ; I++) {
                     options[i].removeAttribute("selected");
                     if(options[i].value === event.target.value) {
                         options[i].addAttribute("selected", "");
                     }
                 }
+                
                 app.userNotChoosingSpeed = true;
                 app.inputForbidden = false;
             } catch(e) {}
@@ -952,7 +1030,7 @@ function autoHide()
         {
             try {
                 player.playVideoAt(n);
-                currentVideoIndex=n;
+                app.currentVideoIndex=n;
                 updateAllData();
             } catch(e) {}
         }
@@ -1052,6 +1130,9 @@ function autoHide()
                     document.getElementById("progressionBar").max = Math.round(dTimeCode * 100);
                     document.getElementById("progressionBar").value = Math.round(tTimeCode * 100);
                     document.getElementById("webkitProgressFill").style.width = (tTimeCode / dTimeCode * 100) + "%";
+
+                    let loadedPercent = Math.round(player.getVideoLoadedFraction() * 100);
+                    document.getElementById("loadingFill").style.width = loadedPercent + "%";
                 }
             } catch(e) {} 
             
@@ -1073,15 +1154,16 @@ function autoHide()
                 else {
                     let authorText = "";
                     if (player.playerInfo.videoData.author.length > 0) {
-                        authorText = " ➥ <span id='currentVideoAuthor'> " + player.playerInfo.videoData.author + "</span>"; // ➤ ☛
+                        authorText = "<span id='currentVideoSeparator'>➥</span><span id='currentVideoAuthor'>" + player.playerInfo.videoData.author + "</span>"; // ➤ ☛
                     }
-                    elHtml = "<a href='" + vidUrl + "' target='_blank'>" + vidTitle + authorText + "</a>";
+                    elHtml = "<a href='" + vidUrl + "' target='_blank'><span id='animatedBanner'>" + vidTitle + authorText + "</span></a>";
                 }
                 app.videoTitle = vidTitle;
                 app.videoAuthor = player.playerInfo.videoData.author;
-                if(app.vidTitle !== "-") {
+                if(vidTitle !== "-") {
                     app.firstVideoLoaded = true;
                 }
+
             } catch(e) {}
 
             document.getElementById("currentVideoNameDisplay").innerHTML = elHtml;
@@ -1089,40 +1171,20 @@ function autoHide()
 
 
 
-
-
-        // RETURN A NON-PLAYED RANDOM VIDEO INDEX
-        function getRandomVideoNumber()
-        {
-            // Range definition
-            var min=0; 
-            var max=parseInt(playlistNbVideos); 
-            if(parseInt(playlistNbVideos) > 200) //limitation of the YouTube API
-                max=200;
-            // Generation of the random index
-            var n = Math.floor(Math.random() * max);
-            // TODO : bug if the last two elements to play randomly are consecutives
-            if(alreadyPlayed.includes(n) || alreadyPlayedErrors.includes(n)) //  || n + 1 == currentVideoIndex || n - 1 == currentVideoIndex
-            {
-                n = getRandomVideoNumber();
-                console.log(n);
-            }
-            return n;
-        }
-
         // LOAD A RANDOM VIDEO ON THE YOUTUBE PLAYER
         function loadRandomVideo()
         {
             // If every video had been played, inform the user
-            if(alreadyPlayed.length + alreadyPlayedErrors.length >= parseInt(playlistNbVideos))
+            if(app.alreadyPlayed.length + app.alreadyPlayedErrors.length >= parseInt(playlistNbVideos))
             {
-                alreadyPlayed = [];
+                app.alreadyPlayed = [];
+                createPlaylistOrder();
                 displayAlert("vous avez vu toutes les vidéos de " + app.playName + " !", "Vous pouvez éteindre JoliTube et reprendre une activité normale");
             }
             // While necessary, generate a new index for the playlist
-            var num = getRandomVideoNumber();
+            var num = app.randomPlaylist.shift();
             // Keep note of it in the already played videos
-            alreadyPlayed.push(num);
+            app.alreadyPlayed.push(num);
             // Play the video
             loadVideo(num);
             // Temporaraly disable the player to ensure fast user won't cause bugs
@@ -1160,9 +1222,11 @@ function autoHide()
             '</div>';
             // Update the global variables
             playlistID = playID;
-            playlistNbVideos = playNbVideos;
-            alreadyPlayed = [];
-            alreadyPlayedErrors = [];
+            playlistNbVideos = playNbVideos - 1;
+            app.alreadyPlayed = [];
+            app.alreadyPlayedErrors = [];
+
+            app.currentBackToTheFutureCount = 0;
 
             app.playName = playName;
             app.playNbVideos = playNbVideos;
@@ -1174,6 +1238,7 @@ function autoHide()
             updateAllData();
             console.log("CHANNEL : " + getCurrentChannelNum());
             playChannel();
+            showInterface();
 
         }
 
@@ -1215,6 +1280,7 @@ function autoHide()
                 // highlight it only if its the current channel
                 if(childDivs[i].innerHTML.includes("<h1>"+app.playName+"</h1>")) {
                     childDivs[i].classList.add("selected");
+                    childDivs[i].scrollIntoView();
                     app.playID = i + 1;
                 }
             }
@@ -1241,48 +1307,151 @@ function autoHide()
 
         }
 
+        var responseText = null;
+
         // CALL THE YOUTUBE API TO GET A PLAYER
         function onYouTubeIframeAPIReady()
         {
             app.realTimeDataMonitored = false;
-            //Quick fix degeux
-            if(alreadyPlayed.length != 0 || alreadyPlayedErrors.length != 0)
-            {
-                alreadyPlayed=[];
-                alreadyPlayedErrors=[];
-            }
 
-            try
-            {
-                // Pick a random video and update alreadyPlayed
-                var vidNumber=getRandomVideoNumber();
-                alreadyPlayed.push(vidNumber);
-                currentVideoIndex=vidNumber;
-                // Instanciation of the player
-                player = new YT.Player('player', {
-                    host: 'https://www.youtube-nocookie.com',
-                    events: {
-                        'onReady': onPlayerReady,
-                        'onStateChange': onPlayerStateChange,
-                        'onError': onPlayerError
-                    },
-                    playerVars: {
-                        origin: window.location.host,
-                        controls: 0,
-                        modestbranding: 1,
-                        playsinline: 1,
-                        //rel: 0,
-                        enablejsapi: 1,
-                        list: playlistID,
-                        index: vidNumber
-                    }
-                });
+            app.alreadyPlayed = [];
+            app.alreadyPlayedErrors = [];
+            
+                try
+                {
+                    createPlaylistOrder();
+                    // Pick a random video and update alreadyPlayed
+                    var n = app.randomPlaylist.shift();
+                    app.alreadyPlayed.push(n);
+                    app.currentVideoIndex=n;
+                    let youtubePlayerIndex = n+1; // DUMB YOUTUBE IFRAME API NOTATION FOR NOOB USERS
+                    // Instanciation of the player
+                    player = new YT.Player('player', {
+                        host: 'https://www.youtube-nocookie.com',
+                        events: {
+                            'onReady': onPlayerReady,
+                            'onStateChange': onPlayerStateChange,
+                            'onError': onPlayerError
+                        },
+                        playerVars: {
+                            origin: window.location.host,
+                            controls: 0,
+                            modestbranding: 1,
+                            playsinline: 1,
+                            //rel: 0,
+                            enablejsapi: 1,
+                            list: playlistID,
+                            index: youtubePlayerIndex
+                        }
+                    });
+                    document.getElementById("player").src += "?rel=0";
+                } catch(e) {}
+            
 
-                document.getElementById("player").src += "?rel=0";
 
                 //let interfaceAutoHidding = setInterval(function () { autoHide(); }, 100);
+                try {
+                    /*
+                    // https://video.google.com/timedtext?lang=fr&v=E92LE_B7VXs
+                    fetch('https://video.google.com/timedtext?lang=fr&v=E92LE_B7VXs')
+                    .then(res => res.text())
+                    .then(text => new DOMParser()
+                      .parseFromString(text, 'text/xml')
+                    ).then(initPlayer)
+                    */
 
-            } catch(e) {}
+                    // https://video.google.com/timedtext?lang=fr&v=E92LE_B7VXs&fmt=vtt
+
+
+                    var id="E92LE_B7VXs"; // Queen : fJ9rUzIMcZQ
+                    var lang='fr'; //default language is english (see below)
+                    var url='https://video.google.com/timedtext?lang='+lang+'&v='+id +'&fmt=vtt'; //  +'&fmt=vtt'
+                    console.log(url);
+
+
+
+
+
+                    //------------------------------------
+                    //The default language is english (en) but you can check the available languages with:
+                    console.log('available languages: https://video.google.com/timedtext?hl=en&v=' + id + '&type=list');
+
+/*
+                    fetch(url).then(function (response) {
+                        // The API call was successful!
+                        console.log('success!', response);
+
+                        // Read all captions into an array
+                        responseText = response.text();
+                        //var items = response.split('\n\r\n');
+                        console.log("================================================");
+                        console.log(responseText);
+                        console.log("================================================");
+
+                        var domCaptions = new DOMParser().parseFromString(responseText, 'text/xml');
+                        console.log(domCaptions);
+                        console.log("================================================");
+                    }).catch(function (err) {
+                        // There was an error
+                        console.warn('Something went wrong.', err);
+                    });
+*/
+
+                    loadDoc();
+                    console.log("================================================");
+                    console.log(resp);
+                    console.log("================================================");
+                    rFile = loadFile();
+                    console.log("================================================");
+                    console.log("FILE : ");
+                    console.log(rFile);
+                    console.log("================================================");
+
+                    setTimeout(() => {
+                        console.log("================================================");
+                        console.log("BIS : ");
+                        console.log(resp);
+                        console.log("================================================");
+                        console.log("================================================");
+                        console.log("FILE : ");
+                        console.log(rFile);
+                        console.log("================================================");
+                    }, 10000);
+
+
+
+                } catch(e) {}
+        }
+
+        var resp = "";
+        var rFile = "";
+
+        function loadDoc() {
+
+           var xhttp = new XMLHttpRequest();
+           xhttp.onreadystatechange = function() {
+              if (this.readyState == 4 && this.status == 200) {
+                resp = this.responseText;
+               }
+             };
+
+           xhttp.open("POST", "https://www.youtube.com/api/timedtext?lang=fr&v=E92LE_B7VXs");
+           res = xhttp.send();
+
+           console.log(xhttp);
+           console.log(res);
+        }
+
+
+        function loadFile(filePath) {
+          var result = null;
+          var xmlhttp = new XMLHttpRequest();
+          xmlhttp.open("GET", "https://www.youtube.com/api/timedtext?lang=fr&v=E92LE_B7VXs&fmt=vtt", false);
+          xmlhttp.send();
+          if (xmlhttp.status==200) {
+            result = xmlhttp.responseText;
+          }
+          return result;
         }
 
 /* =========================================================================
@@ -1295,7 +1464,7 @@ function autoHide()
 
         // Set the default channel (first in the channelList)
         playlistID=channelList[0][3];
-        playlistNbVideos=channelList[0][4];
+        playlistNbVideos = parseInt(channelList[0][4]) - 1;
         app.playName=channelList[0][0];
         app.logo=channelList[0][2];
 
@@ -1345,47 +1514,35 @@ function autoHide()
         YOUTUBE PLAYER LOADING
        ----------------------------- */
 
-/*
-        document.getElementsByTagName('body')[0].addEventListener("onkeyup", function(event) {
-            console.log(event);
-            event.preventDefault();
-        });
 
-*/
-
-/*
-        if (window.document.addEventListener) {
-           window.document.addEventListener("keydown", alert("done"), false);
-        } else {
-           window.document.attachEvent("onkeydown", alert("done"));
-        }
-*/
         initYT();
 
-/*
-        document.onkeydown = function (e) {
-            alert("done");
-            e.preventDefault();
-        };
 
-        */
-/*
-        document.addEventListener("onkeypress", function(event) {
-            event.preventDefault();
-            return;
-        });
 
-        document.addEventListener("onkeyup", function(event) {
-            event.preventDefault();
-            return;
-        });
-*/
+
+
         window.addEventListener("message", function(event) {
             try {
                 updateDuration();
             }
             catch(e) {}
         });
+
+/*
+        var timerMouse;
+        var timerNoUser;
+        document.addEventListener('mousemove', function() {
+            if (timerMouse) clearTimeout(timerMouse);
+            if (timerNoUser) clearTimeout(timerNoUser);
+            timerMouse = setTimeout(function() {
+                console.log('mouse hasn\'t moved for 5 seconds');
+                autoHide();
+                timerMouse = setTimeout(function() {
+                    hideInterface();
+                }, 10000);
+            }, 5000);
+        });
+*/
 
 /* =========================================================================
     EVENT LISTENERS
@@ -1399,7 +1556,7 @@ function autoHide()
                 app.firstVideoDebug = true;
                 loadSelectedChannelByNum(app.channelNum);
                 firstVideoDebugTimer();
-            } else if ((app.firstVideoDebug) && alreadyPlayed.length === alreadyPlayedErrors.length) {
+            } else if ((app.firstVideoDebug) && app.alreadyPlayed.length === app.alreadyPlayedErrors.length) {
                 app.firstVideoDebug = true;
                 loadSelectedChannelByNum(app.channelNum);
                 firstVideoDebugTimer();
@@ -1426,43 +1583,30 @@ function autoHide()
                 }
             }
         } catch(e) {}
-/*
+
         try
         {
-            if (event.target.getPlayerState() === -1 || event.target.getPlayerState() === undefined)
-            {
-                app.firstVideoLoaded = false;
-                initYT();
-                return;
-            }
-        } catch(e) {}
-*/
-        try
-        {
+            /*
             // QUICK FIX : Sometimes, the first registered index is false (-3 to +3 decallage to reality)
             var playIndex = player.getPlaylistIndex();
-            if(playIndex != alreadyPlayed[0])
+            if(playIndex != app.alreadyPlayed[0])
             {
-                alreadyPlayed = [];
-                alreadyPlayed.push(playIndex);
+                app.alreadyPlayed = [];
+                app.alreadyPlayed.push(playIndex);
             }
+            */
 
             // Force the data actualisation (just in case)
-            player.playVideo();
+            player.setPlaybackRate(app.speed);
+            playChannel();
 
             document.getElementById("player").removeAttribute("allowfullscreen");
             document.getElementById("player").setAttribute("allowFullScreen", "");
 
-            //document.getElementById("player").setAttribute("height", "200%");
-    /*
-            player.addEventListener('timeupdate', e => {
-                updateDuration();
-            });
-    */
             // TODO c'est là le pb, on rend le bouton dispo alors que pas chargé
             updateAllData();
-        } catch(e) {}
-        
+        } catch(e) {}  
+
     }
 
     // AT THE END OF THE CURRENT VIDEO
@@ -1487,9 +1631,19 @@ function autoHide()
                 */
             //} while(!app.firstVideoLoaded)
         }
-        else if (app.videoTitle !== player.getVideoData().title) {}
+        else if (app.videoTitle !== player.getVideoData().title)
         {
             updateAllData();
+        }
+
+        if (event.data >= 0)
+        {
+            setTimeout(() => {
+                try {
+                    document.getElementById("playerContainer").classList.remove("hidden");
+                    document.getElementById("playerContainer").classList.add("displayed");
+                } catch(e) {}
+            }, 1000);
         }
 
 
@@ -1499,11 +1653,37 @@ function autoHide()
     // of embdeding)
     function onPlayerError(event)
     {
+        let codeError = event.data;
+        switch(parseInt(event.data)) {
+            case 2 :
+                console.warn("YT PLAYER ERROR : " + event.data + " -> Incorrect request parameter (ex : the ID player does not have a right number of caracters or incorrect one such as '/')");
+                break;
+            case 5 :
+                console.warn("YT PLAYER ERROR : " + event.data + " -> Generic HTML5 player error happened or the content can't be loaded in the HTML5 player");
+                break;
+            case 100 :
+                console.warn("YT PLAYER ERROR : " + event.data + " -> Unavailable video (removed or private)");
+                break;
+            case 101 :
+                console.warn("YT PLAYER ERROR : " + event.data + " -> Video not authorized on the iFrame Player API");
+                break;
+            case 150 :
+                console.warn("YT PLAYER ERROR : " + event.data + " -> Video not authorized on the iFrame Player API (same as error 101, but 'masked' ...)");
+                break;
+            default :
+                console.warn("YT PLAYER ERROR : " + event.data + " -> UNKNOWN ERROR");
+                break;
+        }
+
         // Add the video to the errors to prevent replay with the previous button
-        alreadyPlayedErrors.push(alreadyPlayed.pop());
+        app.alreadyPlayedErrors.push(app.alreadyPlayed.pop());
         // Play next video
-        nextVideo();
-        playChannel();
+        try {
+            nextVideo();
+        } catch(e) {}
+        try {
+            playChannel();
+        } catch(e) {}
     }
 
 
@@ -1535,6 +1715,8 @@ function addToRemoteDigitBuffer(digit)
         app.remoteDigitBuffer += digit;
     }
     console.log("CURRENT REMOTE ENTRY : " + app.remoteDigitBuffer);
+
+    showInterface();
 }
 
 
@@ -1543,7 +1725,6 @@ function addToRemoteDigitBuffer(digit)
 function keyHandler()
 {
     //console.log(event.code);
-    showInterface();
     switch(event.code)
     {
         case "KeyR":
@@ -1565,8 +1746,7 @@ function keyHandler()
             event.preventDefault();
             break;
         case "Space":
-            if(app.fullscreenStatus === false) { playOrPause(); }
-            else                               { playOrPause(); }
+            playOrPause();
             event.preventDefault();
             break;
         case "ArrowUp":
@@ -1656,6 +1836,22 @@ function keyHandler()
 
 
 
+function createPlaylistOrder() {
+    let n = range(parseInt(playlistNbVideos));
+
+    app.alreadyPlayedErrors.sort();
+    let NbRemovedErrors = 0;
+    for(let i=0 ; i<app.alreadyPlayedErrors.length ; i++) {
+        n.splice(app.alreadyPlayedErrors[i] - NbRemovedErrors, 1);
+        NbRemovedErrors++;
+    }
+
+    app.randomPlaylist = shuffleArray(n);
+
+    console.log("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP");
+    console.log(app.randomPlaylist);
+    console.log("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP");
+}
 
 
 

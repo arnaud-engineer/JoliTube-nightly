@@ -24,9 +24,9 @@
 
 	</head>
 
-	<body onmousemove="showInterface();" onkeydown="keyHandler();" ondblclick="goFullScreen();">
+	<body onmousemove="showInterface();" onkeydown="keyHandler();">
 
-		<div id="background" onclick="playOrPause();">
+		<div id="background" onclick="playOrPause();" ondblclick="goFullScreen();">
 			<div id="playerContainer">
 				<div id="cropping-div" style="">
 			        <div id="div-to-crop" style="">
@@ -66,6 +66,7 @@
 			<div id="progressionBarContainer">
 				<input id="progressionBar" type="range" name="progressionBar" min="0" max="100" value="0" oninput="userChangesTimeCode();" onclick="userTimeCodeSingleton();" />
 				<div id="webkitProgressFill"></div>
+				<div id="loadingFill"></div>
 			</div>
 
 			<div id="currentChannel">
