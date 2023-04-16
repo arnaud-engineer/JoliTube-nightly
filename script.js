@@ -44,6 +44,7 @@ function shuffleArray(array) {
                 this.firstVideoDebug = false;
 
                 this.playerIndexInitAttempt = 0;
+                this.playerInitAttemptPassed = false;
 
 
 
@@ -57,6 +58,7 @@ function shuffleArray(array) {
 
                 this.currentVideoIndex = null;
                 this.videoIndexBeforePlayerDisplay = null;
+
                 this.randomPlaylist = [];
                 this.alreadyPlayed = [];
                 this.alreadyPlayedErrors = [];
@@ -340,6 +342,7 @@ function showVideo() {
         if(app.videoIndexBeforePlayerDisplay === app.currentVideoIndex) {
             document.getElementById("playerContainer").classList.remove("hidden");
             document.getElementById("playerContainer").classList.add("displayed");
+            app.playerInitAttemptPassed = true;
         }
     }, 500);
 }
@@ -698,7 +701,7 @@ function autoHide()
                 setTimeout(() => {
                     if(app.playing === true) {
                         document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.png";
-                        showInterface();
+                        //showInterface();
                         app.inputForbidden = false;
                     }
                 }, 300);
@@ -713,7 +716,7 @@ function autoHide()
                 setTimeout(() => {
                     if(app.playing === false) {
                         document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.png";
-                        showInterface();
+                        //showInterface();
                         app.inputForbidden = false;
                     }
                 }, 300);
@@ -1244,6 +1247,7 @@ function autoHide()
             app.realTimeDataMonitored = false;
             app.firstVideoLoaded = false;
             app.nbVideoCurrentChannel = null;
+            app.playerInitAttemptPassed = false;
             // disable the controls
             disablePlayer();
             // Reset the player
@@ -1533,7 +1537,7 @@ document.addEventListener('DOMContentLoaded', function(event)
     // AT THE END OF THE CURRENT VIDEO
     function onPlayerStateChange(event)
     {
-        if(app.eventsTimer === null) {
+        if(app.eventsTimer === null && app.playerInitAttemptPassed) {
             app.eventsTimer = setInterval(function () {
                 if(app.realTimeDataMonitored) {
                     updateRealTimeData();
