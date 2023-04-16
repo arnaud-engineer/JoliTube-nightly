@@ -37,22 +37,26 @@ function shuffleArray(array) {
                 this.playName = null;
                 this.playID = 1;
                 this.displayPlayID = "01";
-                this.playNbVideos = null;
                 this.logo = null;
                 this.channelNum = null;
 
                 this.firstVideoLoaded = false;
                 this.firstVideoDebug = false;
 
+                this.playerIndexInitAttempt = 0;
+
 
 
                 this.remoteDigitBuffer = null;
+
+                this.nbVideoCurrentChannel = null;
 
 
 
                 //current Video
 
                 this.currentVideoIndex = null;
+                this.videoIndexBeforePlayerDisplay = null;
                 this.randomPlaylist = [];
                 this.alreadyPlayed = [];
                 this.alreadyPlayedErrors = [];
@@ -89,6 +93,10 @@ function shuffleArray(array) {
 
 
 
+
+
+
+                this.eventsTimer = null;
 
 
                 this.subtitlesOn = null;
@@ -191,79 +199,79 @@ function shuffleArray(array) {
 
         var channelList = [
         	// Premium
-            ["TEST","TEST","rsrc/channelsLogos/JoliTubePlus.png","PLEJ0pOW0FHeECH6Q4OuOSkujC8Grt11Vo","3"],
-            ["JoliTube +","Les derniers ajouts","rsrc/channelsLogos/JoliTubePlus.png","PLEJ0pOW0FHeELfQtk-6za-V7Pirc15Nax","173"],
-            ["JoliTube + Séries","Essayez des séries","rsrc/channelsLogos/JoliTubeSeries.png","PLEJ0pOW0FHeGn_AMco5NL9QbZPdaIJ0sK","87"],
-            ["JoliTube + Cinéma","Pop-corn vendu séparément","rsrc/channelsLogos/JoliTubeCinema.png","PLEJ0pOW0FHeGv1QU3JIuqYnGoIP3a7J0r","17"],
-            ["JoliTube + Courts","Comme un long mais court","rsrc/channelsLogos/JoliTubeCourts.png","PLEJ0pOW0FHeF7sE3tM3HsrAEhdQaNT1Zl","98"],
-            ["JoliTube + Spectacles","Show ou pas show ?","rsrc/channelsLogos/JoliTubeSpectacles.png","PLEJ0pOW0FHeFifm36Yj6WN0OitSMuJ4YR","23"],
+            ["TEST","TEST","rsrc/channelsLogos/JoliTubePlus.png","PLEJ0pOW0FHeECH6Q4OuOSkujC8Grt11Vo"],
+            ["JoliTube +","Les derniers ajouts","rsrc/channelsLogos/JoliTubePlus.png","PLEJ0pOW0FHeELfQtk-6za-V7Pirc15Nax"],
+            ["JoliTube + Séries","Essayez des séries","rsrc/channelsLogos/JoliTubeSeries.png","PLEJ0pOW0FHeGn_AMco5NL9QbZPdaIJ0sK"],
+            ["JoliTube + Cinéma","Pop-corn vendu séparément","rsrc/channelsLogos/JoliTubeCinema.png","PLEJ0pOW0FHeGv1QU3JIuqYnGoIP3a7J0r"],
+            ["JoliTube + Courts","Comme un long mais court","rsrc/channelsLogos/JoliTubeCourts.png","PLEJ0pOW0FHeF7sE3tM3HsrAEhdQaNT1Zl"],
+            ["JoliTube + Spectacles","Show ou pas show ?","rsrc/channelsLogos/JoliTubeSpectacles.png","PLEJ0pOW0FHeFifm36Yj6WN0OitSMuJ4YR"],
             // Cinéma
-            ["Old Movies","C'est moins cher que Netflix","rsrc/channelsLogos/OldMovies.png","PLEJ0pOW0FHeFgOC544ujQty-gONR9GJVw","46"],
-            //["JoliTube Ciné Cancer","C'est meilleur quand c'est nul","rsrc/channelsLogos/JoliTubeWebSeries.png","PLEJ0pOW0FHeFn4qMaIWp-N0XA4rFmrbwW","108"],
+            ["Old Movies","C'est moins cher que Netflix","rsrc/channelsLogos/OldMovies.png","PLEJ0pOW0FHeFgOC544ujQty-gONR9GJVw"],
+            //["JoliTube Ciné Cancer","C'est meilleur quand c'est nul","rsrc/channelsLogos/JoliTubeWebSeries.png","PLEJ0pOW0FHeFn4qMaIWp-N0XA4rFmrbwW"],
             // Comédie
-            ["Comédie","Blagues de l\'Internouille","rsrc/channelsLogos/Comedie.png","PLEJ0pOW0FHeGM2aj0qVizu5PFd5OZpfft","156"],
-            ["Comedy","Jokes made in Internet","rsrc/channelsLogos/Comedy.png","PLEJ0pOW0FHeF2Nr7x5qCipkRAT0-DRi63","160"],
-            ["Old Comédie","C\'était sympa Dailymotion","rsrc/channelsLogos/OldComedie.png","PLEJ0pOW0FHeHXID5VahhSdu2ZvRWUOM3J","109"],
-            ["Old Comedy","YouTube used to be funny","rsrc/channelsLogos/OldComedy.png","PLEJ0pOW0FHeFn19WRTmLeNCby6_VB-voT","80"],
-            ["Funnier MTV","C\'est mieux avec des blagues","rsrc/channelsLogos/FunnierMTV.png","PLEJ0pOW0FHeFGAcuPQTlLpV0beaNyu_Ua","138"],
-            ["YouTube Poop","Because It\'s where the poop is","rsrc/channelsLogos/ComedieYTP2.png","PLEJ0pOW0FHeForGVS9CZk6riBHOLmQnmj","62"],
-            //["The Eric Andre Show","Trash & absurd","rsrc/channelsLogos/The_Eric_Andre_Logo.png","PLEJ0pOW0FHeGQyVUPTE-qhJwKKtZQHm4u","66"],
+            ["Comédie","Blagues de l\'Internouille","rsrc/channelsLogos/Comedie.png","PLEJ0pOW0FHeGM2aj0qVizu5PFd5OZpfft"],
+            ["Comedy","Jokes made in Internet","rsrc/channelsLogos/Comedy.png","PLEJ0pOW0FHeF2Nr7x5qCipkRAT0-DRi63"],
+            ["Old Comédie","C\'était sympa Dailymotion","rsrc/channelsLogos/OldComedie.png","PLEJ0pOW0FHeHXID5VahhSdu2ZvRWUOM3J"],
+            ["Old Comedy","YouTube used to be funny","rsrc/channelsLogos/OldComedy.png","PLEJ0pOW0FHeFn19WRTmLeNCby6_VB-voT"],
+            ["Funnier MTV","C\'est mieux avec des blagues","rsrc/channelsLogos/FunnierMTV.png","PLEJ0pOW0FHeFGAcuPQTlLpV0beaNyu_Ua"],
+            ["YouTube Poop","Because It\'s where the poop is","rsrc/channelsLogos/ComedieYTP2.png","PLEJ0pOW0FHeForGVS9CZk6riBHOLmQnmj"],
+            //["The Eric Andre Show","Trash & absurd","rsrc/channelsLogos/The_Eric_Andre_Logo.png","PLEJ0pOW0FHeGQyVUPTE-qhJwKKtZQHm4u"],
             //Musique
-            ["MTV Eclectic Party","Bordel audible de soirée","rsrc/channelsLogos/MTV_Party.png","PLEJ0pOW0FHeF5LvDjIxUMLdv1Xh_Jt-bV","200"],
-            ["MTV Covers","Les grands artistes volent","rsrc/channelsLogos/MTV_Covers.png","PLEJ0pOW0FHeEOZsliVPFJ0uVYksimlsJt","180"],
-            ["MTV Mashups","Deux hits valent mieux qu'un","rsrc/channelsLogos/MTV_Mashups.png","PLEJ0pOW0FHeGlfiwS36aYUpV6JJumUeDF","131"],
-            ["MTV +BCDM","+ Belles chansons du Monde","rsrc/channelsLogos/MTV_BCDM.png","PLEJ0pOW0FHeHhqQqSNbwfkwKbUx1II1Je","63"],
-            ["MTV Visual","La Musique qui se regarde","rsrc/channelsLogos/MTV_Visual.png","PLEJ0pOW0FHeHq4zPJMSym3v5QQOltZ38A","122"],
-            ["MTV Random","Surprennament, ça existe","rsrc/channelsLogos/MTV_Random.png","PLEJ0pOW0FHeEFm0IBxq8lzZFfT06d1aLr","160"],
-            ["MTV Unusual","Sons et instruments bizarres","rsrc/channelsLogos/MTV_Unusual.png","PLEJ0pOW0FHeE0KFtYvOqy-j-dMJrJUNJt","197"],
-            ["MTV Shitty","Shitty music is the best","rsrc/channelsLogos/MTVShitty.png","PLEJ0pOW0FHeEK-TjsvdDacq3_eDyAQwDh","200"],
-            ["MTV Otamatone","Tout est mieux à l'Otamatone","rsrc/channelsLogos/MTV_Otamatone.png","PLEJ0pOW0FHeFBnYENy5LWpfAHcJ4NDjCs","53"],
-            ["MTV Flute","Un instrument sous estimé","rsrc/channelsLogos/MTV_Flute.png","PLEJ0pOW0FHeGfuXlbqgYXiZKWTnEGwCex","43"],
-            ["Euro 2000","Eurodance & euroambiance","rsrc/channelsLogos/Euro2000.png","PLEJ0pOW0FHeFRwE7WTbteW1OvJ6fTgZQ6","50"],
-            ["Eurovision","Sans le décompte des points","rsrc/channelsLogos/Eurovision.png","PLEJ0pOW0FHeHnxrwXg_QDKFgs5j7JLdKl","49"],
-            ["PostModern","Back to the Future","rsrc/channelsLogos/PostMo.png","PLEJ0pOW0FHeHXBa2L9ZA4vURmbpC4mNtx","101"],
-            ["PostMo 30","30\'s rocks","rsrc/channelsLogos/PostMo30.png","PLEJ0pOW0FHeE2RaM1qJbcLbJ6E03vp6R9","57"],
-            ["PostMo 60","60\'s Forever","rsrc/channelsLogos/PostMo60.png","PLEJ0pOW0FHeHWT-SDeRgvrZyA6zz8zkcD","45"],
-            ["PostMo 80","Synthwave partout","rsrc/channelsLogos/PostMo80.png","PLEJ0pOW0FHeExdr1E-CzhMeVwh-ggWBcE","56"],
-            ["PostMo Symph","Pop-symphonique","rsrc/channelsLogos/PostMoSymph.png","PLEJ0pOW0FHeFbplYMHal9mvYJtQSY7Jhv","64"],
-            ["Paroles","Les pas plus grands textes","rsrc/channelsLogos/ParolesTV.png","PLEJ0pOW0FHeHfo8D0450uwDXsC2SvBicf","58"],
-            ["Coco Hits Only","Marx avait raison","rsrc/channelsLogos/CocoTV.png","PLEJ0pOW0FHeFc3nuqu0G7Xsl2ZwOfEsMT","61"],
-            ["Zik2Kebab","Ambiance ton maître-kebabier","rsrc/channelsLogos/Zik2Kebab.png","PLEJ0pOW0FHeGBqy3eZmsU5jo0v5yBp47d","39"],
-            ["SilvaGunner","Fake Video Games Music Only","rsrc/channelsLogos/silvaGunner.png","PLEJ0pOW0FHeGRJKoolDq3hruSs7IW1ynF","58"],
-            ["Britney","100 % Britney Spears","rsrc/channelsLogos/britney.png","PLEJ0pOW0FHeH7eFJ_xhL95mPyUFaPF4DL","64"],
+            ["MTV Eclectic Party","Bordel audible de soirée","rsrc/channelsLogos/MTV_Party.png","PLEJ0pOW0FHeF5LvDjIxUMLdv1Xh_Jt-bV"],
+            ["MTV Covers","Les grands artistes volent","rsrc/channelsLogos/MTV_Covers.png","PLEJ0pOW0FHeEOZsliVPFJ0uVYksimlsJt"],
+            ["MTV Mashups","Deux hits valent mieux qu'un","rsrc/channelsLogos/MTV_Mashups.png","PLEJ0pOW0FHeGlfiwS36aYUpV6JJumUeDF"],
+            ["MTV +BCDM","+ Belles chansons du Monde","rsrc/channelsLogos/MTV_BCDM.png","PLEJ0pOW0FHeHhqQqSNbwfkwKbUx1II1Je"],
+            ["MTV Visual","La Musique qui se regarde","rsrc/channelsLogos/MTV_Visual.png","PLEJ0pOW0FHeHq4zPJMSym3v5QQOltZ38A"],
+            ["MTV Random","Surprennament, ça existe","rsrc/channelsLogos/MTV_Random.png","PLEJ0pOW0FHeEFm0IBxq8lzZFfT06d1aLr"],
+            ["MTV Unusual","Sons et instruments bizarres","rsrc/channelsLogos/MTV_Unusual.png","PLEJ0pOW0FHeE0KFtYvOqy-j-dMJrJUNJt"],
+            ["MTV Shitty","Shitty music is the best","rsrc/channelsLogos/MTVShitty.png","PLEJ0pOW0FHeEK-TjsvdDacq3_eDyAQwDh"],
+            ["MTV Otamatone","Tout est mieux à l'Otamatone","rsrc/channelsLogos/MTV_Otamatone.png","PLEJ0pOW0FHeFBnYENy5LWpfAHcJ4NDjCs"],
+            ["MTV Flute","Un instrument sous estimé","rsrc/channelsLogos/MTV_Flute.png","PLEJ0pOW0FHeGfuXlbqgYXiZKWTnEGwCex"],
+            ["Euro 2000","Eurodance & euroambiance","rsrc/channelsLogos/Euro2000.png","PLEJ0pOW0FHeFRwE7WTbteW1OvJ6fTgZQ6"],
+            ["Eurovision","Sans le décompte des points","rsrc/channelsLogos/Eurovision.png","PLEJ0pOW0FHeHnxrwXg_QDKFgs5j7JLdKl"],
+            ["PostModern","Back to the Future","rsrc/channelsLogos/PostMo.png","PLEJ0pOW0FHeHXBa2L9ZA4vURmbpC4mNtx"],
+            ["PostMo 30","30\'s rocks","rsrc/channelsLogos/PostMo30.png","PLEJ0pOW0FHeE2RaM1qJbcLbJ6E03vp6R9"],
+            ["PostMo 60","60\'s Forever","rsrc/channelsLogos/PostMo60.png","PLEJ0pOW0FHeHWT-SDeRgvrZyA6zz8zkcD"],
+            ["PostMo 80","Synthwave partout","rsrc/channelsLogos/PostMo80.png","PLEJ0pOW0FHeExdr1E-CzhMeVwh-ggWBcE"],
+            ["PostMo Symph","Pop-symphonique","rsrc/channelsLogos/PostMoSymph.png","PLEJ0pOW0FHeFbplYMHal9mvYJtQSY7Jhv"],
+            ["Paroles","Les pas plus grands textes","rsrc/channelsLogos/ParolesTV.png","PLEJ0pOW0FHeHfo8D0450uwDXsC2SvBicf"],
+            ["Coco Hits Only","Marx avait raison","rsrc/channelsLogos/CocoTV.png","PLEJ0pOW0FHeFc3nuqu0G7Xsl2ZwOfEsMT"],
+            ["Zik2Kebab","Ambiance ton maître-kebabier","rsrc/channelsLogos/Zik2Kebab.png","PLEJ0pOW0FHeGBqy3eZmsU5jo0v5yBp47d"],
+            ["SilvaGunner","Fake Video Games Music Only","rsrc/channelsLogos/silvaGunner.png","PLEJ0pOW0FHeGRJKoolDq3hruSs7IW1ynF"],
+            ["Britney","100 % Britney Spears","rsrc/channelsLogos/britney.png","PLEJ0pOW0FHeH7eFJ_xhL95mPyUFaPF4DL"],
             //Jeunesse
-            ["Disney Channel Music","Ton enfance leur appartient","rsrc/channelsLogos/MTVDisneyStore.png","PLEJ0pOW0FHeFq5itu2wEmmHCf7CrJcbp_","72"],
-            ["Canal J","Tu peux sortir les céréales","rsrc/channelsLogos/CanalJ.png","PLEJ0pOW0FHeHN170F8w7Y5YoXRJI83Fiv","200"],
-            ["YouTube Kids","C\'est compliqué ...","rsrc/channelsLogos/YouTubeKids.png","PLEJ0pOW0FHeES9YZTEYfo3iJI3inSGBtL","43"],
-            ["JeuxLeVeux","100% pubs, 0% dessins animés","rsrc/channelsLogos/JeuxLeVeux.png","PLEJ0pOW0FHeEU0Aomd50p-Ps8_6-zUHHH","126"],
+            ["Disney Channel Music","Ton enfance leur appartient","rsrc/channelsLogos/MTVDisneyStore.png","PLEJ0pOW0FHeFq5itu2wEmmHCf7CrJcbp_"],
+            ["Canal J","Tu peux sortir les céréales","rsrc/channelsLogos/CanalJ.png","PLEJ0pOW0FHeHN170F8w7Y5YoXRJI83Fiv"],
+            ["YouTube Kids","C\'est compliqué ...","rsrc/channelsLogos/YouTubeKids.png","PLEJ0pOW0FHeES9YZTEYfo3iJI3inSGBtL"],
+            ["JeuxLeVeux","100% pubs, 0% dessins animés","rsrc/channelsLogos/JeuxLeVeux.png","PLEJ0pOW0FHeEU0Aomd50p-Ps8_6-zUHHH"],
             // Nouvelle génération
-            ["[adult anim]","Animation pour les grands","rsrc/channelsLogos/AdultAnim.png","PLEJ0pOW0FHeFN5aWnQO026Rq3ybmtaDTq","115"],
-            ["[sureal anim]","Animation pour les weirdos","rsrc/channelsLogos/AdultAnimSureal.png","PLEJ0pOW0FHeF5dkaPtUFGUL5bKHLIXHxN","166"],
-            //["Cyriak","Animation surréel et psyché","rsrc/channelsLogos/Cyriak.png","PLEJ0pOW0FHeHfV7ox0iHKFn3Gs6zU8FTc","44"],
+            ["[adult anim]","Animation pour les grands","rsrc/channelsLogos/AdultAnim.png","PLEJ0pOW0FHeFN5aWnQO026Rq3ybmtaDTq"],
+            ["[sureal anim]","Animation pour les weirdos","rsrc/channelsLogos/AdultAnimSureal.png","PLEJ0pOW0FHeF5dkaPtUFGUL5bKHLIXHxN"],
+            ["Cyriak","Animation surréel et psyché","rsrc/channelsLogos/Cyriak.png","PLEJ0pOW0FHeHfV7ox0iHKFn3Gs6zU8FTc"],
             // Fond de grille
-            ["Random TV","Ainsi soit-il","rsrc/channelsLogos/randomTV.png","PLEJ0pOW0FHeFLhiQ1-2bi-oIUp-FPMojH","200"],
-            ["Random TV Speed","Pas le temps de niaiser","rsrc/channelsLogos/randomTVspeed.png","PLEJ0pOW0FHeFeJK_JkPmIGdyHt1q3fGv6","119"],
-            ["Random TV Petit Tube","Tu n'as jamais vu ces vidéos","rsrc/channelsLogos/randomTVPetitTube.png","PLEJ0pOW0FHeGSac-RPj03xmhYold-8hmO","171"],
-            ["Memory Hole","L'angoisse des 90's","rsrc/channelsLogos/MemoryHole.png","PLEJ0pOW0FHeE2U_-OtyXrORU-X8ttTUxl","86"],
-            ["Ads","Vu sur YouTube","rsrc/channelsLogos/ads.png","PLEJ0pOW0FHeFDRzAS6u6m2Oagn0-qClul","80"],
-            ["SeuNeuCeuFeu TV","Une ambiance de Tchou tchou","rsrc/channelsLogos/SeuNeuCeuFeu.png","PLEJ0pOW0FHeGWvKiPBN0OybmreMjSCOHt","53"],
-            ["Vidéo Grande Conso","N°1 sur le commerce de détail","rsrc/channelsLogos/VCG.png","PLEJ0pOW0FHeEOjiyKHydyn3Z5IptUayVR","35"],
-            ["Steve Ballmer","Ce n\'est pas Steve Jobs","rsrc/channelsLogos/Ballmer.png","PLEJ0pOW0FHeGj5HQlf2BoahmvpdNYv9BO","38"],
-            ["Ambient Music","Musique d'ambiance","rsrc/channelsLogos/AmbientMusic.png","PLEJ0pOW0FHeHjVH8BzOWQG4aDn0pjLfTR","39"],
-            ["Ambient ScreenSaver","Des visuels pour vos soirées","rsrc/channelsLogos/AmbientScreenSaver.png","PLEJ0pOW0FHeHP5HNjoQdoAPRLI3MZKS_D","136"],
-            ["Ambient Window","Une fenêtre sur le monde","rsrc/channelsLogos/AmbientWindow.png","PLEJ0pOW0FHeGIgL2QjcYyz0VqHLdctBo7","57"],
-            ["Ambient Journey","La fenêtre du train en mieux","rsrc/channelsLogos/AmbientJourney.png","PLEJ0pOW0FHeHZoH7H1vak_JV_-xkZSNbQ","31"],
+            ["Random TV","Ainsi soit-il","rsrc/channelsLogos/randomTV.png","PLEJ0pOW0FHeFLhiQ1-2bi-oIUp-FPMojH"],
+            ["Random TV Speed","Pas le temps de niaiser","rsrc/channelsLogos/randomTVspeed.png","PLEJ0pOW0FHeFeJK_JkPmIGdyHt1q3fGv6"],
+            ["Random TV Petit Tube","Tu n'as jamais vu ces vidéos","rsrc/channelsLogos/randomTVPetitTube.png","PLEJ0pOW0FHeGSac-RPj03xmhYold-8hmO"],
+            ["Memory Hole","L'angoisse des 90's","rsrc/channelsLogos/MemoryHole.png","PLEJ0pOW0FHeE2U_-OtyXrORU-X8ttTUxl"],
+            ["Ads","Vu sur YouTube","rsrc/channelsLogos/ads.png","PLEJ0pOW0FHeFDRzAS6u6m2Oagn0-qClul"],
+            ["SeuNeuCeuFeu TV","Une ambiance de Tchou tchou","rsrc/channelsLogos/SeuNeuCeuFeu.png","PLEJ0pOW0FHeGWvKiPBN0OybmreMjSCOHt"],
+            ["Vidéo Grande Conso","N°1 sur le commerce de détail","rsrc/channelsLogos/VCG.png","PLEJ0pOW0FHeEOjiyKHydyn3Z5IptUayVR"],
+            ["Steve Ballmer","Ce n\'est pas Steve Jobs","rsrc/channelsLogos/Ballmer.png","PLEJ0pOW0FHeGj5HQlf2BoahmvpdNYv9BO"],
+            ["Ambient Music","Musique d'ambiance","rsrc/channelsLogos/AmbientMusic.png","PLEJ0pOW0FHeHjVH8BzOWQG4aDn0pjLfTR"],
+            ["Ambient ScreenSaver","Des visuels pour vos soirées","rsrc/channelsLogos/AmbientScreenSaver.png","PLEJ0pOW0FHeHP5HNjoQdoAPRLI3MZKS_D"],
+            ["Ambient Window","Une fenêtre sur le monde","rsrc/channelsLogos/AmbientWindow.png","PLEJ0pOW0FHeGIgL2QjcYyz0VqHLdctBo7"],
+            ["Ambient Journey","La fenêtre du train en mieux","rsrc/channelsLogos/AmbientJourney.png","PLEJ0pOW0FHeHZoH7H1vak_JV_-xkZSNbQ"],
             // Étranger
-            ["Planeta HD","Le meilleur de la pop bulgare","rsrc/channelsLogos/PlanetaHD.png","PLEJ0pOW0FHeGqtnSc4a12cE0EWa1Jw5jT","47"],
-            ["Tiankov","N°1 sur la folk bulgare","rsrc/channelsLogos/Tiankov.png","PLEJ0pOW0FHeHYinJjgquQVGAaGDjLasPV","48"],
-            ["RTB et amis","Tous tiers-monde d\'un autre","rsrc/channelsLogos/rtb.png","PLEJ0pOW0FHeGgMBBRCEUPVF586EMDKp9o","96"],
-            ["Téléfrançais","Apprendons le Français","rsrc/channelsLogos/telefrancais.jpg","PLEJ0pOW0FHeGIHzCMPZL9qNn9KdL_RiOU","29"],
+            ["Planeta HD","Le meilleur de la pop bulgare","rsrc/channelsLogos/PlanetaHD.png","PLEJ0pOW0FHeGqtnSc4a12cE0EWa1Jw5jT"],
+            ["Tiankov","N°1 sur la folk bulgare","rsrc/channelsLogos/Tiankov.png","PLEJ0pOW0FHeHYinJjgquQVGAaGDjLasPV"],
+            ["RTB et amis","Tous tiers-monde d\'un autre","rsrc/channelsLogos/rtb.png","PLEJ0pOW0FHeGgMBBRCEUPVF586EMDKp9o"],
+            ["Téléfrançais","Apprendons le Français","rsrc/channelsLogos/telefrancais.jpg","PLEJ0pOW0FHeGIHzCMPZL9qNn9KdL_RiOU"],
             //telefrancais.jpg
             // Fin fond de grille
-            ["ATMO1777","Va voir, tu comprendras","rsrc/channelsLogos/ATMO1777.png","PLxGjXN7GLGCtUer7H5934MwtYXC6dPFyg","1774"],
-            ["ATMO3003","Va comprendre, tu verras","rsrc/channelsLogos/ATMO3003.png","PLxGjXN7GLGCtPSG7Hh4ZQyWiqjdxf_RCQ","179"],
-            ["Chill of the trade","Keep calm, stay corporate","rsrc/channelsLogos/ChillOfTheTrade.png","PLxGjXN7GLGCsPN51q2a_uVvrY1E_PsHMD","128"],
-            ["J-TOP","Nolife ne meurt jamais","rsrc/channelsLogos/Jtop.png","PLhPXaGzNx63GViI0aZCYtzttRsjsrNx7_","1098"]
+            ["ATMO1777","Va voir, tu comprendras","rsrc/channelsLogos/ATMO1777.png","PLxGjXN7GLGCtUer7H5934MwtYXC6dPFyg"],
+            ["ATMO3003","Va comprendre, tu verras","rsrc/channelsLogos/ATMO3003.png","PLxGjXN7GLGCtPSG7Hh4ZQyWiqjdxf_RCQ"],
+            ["Chill of the trade","Keep calm, stay corporate","rsrc/channelsLogos/ChillOfTheTrade.png","PLxGjXN7GLGCsPN51q2a_uVvrY1E_PsHMD"],
+            ["J-TOP","Nolife ne meurt jamais","rsrc/channelsLogos/Jtop.png","PLhPXaGzNx63GViI0aZCYtzttRsjsrNx7_"]
         ];
 
 /* =========================================================================
@@ -272,7 +280,6 @@ function shuffleArray(array) {
 
     //Playlist data
     var playlistID = "";
-    var playlistNbVideos = 0;
 
     //Already played videos
     var currentChannel = "";
@@ -326,6 +333,21 @@ function shuffleArray(array) {
     /*  ----------------------------------------
          SHOW / HIDE INTERFACE
         ---------------------------------------- */
+
+function showVideo() {
+    app.videoIndexBeforePlayerDisplay = app.currentVideoIndex;
+    setTimeout(function() {
+        if(app.videoIndexBeforePlayerDisplay === app.currentVideoIndex) {
+            document.getElementById("playerContainer").classList.remove("hidden");
+            document.getElementById("playerContainer").classList.add("displayed");
+        }
+    }, 500);
+}
+
+function hideVideo() {
+    document.getElementById("playerContainer").classList.remove("displayed");
+    document.getElementById("playerContainer").classList.add("hidden");
+}
 
 function showInterface()
 {
@@ -482,33 +504,37 @@ function autoHide()
 
         function goFullScreen()
         {
-            app.fullscreenStatus = true;
-            document.getElementById("fullscreen").setAttribute("display", "none");
-            // Go fullscreen
-            var body = document.getElementsByTagName("body")[0];
-            body.requestFullscreen();
-            // Fullscreen button evolves into end fullscreen button
-            document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-end-icon.svg");
-            document.getElementById("fullscreen").setAttribute("onmousedown", "endFullScreen();");
-            body.setAttribute("ondblclick", "endFullScreen();");
-            document.getElementById("fullscreen").setAttribute("display", "block");
-            updateRealTimeData();
+            if(app.fullscreenStatus === false) {
+                app.fullscreenStatus = true;
+                document.getElementById("fullscreen").setAttribute("display", "none");
+                // Go fullscreen
+                var body = document.getElementsByTagName("body")[0];
+                body.requestFullscreen();
+                // Fullscreen button evolves into end fullscreen button
+                document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-end-icon.svg");
+                document.getElementById("fullscreen").setAttribute("onmousedown", "endFullScreen();");
+                body.setAttribute("ondblclick", "endFullScreen();");
+                document.getElementById("fullscreen").setAttribute("display", "block");
+                updateRealTimeData();
+            }
         }
 
         function endFullScreen()
         {
-            document.getElementById("fullscreen").setAttribute("display", "none");
-            // End fullscreen
-            document.exitFullscreen();
-            // End fullscreen button evolves into fullscreen button
-            document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-icon.svg");
-            document.getElementById("fullscreen").setAttribute("onmousedown", "goFullScreen();");
-            var body = document.getElementsByTagName("body")[0];
-            body.setAttribute("ondblclick", "goFullScreen();");
-            document.getElementById("fullscreen").setAttribute("display", "block");
-            app.fullscreenStatus = false;
-            showInterface();
-            updateRealTimeData();
+            if(app.fullscreenStatus === true) {
+                document.getElementById("fullscreen").setAttribute("display", "none");
+                // End fullscreen
+                document.exitFullscreen();
+                // End fullscreen button evolves into fullscreen button
+                document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-icon.svg");
+                document.getElementById("fullscreen").setAttribute("onmousedown", "goFullScreen();");
+                var body = document.getElementsByTagName("body")[0];
+                body.setAttribute("ondblclick", "goFullScreen();");
+                document.getElementById("fullscreen").setAttribute("display", "block");
+                app.fullscreenStatus = false;
+                showInterface();
+                updateRealTimeData();
+            }
 
         }
 
@@ -595,7 +621,12 @@ function autoHide()
         // PLAY THE PREVIOUS VIDEO
         function previousVideo()
         {
+            if(app.alreadyPlayed.length > 1) {
+                app.randomPlaylist.unshift(app.alreadyPlayed.shift());
+                loadVideo(app.alreadyPlayed[0]);
+            }
             // If this is the first played video, do nothing
+            /*
             if(app.alreadyPlayed.length <= 1)
             {
                 return;
@@ -603,43 +634,31 @@ function autoHide()
             else
             {
                 // Take note we are going back in the already played videos
-                app.currentBackToTheFutureCount++;
+                //app.currentBackToTheFutureCount++;
                 // Get the index of the previous video
-                var indexToPlay=app.alreadyPlayed[0];
-                if (app.alreadyPlayed.length - app.currentBackToTheFutureCount - 1 >= 0) {
-                    indexToPlay = app.alreadyPlayed[app.alreadyPlayed.length - app.currentBackToTheFutureCount - 1];
-                    loadVideo(indexToPlay);
-                }
+                //var indexToPlay=app.alreadyPlayed[0];
+                app.randomPlaylist.unshift(app.alreadyPlayed.shift());
+                loadVideo(app.randomPlaylist[0]);
+                //if (app.alreadyPlayed.length - app.currentBackToTheFutureCount - 1 >= 0) {
+                    //indexToPlay = app.alreadyPlayed[app.alreadyPlayed.length - app.currentBackToTheFutureCount - 1];
+                    //loadVideo(indexToPlay);
+                //}
             }
+            */
         }
 
         // PLAY THE NEXT VIDEO (NEXT IN THE BACKTOTHEFUTURE ORDER OR NEW RANDOM ONE)
         function nextVideo()
         {
-            document.getElementById("playerContainer").classList.remove("displayed");
-            document.getElementById("playerContainer").classList.add("hidden");
-
-            setTimeout(() => {
-                var indexToPlay = 0;
-                // If we already used the forward button, get the next video index
-                if(app.currentBackToTheFutureCount > 0)
-                {
-                    // Decrease the current position in the backtothefuture list
-                    app.currentBackToTheFutureCount--;
-                    // Get the index
-                    if(app.alreadyPlayed.length-app.currentBackToTheFutureCount-1 > 0)
-                    {
-                        indexToPlay = app.alreadyPlayed[app.alreadyPlayed.length-app.currentBackToTheFutureCount-1];
-                    }
-                    //Play the video
-                    loadVideo(indexToPlay);
-                }
-                // If we are in the present, load a new random video
-                else
-                {
-                    loadRandomVideo();
-                }
-            }, 150);
+            if(app.randomPlaylist.length === 0 && app.alreadyPlayed.length >= 1) {
+                displayAlert("vous avez vu toutes les vidéos de " + app.playName + " !", "Vous pouvez éteindre JoliTube et reprendre une activité normale");
+                app.channelNum = getCurrentChannelNum();
+                loadSelectedChannelByNum(app.channelNum);
+            }
+            else {
+                app.alreadyPlayed.unshift(app.randomPlaylist.shift());
+                loadVideo(app.alreadyPlayed[0]);
+            }
         }
 
     /* -----------------------------
@@ -705,7 +724,7 @@ function autoHide()
        function updatePlayerState()
        {
             //back
-            if(app.alreadyPlayed.length === 1 || app.alreadyPlayed.length === app.currentBackToTheFutureCount + 1)
+            if(app.alreadyPlayed.length <= 1) /* || app.alreadyPlayed.length === app.currentBackToTheFutureCount + 1*/
             {
                 document.getElementById("previousVideo").src = "rsrc/mediaPlayer/backGreyed.png";
                 document.getElementById("previousVideo").onclick = "";
@@ -737,14 +756,16 @@ function autoHide()
 
        function disablePlayer()
        {
-            // Back
-            document.getElementById("previousVideo").src = "rsrc/mediaPlayer/backGreyed.png";
-            document.getElementById("previousVideo").onclick = "";
-            document.getElementById("previousVideo").style.cursor = "not-allowed";
-            // Next
-            document.getElementById("nextVideo").src = "rsrc/mediaPlayer/forwardGreyed.png";
-            document.getElementById("nextVideo").onclick = "";
-            document.getElementById("nextVideo").style.cursor = "not-allowed";
+            try {
+                // Back
+                document.getElementById("previousVideo").src = "rsrc/mediaPlayer/backGreyed.png";
+                document.getElementById("previousVideo").onclick = "";
+                document.getElementById("previousVideo").style.cursor = "not-allowed";
+                // Next
+                document.getElementById("nextVideo").src = "rsrc/mediaPlayer/forwardGreyed.png";
+                document.getElementById("nextVideo").onclick = "";
+                document.getElementById("nextVideo").style.cursor = "not-allowed";
+            } catch(e) {}
        }
 
 
@@ -1059,8 +1080,9 @@ function autoHide()
         function loadVideo(n)
         {
             try {
-                player.playVideoAt(n);
+                hideVideo();
                 app.currentVideoIndex=n;
+                player.playVideoAt(n);
                 updateAllData();
             } catch(e) {}
         }
@@ -1163,6 +1185,10 @@ function autoHide()
 
                     let loadedPercent = Math.round(player.getVideoLoadedFraction() * 100);
                     document.getElementById("loadingFill").style.width = loadedPercent + "%";
+
+                    if((durationHH > 0 || durationMM > 0 || durationSS > 0) && player.getCurrentTime() > 0) {
+                        showVideo();
+                    }
                 }
             } catch(e) {} 
             
@@ -1201,27 +1227,6 @@ function autoHide()
 
 
 
-        // LOAD A RANDOM VIDEO ON THE YOUTUBE PLAYER
-        function loadRandomVideo()
-        {
-            // If every video had been played, inform the user
-            if(app.alreadyPlayed.length + app.alreadyPlayedErrors.length >= parseInt(playlistNbVideos))
-            {
-                app.alreadyPlayed = [];
-                createPlaylistOrder();
-                displayAlert("vous avez vu toutes les vidéos de " + app.playName + " !", "Vous pouvez éteindre JoliTube et reprendre une activité normale");
-            }
-            // While necessary, generate a new index for the playlist
-            var num = app.randomPlaylist.shift();
-            // Keep note of it in the already played videos
-            app.alreadyPlayed.push(num);
-            // Play the video
-            loadVideo(num);
-            // Temporaraly disable the player to ensure fast user won't cause bugs
-            // Will be reactivated during the state change when the video will be loaded
-            disablePlayer();
-        }
-
     /* -----------------------------
         CHANNEL LOADING
        ----------------------------- */
@@ -1229,47 +1234,61 @@ function autoHide()
         function loadSelectedChannelByNum(num)
         {
             let i = num - 1;
-            loadSelectedChannel(channelList[i][0], channelList[i][3], channelList[i][4], channelList[i][2]);
+            loadSelectedChannel(channelList[i][0], channelList[i][3], channelList[i][2]);
         }
 
         // CHANGE THE CHANNEL IN THE PLAYER
-        function loadSelectedChannel(playName, playID, playNbVideos, logo)
+        function loadSelectedChannel(playName, playID, logo)
         {
+            hideVideo();
+            app.realTimeDataMonitored = false;
             app.firstVideoLoaded = false;
+            app.nbVideoCurrentChannel = null;
             // disable the controls
             disablePlayer();
             // Reset the player
             //document.getElementById("playerContainer").innerHTML = '<div id="player"></div>';
-            document.getElementById("playerContainer").outerHTML = "" +
-            '<div id="playerContainer" class="">' +
+            try { player.stopVideo(); } catch(e) {}
+
+            document.getElementById("playerContainer").innerHTML = "" +
                 '<div id="cropping-div" style="">' +
                     '<div id="div-to-crop" style="">' +
                       '<div id="player-wrapper">' +
                         '<div id="player"></div>' +
                       '</div>' +
                     '</div>' +
-                '</div>' +
-            '</div>';
+                '</div>';
+            document.getElementById("playerContainer").className = "";
             // Update the global variables
             playlistID = playID;
-            playlistNbVideos = playNbVideos - 1;
-            app.alreadyPlayed = [];
-            app.alreadyPlayedErrors = [];
 
-            app.currentBackToTheFutureCount = 0;
+            //app.currentBackToTheFutureCount = 0;
 
             app.playName = playName;
-            app.playNbVideos = playNbVideos;
             app.logo = logo;
             // Initialise the player
             initYT();
             //Update the channel informations (global variables and display)
             app.channelNum = getCurrentChannelNum();
-            updateAllData();
-            console.log("CHANNEL : " + getCurrentChannelNum());
-            playChannel();
-            showInterface();
 
+
+            var whilePlayerNotFullyCharged = setInterval(function() {
+                app.nbVideoCurrentChannel = null;
+                try {
+                    app.nbVideoCurrentChannel = player.playerInfo.playlist.length;
+                } catch(e) {}
+                if(app.nbVideoCurrentChannel !== null) {
+                    createPlaylistOrder();
+                    nextVideo();
+
+                    updateAllData();
+                    console.log("CHANNEL : " + getCurrentChannelNum());
+                    //showInterface();
+                    playChannel();
+
+                    clearInterval(whilePlayerNotFullyCharged);
+                }
+            }, 20);
         }
 
         function getCurrentChannelNum() {
@@ -1344,19 +1363,11 @@ function autoHide()
         // CALL THE YOUTUBE API TO GET A PLAYER
         function onYouTubeIframeAPIReady()
         {
-            app.realTimeDataMonitored = false;
-
             app.alreadyPlayed = [];
             app.alreadyPlayedErrors = [];
             
                 try
                 {
-                    createPlaylistOrder();
-                    // Pick a random video and update alreadyPlayed
-                    var n = app.randomPlaylist.shift();
-                    app.alreadyPlayed.push(n);
-                    app.currentVideoIndex=n;
-                    let youtubePlayerIndex = n+1; // DUMB YOUTUBE IFRAME API NOTATION FOR NOOB USERS
                     // Instanciation of the player
                     player = new YT.Player('player', {
                         host: 'https://www.youtube-nocookie.com',
@@ -1373,7 +1384,7 @@ function autoHide()
                             //rel: 0,
                             enablejsapi: 1,
                             list: playlistID,
-                            index: youtubePlayerIndex
+                            index: app.playerIndexInitAttempt
                         }
                     });
                     document.getElementById("player").src += "?rel=0";
@@ -1390,20 +1401,21 @@ function autoHide()
     PAGE LOADING
    ========================================================================= */
 
+document.addEventListener('DOMContentLoaded', function(event)
+{
+
     /* -----------------------------
         CHANNELS LOADING
        ----------------------------- */
 
         // Set the default channel (first in the channelList)
         playlistID=channelList[0][3];
-        playlistNbVideos = parseInt(channelList[0][4]) - 1;
         app.playName=channelList[0][0];
         app.logo=channelList[0][2];
 
         //Generation of the miniatures for each channel (HTML)
         var menuBarContent = "";
         var channelMiniature = "";
-        setTimeout(() => {// Wait the html to be loaded (TODO : event listener)
             let i = 0;
             channelList.forEach(function miniaturesGeneration(currentChannel, index) {
                 i++;
@@ -1412,7 +1424,7 @@ function autoHide()
                     displayChannelNum = "0" + displayChannelNum;
                 }
                 channelMiniature = '' +
-                  '<div class="elementMenuBar" onclick="loadSelectedChannel(\'' + currentChannel[0] + '\',\'' + currentChannel[3] + '\',' + currentChannel[4] + ',\'' + currentChannel[2] + '\')";>' +
+                  '<div class="elementMenuBar" onclick="loadSelectedChannel(\'' + currentChannel[0] + '\',\'' + currentChannel[3] + '\',\'' + currentChannel[2] + '\');">' +
                     '<div class="logoElementMenuBar">' +
                       '<img src="' + currentChannel[2] + '"/>' +
                     '</div>' +
@@ -1440,14 +1452,15 @@ function autoHide()
             });
             // Add the generated list of menu elements to the menu
             document.getElementById("menuBar").innerHTML = menuBarContent;
-        }, 300);
 
     /* -----------------------------
         YOUTUBE PLAYER LOADING
        ----------------------------- */
 
 
-        initYT();
+        //initYT();
+
+        loadSelectedChannelByNum(1);
 
 
 
@@ -1476,6 +1489,10 @@ function autoHide()
         });
 */
 
+    
+});
+
+
 /* =========================================================================
     EVENT LISTENERS
    ========================================================================= */
@@ -1501,42 +1518,14 @@ function autoHide()
     // FIRST LOADING
     function onPlayerReady(event)
     {
-        // IF PB LOAD FIRST VIDEO
         try
         {
-            if (player.getPlayerState() === -1 || player.getPlayerState() === undefined)
-            {
-                if(!app.firstVideoDebug) {
-                    app.firstVideoDebug = true;
-                    app.firstVideoLoaded = false;
-                    initYT();
-                    firstVideoDebugTimer();
-                    return;
-                }
-            }
-        } catch(e) {}
-
-        try
-        {
-            /*
-            // QUICK FIX : Sometimes, the first registered index is false (-3 to +3 decallage to reality)
-            var playIndex = player.getPlaylistIndex();
-            if(playIndex != app.alreadyPlayed[0])
-            {
-                app.alreadyPlayed = [];
-                app.alreadyPlayed.push(playIndex);
-            }
-            */
-
-            // Force the data actualisation (just in case)
             player.setPlaybackRate(app.speed);
-            playChannel();
 
             document.getElementById("player").removeAttribute("allowfullscreen");
             document.getElementById("player").setAttribute("allowFullScreen", "");
 
-            // TODO c'est là le pb, on rend le bouton dispo alors que pas chargé
-            updateAllData();
+            app.realTimeDataMonitored = true;
         } catch(e) {}  
 
     }
@@ -1544,10 +1533,20 @@ function autoHide()
     // AT THE END OF THE CURRENT VIDEO
     function onPlayerStateChange(event)
     {
-        if(app.realTimeDataMonitored === false) {
-            let timeupdater = setInterval(function () { updateRealTimeData(); }, 100);
-            app.realTimeDataMonitored = true;
+        if(app.eventsTimer === null) {
+            app.eventsTimer = setInterval(function () {
+                if(app.realTimeDataMonitored) {
+                    updateRealTimeData();
+                }
+                else {
+                    clearInterval(app.eventsTimer);
+                }
+            }, 100);
         }
+
+        //if(player.getPlayerState() === 2) { // IF PLAY
+            //showVideo();
+        //}
         // ENDED VIDEO HANDLING
         if (event.data === YT.PlayerState.ENDED && app.firstVideoLoaded) {
             nextVideo();
@@ -1566,16 +1565,6 @@ function autoHide()
         else if (app.videoTitle !== player.getVideoData().title)
         {
             updateAllData();
-        }
-
-        if (event.data >= 0)
-        {
-            setTimeout(() => {
-                try {
-                    document.getElementById("playerContainer").classList.remove("hidden");
-                    document.getElementById("playerContainer").classList.add("displayed");
-                } catch(e) {}
-            }, 1000);
         }
 
 
@@ -1608,14 +1597,19 @@ function autoHide()
         }
 
         // Add the video to the errors to prevent replay with the previous button
-        app.alreadyPlayedErrors.push(app.alreadyPlayed.pop());
-        // Play next video
-        try {
-            nextVideo();
-        } catch(e) {}
-        try {
-            playChannel();
-        } catch(e) {}
+        if(app.alreadyPlayed.length > 0) {
+            app.alreadyPlayedErrors.unshift(app.alreadyPlayed.shift());
+            // Play next video
+            try {
+                nextVideo();
+                playChannel();
+            } catch(e) {}
+        }
+        else {
+            app.alreadyPlayedErrors.unshift(app.playerIndexInitAttempt);
+            app.playerIndexInitAttempt++;
+            loadSelectedChannelByNum(app.channelNum);
+        }
     }
 
 
@@ -1660,7 +1654,7 @@ function keyHandler()
     switch(event.code)
     {
         case "KeyR":
-            loadSelectedChannel(app.playName, app.playID, app.playNbVideos, app.logo);
+            loadSelectedChannel(app.playName, app.playID, app.logo);
             event.preventDefault();
             break;
         case "KeyF":
@@ -1688,9 +1682,9 @@ function keyHandler()
         case "ArrowUp":
             try {
                 let prevCh = getCurrentChannelNum() - 1;
-                if(prevCh >= 0) {
+                if(prevCh > 0) {
                     loadSelectedChannelByNum(prevCh);
-                } else if (prevCh == -1) {
+                } else {
                     loadSelectedChannelByNum(channelList.length);
                 }
             }
@@ -1699,11 +1693,11 @@ function keyHandler()
             break;
         case "ArrowDown":
             try {
-                let prevCh = getCurrentChannelNum() + 1;
-                if(prevCh <= channelList.length) {
-                    loadSelectedChannelByNum(prevCh);
-                } else if (prevCh > channelList.length) {
-                    loadSelectedChannelByNum(0);
+                let nextCh = getCurrentChannelNum() + 1;
+                if(nextCh <= channelList.length) {
+                    loadSelectedChannelByNum(nextCh);
+                } else {
+                    loadSelectedChannelByNum(1);
                 }
             }
             catch(e) { }
@@ -1834,7 +1828,7 @@ function keyHandler()
             event.preventDefault();
             break;
         case "KeyP":
-            if(app.alreadyPlayed.length - app.currentBackToTheFutureCount > 1) {
+            if(app.alreadyPlayed.length > 1) { //if(app.alreadyPlayed.length - app.currentBackToTheFutureCount > 1)
                 previousVideo();
             }
             event.preventDefault();
@@ -1874,7 +1868,7 @@ Touches multimedia
 
 
 function createPlaylistOrder() {
-    let n = range(parseInt(playlistNbVideos));
+    let n = range(parseInt(app.nbVideoCurrentChannel));
 
     app.alreadyPlayedErrors.sort();
     let NbRemovedErrors = 0;
