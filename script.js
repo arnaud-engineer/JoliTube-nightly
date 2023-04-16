@@ -1729,7 +1729,15 @@ function keyHandler()
             addToRemoteDigitBuffer("1");
             event.preventDefault();
             break;
+        case "Numpad1" :
+            addToRemoteDigitBuffer("1");
+            event.preventDefault();
+            break;
         case "Digit2" :
+            addToRemoteDigitBuffer("2");
+            event.preventDefault();
+            break;
+        case "Numpad2" :
             addToRemoteDigitBuffer("2");
             event.preventDefault();
             break;
@@ -1737,7 +1745,15 @@ function keyHandler()
             addToRemoteDigitBuffer("3");
             event.preventDefault();
             break;
+        case "Numpad3" :
+            addToRemoteDigitBuffer("3");
+            event.preventDefault();
+            break;
         case "Digit4" :
+            addToRemoteDigitBuffer("4");
+            event.preventDefault();
+            break;
+        case "Numpad4" :
             addToRemoteDigitBuffer("4");
             event.preventDefault();
             break;
@@ -1745,7 +1761,15 @@ function keyHandler()
             addToRemoteDigitBuffer("5");
             event.preventDefault();
             break;
+        case "Numpad5" :
+            addToRemoteDigitBuffer("5");
+            event.preventDefault();
+            break;
         case "Digit6" :
+            addToRemoteDigitBuffer("6");
+            event.preventDefault();
+            break;
+        case "Numpad6" :
             addToRemoteDigitBuffer("6");
             event.preventDefault();
             break;
@@ -1753,7 +1777,15 @@ function keyHandler()
             addToRemoteDigitBuffer("7");
             event.preventDefault();
             break;
+        case "Numpad7" :
+            addToRemoteDigitBuffer("7");
+            event.preventDefault();
+            break;
         case "Digit8" :
+            addToRemoteDigitBuffer("8");
+            event.preventDefault();
+            break;
+        case "Numpad8" :
             addToRemoteDigitBuffer("8");
             event.preventDefault();
             break;
@@ -1761,12 +1793,28 @@ function keyHandler()
             addToRemoteDigitBuffer("9");
             event.preventDefault();
             break;
+        case "Numpad9" :
+            addToRemoteDigitBuffer("9");
+            event.preventDefault();
+            break;
         case "Digit0" :
             addToRemoteDigitBuffer("0");
             event.preventDefault();
             break;
+        case "Numpad0" :
+            addToRemoteDigitBuffer("0");
+            event.preventDefault();
+            break;
+        case "NumpadAdd":
+            increaseVolume();
+            event.preventDefault();
+            break;
         case "KeyQ":
             increaseVolume();
+            event.preventDefault();
+            break;
+        case "NumpadSubtract":
+            decreaseVolume();
             event.preventDefault();
             break;
         case "KeyA":
@@ -1798,6 +1846,29 @@ function keyHandler()
 
     }
 }
+
+/*
+
+YOUTUBE CMD
+https://support.google.com/youtube/answer/7631406?hl=fr
+
+.   Passer à l'image suivante de la vidéo (lorsqu'elle est en pause).
+,   Passer à l'image précédente de la vidéo (lorsqu'elle est en pause).
+
+>   Augmenter la vitesse de lecture de la vidéo.
+<   Diminuer la vitesse de lecture de la vidéo.
+
+Chiffres de 1 à 9 sur la barre de recherche (et non sur le pavé numérique)  Accéder à la vidéo selon un pourcentage d'avancement (de 10 % à 90 %).
+Chiffre 0 sur la barre de recherche (et non sur le pavé numérique)  Accéder au début de la vidéo.
+
+/   Accéder au champ de recherche.
+
+
+c   Activer les sous-titres, s'ils sont disponibles. Pour masquer les sous-titres, appuyez de nouveau sur la touche C.
+
+Touches multimedia
+
+*/
 
 
 
