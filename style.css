@@ -43,6 +43,8 @@
 	--h3FontSize: calc(.6 * var(--h1FontSize));
 	--h4FontSize: calc(.4 * var(--h1FontSize));
 
+	--scrollBarWidth: 10px;
+
 
 
 	font-family: Spartan, Arial;
@@ -53,6 +55,7 @@
 {
 	margin: 0;
 	padding: 0;
+	line-height: 1.12em;
 }
 
 
@@ -64,7 +67,7 @@
 
 /* width */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: var(--scrollBarWidth);
 }
 
 /* Track */
@@ -80,6 +83,13 @@
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: #FFFFFF90; 
+}
+
+*
+{
+	/* Firefox */
+	scrollbar-color: #FFFFFF50 #00000030;
+  scrollbar-width: var(--scrollBarWidth);
 }
 
 
@@ -230,21 +240,37 @@
 
 
 
-*.displayed,
-#siteName.displayed,
-#channels.displayed,
-#menuControler.displayed
+*.displayed
 {
 	display: block;
 }
 
-*.hidden,
-#siteName.hidden,
-#channels.hidden,
-#menuControler.hidden
+*.hidden
 {
 	display: none;
 }
+
+
+header { transition: all .5s ease-out; }
+
+header,
+header.displayed { transform: translateY(0) scale(1) ; opacity:1; display: block; }
+	header.displayed:hover { transform: translateY(0) scale(1.02); opacity:.8; display: block;  }
+header.reduced { transform: translateY(75vh) scale(.5); opacity:1; display: block; }
+header.disappearing { transform: translateY(130vh) scale(.5); opacity:0; display: block; }
+header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: block; }
+
+#channels,
+#channels.displayed { transform: translateY(0) scale(1); opacity:1; display: block; }
+	#channels.displayed:hover { transform: translateY(0) scale(1.02); opacity:1; display: block;  }
+#channels.hidden { transform: translateY(90vh) scale(1); opacity:0; display: block; }
+
+#menuControler,
+#menuControler.displayed { transform: translateY(0) scale(1); opacity:1; display: block; }
+	#menuControler.displayed:hover { transform: translateY(0) scale(1.02); opacity:1; display: block;  }
+#menuControler.hidden { transform: translateY(36vh) scale(1); opacity:0; display: block; }
+
+
 
 
 
@@ -307,7 +333,6 @@
 			left: calc(50vw - var(--videoWidth) / 2 + .25 * var(--channelHeight));
 			bottom: calc(.5 * var(--channelHeight));
 			width: calc(var(--videoWidth) / 4);
-			/*height: calc(100vh - 1.75 * var(--headerHeight));*/
 
 			background-color: var(--backgroundColor);
 
@@ -316,9 +341,9 @@
 			filter: drop-shadow(0 0 5px black);
 			backdrop-filter: blur(10px);
 
-			overflow: hidden;
-
 			text-transform: uppercase;
+
+			transition: all .5s ease-out;
 		}
 
 			#channelsTitle
@@ -377,15 +402,16 @@
 
 				#menuBar
 				{
-					height: calc(100% - .75 * var(--channelHeight));;
-					overflow:scroll !important;
-					margin-left: 7%;
+					height: calc(100% - 1 * var(--channelHeight));;
+					overflow-y:scroll !important;
+
+					overflow: hidden;
 				}
 
 					.elementMenuBar
 					{
 						height: calc(1.25 * var(--channelHeight));
-						width: 93%;
+						width: 100%;
 						border-bottom: 1px solid #FFFFFF30;
 
 						display: flex;
@@ -395,6 +421,8 @@
 						align-content: center;
 
 						cursor: pointer;
+
+						transition: all .3s ease-out;
 
 						position: relative;
 					}
@@ -409,7 +437,12 @@
 						.elementMenuBar:hover
 						{
 							background-color: #FFFFFF10;
+							transform: scale(1.2);
+							transform-origin: left;
 						}
+
+							.elementMenuBar h3				{ transition: all .3s ease-out; }
+							.elementMenuBar:hover h3	{ transform: translate(calc(0px - var(--videoWidth) / 4 / 6), calc(0px - .05 * var(--channelHeight))); transform-origin: right; }
 
 							.logoElementMenuBar
 							{
@@ -448,7 +481,6 @@
 						.titlesElementMenuBar
 						{
 							width: 73%;
-
 						}
 
 							.titlesElementMenuBar > *
@@ -461,7 +493,7 @@
 								top:0;
 								right: 0;
 								padding-top: calc(var(--channelHeight) / 4);
-								padding-right: calc(var(--channelHeight) / 4);
+								padding-right: calc(var(--channelHeight) / 3);
 							}
 
 							.titlesElementMenuBar h1
@@ -473,6 +505,7 @@
 							.titlesElementMenuBar h2
 							{
 								font-size: var(--h4FontSize);
+								opacity: .7;
 							}
 
 
@@ -494,6 +527,7 @@
 			z-index: 10;
 
 			filter: drop-shadow(0 0 5px black);
+			transition: all .5s ease-out;
 		}
 
 		#progressionBarContainer
@@ -999,7 +1033,6 @@
 				transition: all .3s ease-out;
 			}
 
-			header:hover,
 			#fillingmode:hover,
 			#fullscreen:hover,
 			#volumeBarContainer:hover,

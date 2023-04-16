@@ -29,7 +29,7 @@ function shuffleArray(array) {
                 this.userNotChoosingSpeed = true;
                 this.cursorOnInterface = false;
 
-                this.totalTimeToHide = 3000;
+                this.totalTimeToHide = 4000;
 
 
 
@@ -330,17 +330,18 @@ function shuffleArray(array) {
 function showInterface()
 {
     app.noUserInterraction = false;
-    let siteName = document.getElementById("siteName");
+    let header = document.getElementsByTagName("header")[0];
     let channels = document.getElementById("channels");
     let menuControler = document.getElementById("menuControler");
 
-
-    siteName.classList.add("displayed");
-    channels.classList.add("displayed");
-    menuControler.classList.add("displayed");
-    siteName.classList.remove("hidden");
+    header.classList.remove("hidden");
+    header.classList.remove("reduced");
+    header.classList.remove("disappearing");
     channels.classList.remove("hidden");
     menuControler.classList.remove("hidden"); 
+    header.classList.add("displayed");
+    channels.classList.add("displayed");
+    menuControler.classList.add("displayed");
     //setTimeout(() => {
     app.noUserInterraction = true;
     //}, 3000);
@@ -377,16 +378,31 @@ function cursorExitInterface()
 
 function hideInterface()
 {
-    let siteName = document.getElementById("siteName");
+    let header = document.getElementsByTagName("header")[0];
     let channels = document.getElementById("channels");
     let menuControler = document.getElementById("menuControler");
 
-    siteName.classList.add("hidden");
-    channels.classList.add("hidden");
-    menuControler.classList.add("hidden");
-    siteName.classList.remove("displayed");
-    channels.classList.remove("displayed");
-    menuControler.classList.remove("displayed");
+    if(app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
+        header.classList.remove("displayed");
+        channels.classList.remove("displayed");
+        menuControler.classList.remove("displayed");
+        channels.classList.add("hidden");
+        menuControler.classList.add("hidden");
+
+        header.classList.add("reduced");
+        setTimeout(() => {
+            if(app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
+                header.classList.add("disappearing");
+                header.classList.remove("reduced");
+                setTimeout(() => {
+                    if(app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
+                        header.classList.add("hidden");
+                        header.classList.remove("disappearing");
+                    }
+                }, 1000);
+            }
+        }, app.totalTimeToHide * 2);
+    }
 
     document.getElementsByTagName('body')[0].classList.remove("cursor");
     document.getElementById("background").focus();
@@ -1280,7 +1296,9 @@ function autoHide()
                 // highlight it only if its the current channel
                 if(childDivs[i].innerHTML.includes("<h1>"+app.playName+"</h1>")) {
                     childDivs[i].classList.add("selected");
-                    childDivs[i].scrollIntoView();
+                    let idToDisplayPrevElements = i - 2;
+                    if(idToDisplayPrevElements < 0) { idToDisplayPrevElements = 0; }
+                    childDivs[idToDisplayPrevElements].scrollIntoView();
                     app.playID = i + 1;
                 }
             }
@@ -1350,109 +1368,9 @@ function autoHide()
 
 
                 //let interfaceAutoHidding = setInterval(function () { autoHide(); }, 100);
-                try {
-                    /*
-                    // https://video.google.com/timedtext?lang=fr&v=E92LE_B7VXs
-                    fetch('https://video.google.com/timedtext?lang=fr&v=E92LE_B7VXs')
-                    .then(res => res.text())
-                    .then(text => new DOMParser()
-                      .parseFromString(text, 'text/xml')
-                    ).then(initPlayer)
-                    */
-
-                    // https://video.google.com/timedtext?lang=fr&v=E92LE_B7VXs&fmt=vtt
-
-
-                    var id="E92LE_B7VXs"; // Queen : fJ9rUzIMcZQ
-                    var lang='fr'; //default language is english (see below)
-                    var url='https://video.google.com/timedtext?lang='+lang+'&v='+id +'&fmt=vtt'; //  +'&fmt=vtt'
-                    console.log(url);
-
-
-
-
-
-                    //------------------------------------
-                    //The default language is english (en) but you can check the available languages with:
-                    console.log('available languages: https://video.google.com/timedtext?hl=en&v=' + id + '&type=list');
-
-/*
-                    fetch(url).then(function (response) {
-                        // The API call was successful!
-                        console.log('success!', response);
-
-                        // Read all captions into an array
-                        responseText = response.text();
-                        //var items = response.split('\n\r\n');
-                        console.log("================================================");
-                        console.log(responseText);
-                        console.log("================================================");
-
-                        var domCaptions = new DOMParser().parseFromString(responseText, 'text/xml');
-                        console.log(domCaptions);
-                        console.log("================================================");
-                    }).catch(function (err) {
-                        // There was an error
-                        console.warn('Something went wrong.', err);
-                    });
-*/
-
-                    loadDoc();
-                    console.log("================================================");
-                    console.log(resp);
-                    console.log("================================================");
-                    rFile = loadFile();
-                    console.log("================================================");
-                    console.log("FILE : ");
-                    console.log(rFile);
-                    console.log("================================================");
-
-                    setTimeout(() => {
-                        console.log("================================================");
-                        console.log("BIS : ");
-                        console.log(resp);
-                        console.log("================================================");
-                        console.log("================================================");
-                        console.log("FILE : ");
-                        console.log(rFile);
-                        console.log("================================================");
-                    }, 10000);
-
-
-
-                } catch(e) {}
+                
         }
 
-        var resp = "";
-        var rFile = "";
-
-        function loadDoc() {
-
-           var xhttp = new XMLHttpRequest();
-           xhttp.onreadystatechange = function() {
-              if (this.readyState == 4 && this.status == 200) {
-                resp = this.responseText;
-               }
-             };
-
-           xhttp.open("POST", "https://www.youtube.com/api/timedtext?lang=fr&v=E92LE_B7VXs");
-           res = xhttp.send();
-
-           console.log(xhttp);
-           console.log(res);
-        }
-
-
-        function loadFile(filePath) {
-          var result = null;
-          var xmlhttp = new XMLHttpRequest();
-          xmlhttp.open("GET", "https://www.youtube.com/api/timedtext?lang=fr&v=E92LE_B7VXs&fmt=vtt", false);
-          xmlhttp.send();
-          if (xmlhttp.status==200) {
-            result = xmlhttp.responseText;
-          }
-          return result;
-        }
 
 /* =========================================================================
     PAGE LOADING

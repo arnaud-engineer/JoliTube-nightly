@@ -43,13 +43,13 @@
 		</div>
 
 
-		<header onmouseenter="cursorEnterInterface();" onmouseleave="cursorExitInterface();">
+		<header class="displayed" onmouseenter="cursorEnterInterface();" onmouseleave="cursorExitInterface();">
 			<h1 id="siteName">
 				<a id="siteLogo" href="index.html"><img src="rsrc/JoliTubeLogo.svg"/></a>
 			</h1>
 		</header>
 
-		<div id="channels" onmouseenter="cursorEnterInterface();" onmouseleave="cursorExitInterface();">
+		<div id="channels" class="displayed" onmouseenter="cursorEnterInterface();" onmouseleave="cursorExitInterface();">
 			<h1 id="channelsTitle">
 				<span id="channelsCategorieBack"><</span>
 				<span id="channelsCategorieName">Generalist channels</span>
@@ -61,7 +61,7 @@
 
 
 
-		<div id="menuControler" onmouseenter="cursorEnterInterface();" onmouseleave="cursorExitInterface();">
+		<div id="menuControler" class="displayed" onmouseenter="cursorEnterInterface();" onmouseleave="cursorExitInterface();">
 
 			<div id="progressionBarContainer">
 				<input id="progressionBar" type="range" name="progressionBar" min="0" max="100" value="0" oninput="userChangesTimeCode();" onclick="userTimeCodeSingleton();" />

@@ -1,4 +1,77 @@
-https://www.sitepoint.com/community/t/youtube-api-how-to-display-closed-captions-in-my-own-div/374755/3
+
+
+
+try {
+                    /*
+                    // https://video.google.com/timedtext?lang=fr&v=E92LE_B7VXs
+                    fetch('https://video.google.com/timedtext?lang=fr&v=E92LE_B7VXs')
+                    .then(res => res.text())
+                    .then(text => new DOMParser()
+                      .parseFromString(text, 'text/xml')
+                    ).then(initPlayer)
+                    */
+
+                    // https://video.google.com/timedtext?lang=fr&v=E92LE_B7VXs&fmt=vtt
+
+
+                    var id="E92LE_B7VXs"; // Queen : fJ9rUzIMcZQ
+                    var lang='fr'; //default language is english (see below)
+                    var url='https://video.google.com/timedtext?lang='+lang+'&v='+id +'&fmt=vtt'; //  +'&fmt=vtt'
+                    console.log(url);
+
+
+
+
+
+                    //------------------------------------
+                    //The default language is english (en) but you can check the available languages with:
+                    console.log('available languages: https://video.google.com/timedtext?hl=en&v=' + id + '&type=list');
+
+/*
+                    fetch(url).then(function (response) {
+                        // The API call was successful!
+                        console.log('success!', response);
+
+                        // Read all captions into an array
+                        responseText = response.text();
+                        //var items = response.split('\n\r\n');
+                        console.log("================================================");
+                        console.log(responseText);
+                        console.log("================================================");
+
+                        var domCaptions = new DOMParser().parseFromString(responseText, 'text/xml');
+                        console.log(domCaptions);
+                        console.log("================================================");
+                    }).catch(function (err) {
+                        // There was an error
+                        console.warn('Something went wrong.', err);
+                    });
+*/
+
+                    loadDoc();
+                    console.log("================================================");
+                    console.log(resp);
+                    console.log("================================================");
+                    rFile = loadFile();
+                    console.log("================================================");
+                    console.log("FILE : ");
+                    console.log(rFile);
+                    console.log("================================================");
+
+                    setTimeout(() => {
+                        console.log("================================================");
+                        console.log("BIS : ");
+                        console.log(resp);
+                        console.log("================================================");
+                        console.log("================================================");
+                        console.log("FILE : ");
+                        console.log(rFile);
+                        console.log("================================================");
+                    }, 10000);
+
+
+
+                } catch(e) {}
 
 
 
@@ -8,14 +81,6 @@ https://www.sitepoint.com/community/t/youtube-api-how-to-display-closed-captions
 
 
 
-onError
-    Cet événement se déclenche si une erreur se produit sur le lecteur. L'API envoie un objet event à la fonction de l'écouteur d'événements. La valeur de la propriété data de cet objet est un entier qui identifie le type de l'erreur qui s'est produite. Les valeurs possibles sont :
-
-        2 : la requête contient une valeur incorrecte pour un paramètre. Par exemple, cette erreur se produit si vous spécifiez un ID vidéo ne comportant pas 11 caractères, ou si l'ID vidéo contient des caractères incorrects, tels que des points d'exclamation ou des astérisques.
-        5 : le contenu demandé ne peut pas être lu dans un lecteur HTML5 ou une autre erreur liée au lecteur HTML5 s'est produite.
-        100 : impossible de trouver la vidéo demandée. Cette erreur se produit lorsqu'une vidéo a été supprimée (pour une raison quelconque) ou a été rendue privée.
-        101 : le propriétaire de la vidéo demandée n'autorise pas sa lecture dans des lecteurs intégrés.
-        150 : cette erreur est la même que celle définie par la valeur 101. Il s'agit simplement d'une erreur 101 masquée.
 
 
 
@@ -37,4 +102,36 @@ onError
 
 
 
-isMultiChannelAudio: false  // TODO
+
+
+
+        var resp = "";
+        var rFile = "";
+
+        function loadDoc() {
+
+           var xhttp = new XMLHttpRequest();
+           xhttp.onreadystatechange = function() {
+              if (this.readyState == 4 && this.status == 200) {
+                resp = this.responseText;
+               }
+             };
+
+           xhttp.open("POST", "https://www.youtube.com/api/timedtext?lang=fr&v=E92LE_B7VXs");
+           res = xhttp.send();
+
+           console.log(xhttp);
+           console.log(res);
+        }
+
+
+        function loadFile(filePath) {
+          var result = null;
+          var xmlhttp = new XMLHttpRequest();
+          xmlhttp.open("GET", "https://www.youtube.com/api/timedtext?lang=fr&v=E92LE_B7VXs&fmt=vtt", false);
+          xmlhttp.send();
+          if (xmlhttp.status==200) {
+            result = xmlhttp.responseText;
+          }
+          return result;
+        }
