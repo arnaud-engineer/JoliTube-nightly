@@ -850,19 +850,33 @@ function autoHide()
             selectSubtitles.style.width = "calc(" + currentOptionWidthVariable + " * var(--h2FontSize) + " + currentOptionWidthFix + " * var(--h4FontSize))";
         }   
 
+        function nextSpeed() {
+            let possibleSpeedValues = [0.25, 0.5, 1, 1.5, 2];
+            let nextValueIndex = possibleSpeedValues.indexOf(app.speed) + 1;
+            if(nextValueIndex >= possibleSpeedValues.length) {
+                nextValueIndex = 0;
+            }
+            let nextValue = possibleSpeedValues[nextValueIndex];
+            try {
+                let options = document.getElementById("selectSpeed");
+                player.setPlaybackRate(nextValue);
+                app.speed = nextValue;
+
+                document.getElementById("selectSpeed").value = app.speed;
+                
+                app.userNotChoosingSpeed = true;
+                app.inputForbidden = false;
+            } catch(e) {}
+        }
+
         function userChangeSpeed()
         {
             try {
                 let options = document.getElementById("selectSpeed");
                 player.setPlaybackRate(parseFloat(event.target.value));
                 app.speed = parseFloat(event.target.value);
-                
-                for(let i=0; i<options.length ; I++) {
-                    options[i].removeAttribute("selected");
-                    if(options[i].value === event.target.value) {
-                        options[i].addAttribute("selected", "");
-                    }
-                }
+
+                document.getElementById("selectSpeed").value = app.speed;
                 
                 app.userNotChoosingSpeed = true;
                 app.inputForbidden = false;
@@ -1642,7 +1656,7 @@ function addToRemoteDigitBuffer(digit)
 
 function keyHandler()
 {
-    //console.log(event.code);
+    console.log(event.code);
     switch(event.code)
     {
         case "KeyR":
@@ -1659,12 +1673,16 @@ function keyHandler()
             else                        { goFillMode(); }
             event.preventDefault();
             break;
-        case "Escape":
-            endFullScreen();
+        case "KeyK":
+            playOrPause();
             event.preventDefault();
             break;
         case "Space":
             playOrPause();
+            event.preventDefault();
+            break;
+        case "Escape":
+            endFullScreen();
             event.preventDefault();
             break;
         case "ArrowUp":
@@ -1695,8 +1713,16 @@ function keyHandler()
             try { backwardInVideo(); }catch(e) { }
             event.preventDefault();
             break;
+        case "KeyJ":
+            try { backwardInVideo(); setTimeout(() => { backwardInVideo(); }, 200); } catch(e) { }
+            event.preventDefault();
+            break;
         case "ArrowRight":
             try { forwardInVideo(); }catch(e) { }
+            event.preventDefault();
+            break;
+        case "KeyL":
+            try { forwardInVideo(); setTimeout(() => { forwardInVideo(); }, 200); } catch(e) { }
             event.preventDefault();
             break;
         case "Digit1" :
@@ -1747,6 +1773,28 @@ function keyHandler()
             decreaseVolume();
             event.preventDefault();
             break;
+        case "KeyM":
+            muteOrUnmute();
+            event.preventDefault();
+            break;
+        case "Semicolon":
+            muteOrUnmute();
+            event.preventDefault();
+            break;
+        case "KeyN":
+            nextVideo();
+            event.preventDefault();
+            break;
+        case "KeyP":
+            if(app.alreadyPlayed.length - app.currentBackToTheFutureCount > 1) {
+                previousVideo();
+            }
+            event.preventDefault();
+            break;
+        case "KeyX":
+            nextSpeed();
+            event.preventDefault();
+            break;
 
     }
 }
@@ -1773,5 +1821,15 @@ function createPlaylistOrder() {
 
 
 
+
+
+/*
+setTimeout(() => {
+    document.getElementById("alertMsg").style.display = "none";
+}, 5000);
+
+setTimeout(() => {}, 5000);
+
+*/
 
 
