@@ -130,6 +130,7 @@
 		display: flex;
 		flex-direction: row;
 		align-items: center;
+		align-content: center;
 		justify-content: center;
 
 		user-select: none;
@@ -236,6 +237,64 @@
 		}
 
 
+	#buttonsFeedback
+	{
+		position: fixed;
+		top: calc(.25 * var(--headerHeight));
+		right: calc(50vw - var(--videoWidth) / 2 + .25 * var(--channelHeight));
+		height: max(var(--headerHeight) / 2, 36px);
+		width: auto;
+		min-width: max(var(--headerHeight) / 2, 36px);
+		margin: auto;
+		margin-top: max(var(--headerHeight) / 2 / 2, 36px / 2);
+
+		background-color: var(--backgroundColor);
+
+		z-index: 10;
+
+		filter: drop-shadow(0 0 5px black);
+		backdrop-filter: blur(10px);
+
+		text-transform: uppercase;
+
+		transition: all .5s ease-out;
+
+		z-index: 20;
+
+		text-align: center;
+
+		overflow: hidden;
+
+		font-size: var(--h1FontSize);
+
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		align-content: center;
+		justify-content: center;
+	}
+
+		#channelNumFeedback
+		{
+			width: calc(var(--h1FontSize) * 2);
+		}
+
+		#volumeFeedback
+		{
+			width: calc(var(--h1FontSize) * 3);
+		}
+
+		#muteFeedback
+		{
+			width: calc(var(--h1FontSize) * 3);
+		}
+
+
+
+
+
+
+
 
 
 
@@ -254,11 +313,11 @@
 header { transition: all .5s ease-out; }
 
 header,
-header.displayed { transform: translateY(0) scale(1) ; opacity:1; display: block; }
-	header.displayed:hover { transform: translateY(0) scale(1.02); opacity:.8; display: block;  }
-header.reduced { transform: translateY(75vh) scale(.5); opacity:1; display: block; }
-header.disappearing { transform: translateY(130vh) scale(.5); opacity:0; display: block; }
-header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: block; }
+header.displayed { transform: translateY(0) scale(1) ; opacity:1; display: flex; }
+	header.displayed:hover { transform: translateY(0) scale(1.1); opacity:.8; display: flex;  }
+header.reduced { transform: translateY(75vh) scale(.5); opacity:1; display: flex; }
+header.disappearing { transform: translateY(130vh) scale(.5); opacity:0; display: flex; }
+header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex; }
 
 #channels,
 #channels.displayed { transform: translateY(0) scale(1); opacity:1; display: block; }
@@ -270,6 +329,10 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: bloc
 	#menuControler.displayed:hover { transform: translateY(0) scale(1.02); opacity:1; display: block;  }
 #menuControler.hidden { transform: translateY(36vh) scale(1); opacity:0; display: block; }
 
+
+#buttonsFeedback,
+#buttonsFeedback.displayed { transform: translateY(0) scale(1); opacity:1; display: flex; }
+#buttonsFeedback.hidden { transform: translateY(-20vh) scale(1); opacity:0; display: flex; }
 
 
 
@@ -301,15 +364,24 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: bloc
 
 			#siteLogo
 			{
-				display: block;
 				height: calc(.7 * var(--headerHeight));
 				max-width: calc(var(--videoWidth) / 4);
 
 				margin: auto;
+
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				align-content: center;
+				justify-content: center;
 			}
 
 				#siteLogo img{
-					display: block;
+					display: flex;
+					flex-direction: row;
+					align-items: center;
+					align-content: center;
+					justify-content: center;
 					height: 100%;
 					width: auto;
 					max-width: calc(var(--videoWidth) / 4 - .5 * var(--headerHeight));
@@ -425,6 +497,7 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: bloc
 						transition: all .3s ease-out;
 
 						position: relative;
+
 					}
 
 						.elementMenuBar * { cursor: pointer; }
@@ -434,11 +507,20 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: bloc
 							background-color: #FFFFFF30;
 						}
 
+							.elementMenuBar.selected:hover
+							{
+								background-color: #FFFFFF50;
+							}
+
 						.elementMenuBar:hover
 						{
 							background-color: #FFFFFF10;
 							transform: scale(1.2);
 							transform-origin: left;
+							margin-top:2%;
+							margin-bottom:2%;
+
+							overflow: hidden;
 						}
 
 							.elementMenuBar h3				{ transition: all .3s ease-out; }
@@ -579,9 +661,9 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: bloc
 
 					box-shadow: 0px 0px 4px black;
 					height: 24px;
-					width: 24px;
+					width: 12px;
 					border: none;
-					border-radius: 24px;
+					border-radius: 0;
 					background: red; /* #FF000095 */
 					cursor: pointer;
 
@@ -596,9 +678,9 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: bloc
 				#progressionBar::-moz-range-thumb {
 					box-shadow: 0px 0px 4px black;
 					height: 24px;
-					width: 24px;
+					width: 12px;
 					border: none;
-					border-radius: 24px;
+					border-radius: 0;
 					background: red; /* #FF000095 */
 					cursor: pointer;
 
@@ -968,9 +1050,9 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: bloc
 
 					box-shadow: 0px 0px 4px black;
 					height: 18px;
-					width: 18px;
+					width: 9px;
 					border: none;
-					border-radius: 18px;
+					border-radius: 0;
 					background: white; /* #FF000095 */
 					cursor: pointer;
 
@@ -985,9 +1067,9 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: bloc
 				#volume::-moz-range-thumb {
 					box-shadow: 0px 0px 4px black;
 					height: 18px;
-					width: 18px;
+					width: 9px;
 					border: none;
-					border-radius: 18px;
+					border-radius: 0;
 					background: white; /* #FF000095 */
 					cursor: pointer;
 
@@ -996,7 +1078,7 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: bloc
 
 			#webkitProgressFillVolume {
 				position: absolute;
-				top: 0px;
+				top: 0;
 				left: 0;
 				width: 100%;
 
@@ -1011,6 +1093,11 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: bloc
 				-webkit-margin-before: calc(.6 * var(--currentChannelHeight) / 2 - 5px / 2); /* margin-top only for webkit */
 				pointer-events: none;
 			}
+
+				#volumeBarContainer.disabled #webkitProgressFillVolume,
+				#volumeBarContainer.disabled:hover #webkitProgressFillVolume {
+					opacity: 0 !important;
+				}
 
 
 

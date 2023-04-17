@@ -35,10 +35,10 @@ function shuffleArray(array) {
 
                 //current channel
                 this.playName = null;
-                this.playID = 1;
-                this.displayPlayID = "01";
+                this.playlistID = null;
                 this.logo = null;
-                this.channelNum = null;
+                this.channelNum = 1;
+                this.displayChannelNum = "01";
 
                 this.firstVideoLoaded = false;
                 this.firstVideoDebug = false;
@@ -49,6 +49,7 @@ function shuffleArray(array) {
 
 
                 this.remoteDigitBuffer = null;
+                this.remoteDigitSingleton = false;
 
                 this.nbVideoCurrentChannel = null;
 
@@ -69,6 +70,7 @@ function shuffleArray(array) {
 
                 this.videoTitle = null;
                 this.videoAuthor = null;
+                this.videoUrl = null;
 
 
                 this.currentQuality = null;
@@ -78,6 +80,7 @@ function shuffleArray(array) {
                 this.userSelectedMaxRes = "hd2160";
 
                 this.muteOn = false;
+                this.volume = 100;
 
                 this.speed = 1;
 
@@ -94,7 +97,7 @@ function shuffleArray(array) {
                 this.userIsUpdatingTimeCode = false;
 
 
-
+                this.feedbackTimer = null;
 
 
 
@@ -106,6 +109,22 @@ function shuffleArray(array) {
                 this.subtitlesPrefList = ["off", "fr", "en-US"];
                 this.subtitlesPrefMatrice = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
                 this.subtitlesManuallySelected = false;
+
+
+                this.subtitlesLoadingAttempts = 0;
+
+
+
+
+
+
+
+
+
+
+
+
+                this.feedbackTimerDuration = 2000;
             }
         }
 
@@ -280,9 +299,6 @@ function shuffleArray(array) {
     GLOBAL VARIABLES
    ========================================================================= */
 
-    //Playlist data
-    var playlistID = "";
-
     //Already played videos
     var currentChannel = "";
     app.currentVideoIndex = -2;
@@ -350,7 +366,49 @@ function showVideo() {
 function hideVideo() {
     document.getElementById("playerContainer").classList.remove("displayed");
     document.getElementById("playerContainer").classList.add("hidden");
+    hideVideoTitle();
+    hideCaptions();
 }
+
+
+function showFeedback(paramToDisplay, displayValue)
+{
+    app.feedbackTimer = true;
+    let possibleParameters = document.getElementById("buttonsFeedback").childNodes;
+    for(let i=0 ; i < possibleParameters.length ; i++) {
+        try {
+            if(possibleParameters[i].id !== paramToDisplay) {
+                possibleParameters[i].classList.add("hidden");
+            }
+        } catch(e) {}
+    }
+
+    document.getElementById(paramToDisplay).innerHTML = displayValue;
+
+    document.getElementById(paramToDisplay).classList.remove("hidden");
+    document.getElementById("buttonsFeedback").classList.remove("hidden");
+    document.getElementById("channelNumFeedback").classList.add("displayed");
+    document.getElementById(paramToDisplay).classList.add("displayed");
+}
+
+function hideFeedback(paramToHide)
+{
+        app.feedbackTimer = false;
+        setTimeout(() => {
+            if(app.feedbackTimer === false) {
+                document.getElementById(paramToHide).classList.remove("displayed");
+                document.getElementById("buttonsFeedback").classList.remove("displayed");
+                document.getElementById("buttonsFeedback").classList.add("hidden");
+                setTimeout(() => {
+                    if(app.feedbackTimer === false) {
+                        document.getElementById(paramToHide).classList.add("hidden");
+                    }
+                }, app.feedbackTimerDuration);
+            }
+        }, app.feedbackTimerDuration);
+}
+
+
 
 function showInterface()
 {
@@ -505,18 +563,22 @@ function autoHide()
          FULLSCREEN MODE
         ---------------------------------------- */
 
+        function switchFullscreenMode() {
+            if(app.fullscreenStatus === false) { goFullScreen(); }
+            else                               { endFullScreen(); }
+            playOrPause();
+        }
+
         function goFullScreen()
         {
             if(app.fullscreenStatus === false) {
                 app.fullscreenStatus = true;
                 document.getElementById("fullscreen").setAttribute("display", "none");
                 // Go fullscreen
-                var body = document.getElementsByTagName("body")[0];
-                body.requestFullscreen();
+                var body = document.getElementsByTagName("body")[0].requestFullscreen();
                 // Fullscreen button evolves into end fullscreen button
                 document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-end-icon.svg");
                 document.getElementById("fullscreen").setAttribute("onmousedown", "endFullScreen();");
-                body.setAttribute("ondblclick", "endFullScreen();");
                 document.getElementById("fullscreen").setAttribute("display", "block");
                 updateRealTimeData();
             }
@@ -531,8 +593,6 @@ function autoHide()
                 // End fullscreen button evolves into fullscreen button
                 document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-icon.svg");
                 document.getElementById("fullscreen").setAttribute("onmousedown", "goFullScreen();");
-                var body = document.getElementsByTagName("body")[0];
-                body.setAttribute("ondblclick", "goFullScreen();");
                 document.getElementById("fullscreen").setAttribute("display", "block");
                 app.fullscreenStatus = false;
                 showInterface();
@@ -780,15 +840,12 @@ function autoHide()
         function muteOrUnmute() {
             try {
                 if(player.isMuted() === true) {
-                    player.unMute();
-                    document.getElementById("volume").removeAttribute("disabled");
-                    document.getElementById("volumeBarContainer").classList.remove("disabled");
-                } else if(player.isMuted() === false) {
-                    player.mute();
-                    document.getElementById("volume").setAttribute("disabled", "");
-                    document.getElementById("volumeBarContainer").classList.add("disabled");
+                    app.muteOn = false;
+                    refreshVolume();
+                } else {
+                    app.muteOn = true;
+                    refreshVolume();
                 }
-                refreshVolume();
             } catch(e) {}
         }
 
@@ -796,8 +853,11 @@ function autoHide()
         {
             try
             {
+                if(player.isMuted() === true) {
+                    muteOrUnmute()
+                }
                 if(event.target.value >= 0) {
-                    player.setVolume(event.target.value);
+                    app.volume = event.target.value;
                     refreshVolume();
                 }
             }
@@ -808,13 +868,14 @@ function autoHide()
         {
             try
             {
-                let vol = player.getVolume();
-                let roundedVol = Math.ceil(10 * vol) / 10;
-                if(roundedVol === vol) {
+                if(player.isMuted() === true) {
+                    muteOrUnmute()
+                }
+                let roundedVol = Math.ceil(10 * app.volume) / 10;
+                if(roundedVol === app.volume) {
                     roundedVol += 10;
                 }
-                player.setVolume(roundedVol);
-
+                app.volume = Math.min(roundedVol, 100);
                 refreshVolume();
             }
             catch(e) {}
@@ -824,12 +885,14 @@ function autoHide()
         {
             try
             {
-                let vol = player.getVolume();
-                let roundedVol = Math.floor(10 * vol) / 10;
-                if(roundedVol === vol) {
+                if(player.isMuted() === true) {
+                    muteOrUnmute()
+                }
+                let roundedVol = Math.floor(10 * app.volume) / 10;
+                if(roundedVol === app.volume) {
                     roundedVol -= 10;
                 }
-                player.setVolume(roundedVol);
+                app.volume = Math.max(roundedVol, 0);
                 refreshVolume();
             }
             catch(e) {}
@@ -838,8 +901,34 @@ function autoHide()
         function refreshVolume() {
             try
             {
-                document.getElementById("volume").value = player.getVolume();
-                document.getElementById("webkitProgressFillVolume").style.width = "calc(" + player.getVolume() + "% * .785)";
+                if(app.muteOn) {
+                    player.mute();
+                    document.getElementById("mute").src = "rsrc/mediaPlayer/sound-mute.svg";
+                    document.getElementById("volume").setAttribute("disabled", "");
+                    document.getElementById("volume").value = 0;
+                    document.getElementById("volumeBarContainer").classList.add("disabled");
+                }
+                else
+                {
+                    player.unMute();
+                    document.getElementById("volume").removeAttribute("disabled");
+                    document.getElementById("volumeBarContainer").classList.remove("disabled");
+                    document.getElementById("volume").value = app.volume;
+                    document.getElementById("webkitProgressFillVolume").style.width = app.volume + "%";//"calc(" + app.volume + "% * .785)";
+                    if(app.volume <= 25) {
+                        document.getElementById("mute").src = "rsrc/mediaPlayer/sound-0.svg";
+                    }
+                    else if(app.volume <= 50) {
+                        document.getElementById("mute").src = "rsrc/mediaPlayer/sound-1.svg";
+                    }
+                    else if(app.volume <= 75) {
+                        document.getElementById("mute").src = "rsrc/mediaPlayer/sound-2.svg";
+                    }
+                    else {
+                        document.getElementById("mute").src = "rsrc/mediaPlayer/sound-3.svg";
+                    }
+                }
+                player.setVolume(app.volume);
             }
             catch(e) {}
         }
@@ -941,149 +1030,171 @@ function autoHide()
 
 
         function loadQuality()
-        {        
-            try {
-                app.availablesQualities = player.getAvailableQualityLevels();
+        {
+            var whileVideoQualitiesNotFullyCharged = setInterval(function()
+            {
+                try {
+                    app.availablesQualities = player.getAvailableQualityLevels();
 
-                if(app.currentQuality == null) {
-                    app.currentQuality = player.getPlaybackQuality();
-                }
-
-                if((!app.availablesQualities.includes(app.currentQuality)) || app.priorityToMaxRes) {
-                    if(app.priorityToMaxRes) {
-                        app.currentQuality = app.availablesQualities[0];
-                    }
-                    else {
-                        let currentQualityIndex = possibleQualitiesValues.indexOf(app.currentQuality);
-                        for(let i=currentQualityIndex+1; i < possibleQualitiesValues.length ; i++) {
-                            if(app.availablesQualities.indexOf(possibleQualitiesValues[i]) >= 0) {
-                                app.currentQuality = app.availablesQualities.indexOf(possibleQualitiesValues[i]);
-                                break;
-                            }
+                    if(app.availablesQualities.length > 0) {
+                        if(app.currentQuality == null) {
+                            app.currentQuality = player.getPlaybackQuality();
                         }
-                    }
-                }
 
-                let selectResolution = document.getElementById("selectResolution");
-
-                selectResolution.innerHTML = "";
-                for(let i=0; i < app.availablesQualities.length ; i++) {
-                    let isSelected = "";
-                    if(app.availablesQualities[i] === app.currentQuality) {
-                        isSelected = " selected";
-                    }
-                    switch(app.availablesQualities[i])
-                    {
-                        case "hd2160" :
-                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">4K - 2160p</option>";
-                            break;
-                        case "hd1440" :
-                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HD - 1440p</option>";
-                            break;
-                        case "hd1080" :
-                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HD - 1080p</option>";
-                            break;
-                        case "hd720" :
-                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HQ - 720p</option>";
-                            break;
-                        case "large" :
-                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 480p</option>";
-                            break;
-                        case "medium" :
-                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 360p</option>";
-                            break;
-                        case "small" :
-                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 240p</option>";
-                            break;
-                        case "tiny" :
-                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 144p</option>";
-                            break;
-                        case "auto" :
-                            selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">AUTO</option>";
-                            break;
-                    }
-                }
-
-                player.setPlaybackQuality(app.currentQuality);
-            } catch(e) { }       
-            
-        }
-
-        function loadCaptions() {
-            try {
-                let captionsList = player.getOption('captions', 'tracklist');
-                let captionSelected = player.getOption('captions', 'track').languageCode;
-                let selectSubtitles = document.getElementById("selectSubtitles");
-
-                if(app.currentSubtitlesLanguage === null) {
-                    app.currentSubtitlesLanguage = captionSelected;
-                }
-
-                selectSubtitles.innerHTML = "";
-                console.log(player.getOption('captions', 'tracklist'));
-                if (captionsList.length === 0) {
-                    selectSubtitles.innerHTML += "<option value='off' selected>No Subtitles</option>";
-                    selectSubtitles.setAttribute("disabled", "");
-                    player.unloadModule("captions");
-                    setManualCaptionsWidth(10, 0);
-                }
-                else if (captionsList.length > 0) {
-                    player.loadModule("captions"); 
-
-                    if(!app.subtitlesManuallySelected) {
-                        let currentBestRankedLanguage = null;
-                        for(let i=0 ; i < captionsList.length ; i++) {
-                            for(let j=0 ; j < app.subtitlesPrefList.length ; j++) {
-                                if(currentBestRankedLanguage > j || currentBestRankedLanguage === null) {
-                                    if(captionsList[i].languageCode === app.subtitlesPrefList[j] || app.subtitlesPrefList.indexOf("off") === app.subtitlesPrefList[j]) {
-                                        currentBestRankedLanguage = j;
+                        if((!app.availablesQualities.includes(app.currentQuality)) || app.priorityToMaxRes) {
+                            if(app.priorityToMaxRes) {
+                                app.currentQuality = app.availablesQualities[0];
+                            }
+                            else {
+                                let currentQualityIndex = possibleQualitiesValues.indexOf(app.currentQuality);
+                                for(let i=currentQualityIndex+1; i < possibleQualitiesValues.length ; i++) {
+                                    if(app.availablesQualities.indexOf(possibleQualitiesValues[i]) >= 0) {
+                                        app.currentQuality = app.availablesQualities.indexOf(possibleQualitiesValues[i]);
+                                        break;
                                     }
                                 }
                             }
                         }
 
-                        app.currentSubtitlesLanguage = app.subtitlesPrefList[currentBestRankedLanguage];
-                    } else {
-                        let selectedLang = app.subtitlesPrefList.indexOf(app.currentSubtitlesLanguage);
-                        if(selectedLang >= 0) {
-                            updateLanguagesStats(selectedLang, captionsList);
+                        let selectResolution = document.getElementById("selectResolution");
+
+                        selectResolution.innerHTML = "";
+                        for(let i=0; i < app.availablesQualities.length ; i++) {
+                            let isSelected = "";
+                            if(app.availablesQualities[i] === app.currentQuality) {
+                                isSelected = " selected";
+                            }
+                            switch(app.availablesQualities[i])
+                            {
+                                case "hd2160" :
+                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">4K - 2160p</option>";
+                                    break;
+                                case "hd1440" :
+                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HD - 1440p</option>";
+                                    break;
+                                case "hd1080" :
+                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HD - 1080p</option>";
+                                    break;
+                                case "hd720" :
+                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HQ - 720p</option>";
+                                    break;
+                                case "large" :
+                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 480p</option>";
+                                    break;
+                                case "medium" :
+                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 360p</option>";
+                                    break;
+                                case "small" :
+                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 240p</option>";
+                                    break;
+                                case "tiny" :
+                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 144p</option>";
+                                    break;
+                                case "auto" :
+                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">AUTO</option>";
+                                    break;
+                            }
                         }
+
+                        player.setPlaybackQuality(app.currentQuality);
+                        clearInterval(whileVideoQualitiesNotFullyCharged);
                     }
+
                     
-                    for(let i=0 ; i < captionsList.length ; i++) {
-                        let isSelected = "";
-                        if(captionsList[i].languageCode === app.currentSubtitlesLanguage) {
-                            isSelected = " selected";
-                        }
-                        selectSubtitles.innerHTML += "<option value='" + captionsList[i].languageCode + "'" + isSelected + ">" + captionsList[i].languageName + "</option>";
-                    }
-                    let nosub = "";
-                    if(app.subtitlesOn === false) {
-                        nosub = " selected";
-                    }
-                    selectSubtitles.innerHTML += "<option value='off'" + nosub + ">Off</option>";
-
-                    selectSubtitles.removeAttribute("disabled");
-
-                    if(app.subtitlesOn === true) {
-                        player.setOption("captions", "track", {"languageCode": app.currentSubtitlesLanguage});
-                    } else {
-                        player.unloadModule("captions"); 
-                    }
-
-                    setCaptionsWidth();
-                    app.subtitlesManuallySelected = false;
-                }
-            }
-            catch(e) { /*console.log("ERR - NO CAPTIONS RETURNED ...");*/ }
-
+                } catch(e) { }    
+            }, 20);   
         }
+
+        function loadCaptions() {
+            var whileVideoCaptionsNotFullyCharged = setInterval(function()
+            {
+                try {
+                    let captionsList = player.getOption('captions', 'tracklist');
+                    let captionSelected = player.getOption('captions', 'track').languageCode;
+                    let selectSubtitles = document.getElementById("selectSubtitles");
+
+                    if(captionsList !== undefined) {
+                        if(app.currentSubtitlesLanguage === null) {
+                            app.currentSubtitlesLanguage = captionSelected;
+                        }
+
+                        selectSubtitles.innerHTML = "";
+                        console.log(player.getOption('captions', 'tracklist'));
+                        if (captionsList.length === 0) {
+                            selectSubtitles.innerHTML += "<option value='off' selected>No Subtitles</option>";
+                            selectSubtitles.setAttribute("disabled", "");
+                            player.unloadModule("captions");
+                            setManualCaptionsWidth(10, 0);
+                            app.subtitlesLoadingAttempts++;
+                        }
+                        else if (captionsList.length > 0) {
+                            player.loadModule("captions"); 
+
+                            if(!app.subtitlesManuallySelected) {
+                                let currentBestRankedLanguage = null;
+                                for(let i=0 ; i < captionsList.length ; i++) {
+                                    for(let j=0 ; j < app.subtitlesPrefList.length ; j++) {
+                                        if(currentBestRankedLanguage > j || currentBestRankedLanguage === null) {
+                                            if(captionsList[i].languageCode === app.subtitlesPrefList[j] || app.subtitlesPrefList.indexOf("off") === app.subtitlesPrefList[j]) {
+                                                currentBestRankedLanguage = j;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                app.currentSubtitlesLanguage = app.subtitlesPrefList[currentBestRankedLanguage];
+                            } else {
+                                let selectedLang = app.subtitlesPrefList.indexOf(app.currentSubtitlesLanguage);
+                                if(selectedLang >= 0) {
+                                    updateLanguagesStats(selectedLang, captionsList);
+                                }
+                            }
+                            
+                            for(let i=0 ; i < captionsList.length ; i++) {
+                                let isSelected = "";
+                                if(captionsList[i].languageCode === app.currentSubtitlesLanguage) {
+                                    isSelected = " selected";
+                                }
+                                selectSubtitles.innerHTML += "<option value='" + captionsList[i].languageCode + "'" + isSelected + ">" + captionsList[i].languageName + "</option>";
+                            }
+                            let nosub = "";
+                            if(app.subtitlesOn === false) {
+                                nosub = " selected";
+                            }
+                            selectSubtitles.innerHTML += "<option value='off'" + nosub + ">Off</option>";
+
+                            selectSubtitles.removeAttribute("disabled");
+
+                            if(app.subtitlesOn === true) {
+                                player.setOption("captions", "track", {"languageCode": app.currentSubtitlesLanguage});
+                            } else {
+                                player.unloadModule("captions"); 
+                            }
+
+                            setCaptionsWidth();
+                            app.subtitlesManuallySelected = false;
+
+                            if(app.subtitlesLoadingAttempts > 50 || captionsList.length > 0) {
+                                clearInterval(whileVideoCaptionsNotFullyCharged);
+                            }
+                        }
+                    }
+
+                    
+                }
+                catch(e) { /*console.log("ERR - NO CAPTIONS RETURNED ...");*/ }
+
+            }, 150);
+        }
+
+        function hideCaptions() { document.getElementById("selectSubtitles").innerHTML = ""; }
 
         // LOAD THE N INDEX VIDEO
         function loadVideo(n)
         {
             try {
                 hideVideo();
+                app.subtitlesLoadingAttempts=0;
                 app.currentVideoIndex=n;
                 player.playVideoAt(n);
                 updateAllData();
@@ -1099,7 +1210,7 @@ function autoHide()
             loadCaptions();
             menuUpdate();
             refreshVolume();
-
+/*
             setTimeout(() => {
                 updateVideoTitle();
                 updateDuration();
@@ -1109,6 +1220,7 @@ function autoHide()
                 menuUpdate();
                 refreshVolume();
             }, 1000);
+*/
         }
 
         function updateRealTimeData()
@@ -1126,107 +1238,104 @@ function autoHide()
 
         function updateDuration()
         {
-            try
+            var whileVideoDurationNotFullyCharged = setInterval(function()
             {
-                if(app.userIsUpdatingTimeCode === false)
+                try
                 {
                     let d = player.getDuration();
-                    let dTimeCode = d;
-                    let durationHH = Math.floor(d / 60 / 60);
-                    let durationMM = Math.floor((d % 3600) / 60);
-                    let durationSS = Math.floor(d % 60);
+                    if(app.userIsUpdatingTimeCode === false && d >=0)
+                    {
+                        let dTimeCode = d;
+                        let durationHH = Math.floor(d / 60 / 60);
+                        let durationMM = Math.floor((d % 3600) / 60);
+                        let durationSS = Math.floor(d % 60);
 
-                    if(durationHH < 10 && durationHH !== 0) {
-                        durationHH = "0" + durationHH;
-                    }
-                    if(durationMM < 10) {
-                        durationMM = "0" + durationMM;
-                    }
-                    if(durationSS < 10) {
-                        durationSS = "0" + durationSS;
-                    }
+                        if(durationHH < 10 && durationHH !== 0) {
+                            durationHH = "0" + durationHH;
+                        }
+                        if(durationMM < 10) {
+                            durationMM = "0" + durationMM;
+                        }
+                        if(durationSS < 10) {
+                            durationSS = "0" + durationSS;
+                        }
 
-                    if(durationHH !== 0) {
-                        d = durationHH + ":" + durationMM + ":" + durationSS;
-                    }
-                    else {
-                        d = durationMM + ":" + durationSS;
-                    }
-                    document.getElementById("currentVideoDuration").innerHTML = d;
+                        if(durationHH !== 0) {
+                            d = durationHH + ":" + durationMM + ":" + durationSS;
+                        }
+                        else {
+                            d = durationMM + ":" + durationSS;
+                        }
+                        document.getElementById("currentVideoDuration").innerHTML = d;
 
-                    let t = player.getCurrentTime();
-                    let tTimeCode = t;
-                    videotime = t;
-                    let timecodeHH = Math.floor(t / 60 / 60);
-                    let timecodeMM = Math.floor((t % 3600) / 60);
-                    let timecodeSS = Math.floor(t % 60);
+                        let t = player.getCurrentTime();
+                        let tTimeCode = t;
+                        videotime = t;
+                        let timecodeHH = Math.floor(t / 60 / 60);
+                        let timecodeMM = Math.floor((t % 3600) / 60);
+                        let timecodeSS = Math.floor(t % 60);
 
-                    if(timecodeHH < 10 && timecodeHH !== 0) {
-                        timecodeHH = "0" + timecodeHH;
-                    }
-                    if(timecodeMM < 10) {
-                        timecodeMM = "0" + timecodeMM;
-                    }
-                    if(timecodeSS < 10) {
-                        timecodeSS = "0" + timecodeSS;
-                    }
-
-
-                    if(durationHH !== 0) {
-                        t = timecodeHH + ":" + timecodeMM + ":" + timecodeSS;
-                    }
-                    else {
-                        t = timecodeMM + ":" + timecodeSS;
-                    }
-                    document.getElementById("currentVideoTime").innerHTML = t;
+                        if(timecodeHH < 10 && timecodeHH !== 0) {
+                            timecodeHH = "0" + timecodeHH;
+                        }
+                        if(timecodeMM < 10) {
+                            timecodeMM = "0" + timecodeMM;
+                        }
+                        if(timecodeSS < 10) {
+                            timecodeSS = "0" + timecodeSS;
+                        }
 
 
-                    // CURSOR UPDATE
-                    document.getElementById("progressionBar").max = Math.round(dTimeCode * 100);
-                    document.getElementById("progressionBar").value = Math.round(tTimeCode * 100);
-                    document.getElementById("webkitProgressFill").style.width = (tTimeCode / dTimeCode * 100) + "%";
+                        if(durationHH !== 0) {
+                            t = timecodeHH + ":" + timecodeMM + ":" + timecodeSS;
+                        }
+                        else {
+                            t = timecodeMM + ":" + timecodeSS;
+                        }
+                        document.getElementById("currentVideoTime").innerHTML = t;
 
-                    let loadedPercent = Math.round(player.getVideoLoadedFraction() * 100);
-                    document.getElementById("loadingFill").style.width = loadedPercent + "%";
 
-                    if((durationHH > 0 || durationMM > 0 || durationSS > 0) && player.getCurrentTime() > 0) {
-                        showVideo();
+                        // CURSOR UPDATE
+                        document.getElementById("progressionBar").max = Math.round(dTimeCode * 100);
+                        document.getElementById("progressionBar").value = Math.round(tTimeCode * 100);
+                        document.getElementById("webkitProgressFill").style.width = (tTimeCode / dTimeCode * 100) + "%";
+
+                        let loadedPercent = Math.round(player.getVideoLoadedFraction() * 100);
+                        document.getElementById("loadingFill").style.width = loadedPercent + "%";
+
+                        if((durationHH > 0 || durationMM > 0 || durationSS > 0) && player.getCurrentTime() > 0) {
+                            showVideo();
+                        }
+
+                        clearInterval(whileVideoDurationNotFullyCharged);
                     }
-                }
-            } catch(e) {} 
+                } catch(e) {}
+            }, 20);
             
         }
 
         // UPDATE THE VIDEO TITLE IN THE CONTROL PANEL
         function updateVideoTitle()
         {
-            let vidTitle = null;
-            let vidUrl = null;
-            let elHtml = "-";
-            try {
-                vidTitle = player.getVideoData().title;
-                vidUrl = player.getVideoUrl();
-                if(vidTitle == undefined) {
-                    vidTitle = "-";
-                    elHtml = "-";
-                }
-                else {
-                    let authorText = "";
-                    if (player.playerInfo.videoData.author.length > 0) {
-                        authorText = "<span id='currentVideoSeparator'>➥</span><span id='currentVideoAuthor'>" + player.playerInfo.videoData.author + "</span>"; // ➤ ☛
+            var whileVideoDataNotFullyCharged = setInterval(function() {
+                let vidTitle = null;
+                let vidUrl = null;
+                let elHtml = "-";
+                try {
+                    app.videoAuthor = player.playerInfo.videoData.author;
+                    app.videoTitle = player.getVideoData().title;
+                    app.videoUrl = player.getVideoUrl();
+                    if(app.videoAuthor.length > 0 && app.videoTitle.length > 0 && app.videoUrl.length > 0) {
+                        let authorText = "<span id='currentVideoSeparator'>➥</span><span id='currentVideoAuthor'>" + app.videoAuthor + "</span>"; // ➤ ☛
+                        elHtml = "<a href='" + app.videoUrl + "' target='_blank'><span id='animatedBanner'>" + app.videoTitle + authorText + "</span></a>";
+                        document.getElementById("currentVideoNameDisplay").innerHTML = elHtml;
+                        clearInterval(whileVideoDataNotFullyCharged);
                     }
-                    elHtml = "<a href='" + vidUrl + "' target='_blank'><span id='animatedBanner'>" + vidTitle + authorText + "</span></a>";
-                }
-                app.videoTitle = vidTitle;
-                app.videoAuthor = player.playerInfo.videoData.author;
-                if(vidTitle !== "-") {
-                    app.firstVideoLoaded = true;
-                }
-
-            } catch(e) {}
-
-            document.getElementById("currentVideoNameDisplay").innerHTML = elHtml;
+                } catch(e) {}
+            }, 20);
         }
+
+        function hideVideoTitle() { document.getElementById("currentVideoNameDisplay").innerHTML = ""; }
 
 
 
@@ -1243,16 +1352,20 @@ function autoHide()
         // CHANGE THE CHANNEL IN THE PLAYER
         function loadSelectedChannel(playName, playID, logo)
         {
+            showInterface();
             hideVideo();
             app.realTimeDataMonitored = false;
             app.firstVideoLoaded = false;
             app.nbVideoCurrentChannel = null;
             app.playerInitAttemptPassed = false;
+            app.randomPlaylist = [];
+            app.alreadyPlayed = [];
+            app.alreadyPlayedErrors = [];
             // disable the controls
             disablePlayer();
             // Reset the player
             //document.getElementById("playerContainer").innerHTML = '<div id="player"></div>';
-            try { player.stopVideo(); } catch(e) {}
+            //try { player.stopVideo(); } catch(e) {}
 
             document.getElementById("playerContainer").innerHTML = "" +
                 '<div id="cropping-div" style="">' +
@@ -1264,16 +1377,17 @@ function autoHide()
                 '</div>';
             document.getElementById("playerContainer").className = "";
             // Update the global variables
-            playlistID = playID;
+            app.playlistID = playID;
 
             //app.currentBackToTheFutureCount = 0;
 
             app.playName = playName;
             app.logo = logo;
+            channelNumUpdate(getChannelNum(playName));
+            menuUpdate();
             // Initialise the player
             initYT();
             //Update the channel informations (global variables and display)
-            app.channelNum = getCurrentChannelNum();
 
 
             var whilePlayerNotFullyCharged = setInterval(function() {
@@ -1285,7 +1399,7 @@ function autoHide()
                     createPlaylistOrder();
                     nextVideo();
 
-                    updateAllData();
+                    //updateAllData();
                     console.log("CHANNEL : " + getCurrentChannelNum());
                     //showInterface();
                     playChannel();
@@ -1296,32 +1410,36 @@ function autoHide()
         }
 
         function getCurrentChannelNum() {
+            getChannelNum(app.channelNum);
+        }
+
+        function getChannelNum(chName) {
             let res = null;
             // for each channel in the menu
             for(var i=0; i< channelList.length; i++ )
             {
                 // highlight it only if its the current channel
-                if(channelList[i][0] == app.playName) {
+                if(channelList[i][0] == chName) {
                     res = i + 1;
                 }
             }
             return res;
         }
 
-        function formatChannelNum() {
-            let displayChannelNum = "" + app.playID;
-            if (displayChannelNum.length === 1) {
-                displayChannelNum = "0" + displayChannelNum;
+        function channelNumUpdate(num) {
+            app.channelNum = num;
+            let res = "" + num;
+            if (res.length === 1) {
+                res = "0" + app.channelNum;
             }
-            app.displayPlayID = displayChannelNum;
+            app.displayChannelNum = res;
         }
 
         // UPDATE THE CHANNEL INFORMATIONS
         function menuUpdate()
         {
-            formatChannelNum();
             // Update the control panel display
-            document.getElementById("currentChannelNameDisplay").innerHTML = "<span id='currentChannelNum'>" + app.displayPlayID + " - </span> " + app.playName;
+            document.getElementById("currentChannelNameDisplay").innerHTML = "<span id='currentChannelNum'>" + app.displayChannelNum + " - </span> " + app.playName;
             document.getElementById("currentChannelLogo").src = app.logo;
             // Update the selection in the lateral menu
             var childDivs = document.getElementsByClassName('elementMenuBar');
@@ -1336,7 +1454,6 @@ function autoHide()
                     let idToDisplayPrevElements = i - 2;
                     if(idToDisplayPrevElements < 0) { idToDisplayPrevElements = 0; }
                     childDivs[idToDisplayPrevElements].scrollIntoView();
-                    app.playID = i + 1;
                 }
             }
         }
@@ -1387,7 +1504,7 @@ function autoHide()
                             playsinline: 1,
                             //rel: 0,
                             enablejsapi: 1,
-                            list: playlistID,
+                            list: app.playlistID,
                             index: app.playerIndexInitAttempt
                         }
                     });
@@ -1413,7 +1530,7 @@ document.addEventListener('DOMContentLoaded', function(event)
        ----------------------------- */
 
         // Set the default channel (first in the channelList)
-        playlistID=channelList[0][3];
+        app.playlistID=channelList[0][3];
         app.playName=channelList[0][0];
         app.logo=channelList[0][2];
 
@@ -1501,24 +1618,6 @@ document.addEventListener('DOMContentLoaded', function(event)
     EVENT LISTENERS
    ========================================================================= */
 
-
-    function firstVideoDebugTimer()
-    {
-        setTimeout(() => {
-            if((app.firstVideoDebug) && (!app.firstVideoLoaded)) {
-                app.firstVideoDebug = true;
-                loadSelectedChannelByNum(app.channelNum);
-                firstVideoDebugTimer();
-            } else if ((app.firstVideoDebug) && app.alreadyPlayed.length === app.alreadyPlayedErrors.length) {
-                app.firstVideoDebug = true;
-                loadSelectedChannelByNum(app.channelNum);
-                firstVideoDebugTimer();
-            } else {
-                app.firstVideoDebug = false;
-            }
-        }, 2000);
-    }
-
     // FIRST LOADING
     function onPlayerReady(event)
     {
@@ -1548,28 +1647,33 @@ document.addEventListener('DOMContentLoaded', function(event)
             }, 100);
         }
 
+        try {
+            /*
+            let tests = player.getPlaylistIndex();
+            if(app.currentVideoIndex !== player.getPlaylistIndex()) {
+                nextVideo();
+            }
+            */
+        } catch(e) {}
+        
+
         //if(player.getPlayerState() === 2) { // IF PLAY
             //showVideo();
         //}
+
+        if(event.data === 1 || event.data === 3) {
+            app.firstVideoLoaded = true;
+        }
         // ENDED VIDEO HANDLING
-        if (event.data === YT.PlayerState.ENDED && app.firstVideoLoaded) {
+        else if ((app.currentVideoIndex !== player.getPlaylistIndex()) && app.firstVideoLoaded) {
             nextVideo();
         }
-        else if (event.data === -1 && (!app.firstVideoLoaded)) {
-            //do {
-            /*
-                setTimeout(() => {
-                    if(!app.firstVideoLoaded) {
-                        loadSelectedChannelByNum(getCurrentChannelNum());
-                    }
-                }, 1000);
-                */
-            //} while(!app.firstVideoLoaded)
-        }
+        /*
         else if (app.videoTitle !== player.getVideoData().title)
         {
             updateAllData();
         }
+        */
 
 
     }
@@ -1624,29 +1728,70 @@ document.addEventListener('DOMContentLoaded', function(event)
 
 
 
+
 function loadSelectedChannelByRemote() {
+    var checkRemoteInput = setInterval(function() {
+        if(app.remoteDigitBuffer.length >= 2 && app.remoteDigitBuffer !== null) {
+            let chNum = parseInt(app.remoteDigitBuffer);
+            if(chNum < channelList.length) {
+                showFeedback("channelNumFeedback", app.remoteDigitBuffer);
+                app.remoteDigitBuffer = null;
+                loadSelectedChannelByNum(chNum);
+                hideFeedback("channelNumFeedback");
+                clearInterval(checkRemoteInput);
+            }
+            else {
+                if(document.getElementById("channelNumFeedback").innerHTML !== "??") {
+                    showFeedback("channelNumFeedback", app.remoteDigitBuffer);
+                    app.remoteDigitSingleton = true;
+                }
+                app.remoteDigitBuffer = null;
+                setTimeout(() => {
+                    showFeedback("channelNumFeedback", "??");
+                    hideFeedback("channelNumFeedback");
+                    setInterval(function() {
+                        app.remoteDigitSingleton = false;
+                    }, app.feedbackTimerDuration * 1.5);
+                }, app.feedbackTimerDuration);
+            }
+        }
+    }, 20);
+
     setTimeout(() => {
-        let chNum = parseInt(app.remoteDigitBuffer);
-        loadSelectedChannelByNum(chNum);
-        app.remoteDigitBuffer = null;
-    }, 3000);
+        if(app.remoteDigitBuffer !== null) {
+            try { clearInterval(checkRemoteInput); } catch(e) {}
+            showFeedback("channelNumFeedback", "0" + app.remoteDigitBuffer);
+            let chNum = parseInt(app.remoteDigitBuffer);
+            app.remoteDigitBuffer = null;
+            loadSelectedChannelByNum(chNum);
+            hideFeedback("channelNumFeedback");
+        }
+    }, 2500);
 }
 
 
 
 function addToRemoteDigitBuffer(digit)
 {
-    if(app.remoteDigitBuffer === null) {
-        app.remoteDigitBuffer = "";
-        app.remoteDigitBuffer += digit;
-        loadSelectedChannelByRemote();
-    }
-    else {
-        app.remoteDigitBuffer += digit;
-    }
-    console.log("CURRENT REMOTE ENTRY : " + app.remoteDigitBuffer);
+    if(!app.remoteDigitSingleton) {
+        if(app.remoteDigitBuffer === null) {
+            app.remoteDigitBuffer = "";
+            app.remoteDigitBuffer += digit;
+            loadSelectedChannelByRemote();
+        }
+        else {
+            app.remoteDigitBuffer += digit;
+        }
 
-    showInterface();
+        var displayTempValue = "" + app.remoteDigitBuffer;
+        if(displayTempValue.length === 1) {
+            displayTempValue = "-" + displayTempValue;
+        }
+
+        showFeedback("channelNumFeedback", displayTempValue);
+
+        showInterface();
+    }
 }
 
 
@@ -1658,12 +1803,11 @@ function keyHandler()
     switch(event.code)
     {
         case "KeyR":
-            loadSelectedChannel(app.playName, app.playID, app.logo);
+            loadSelectedChannel(app.playName, app.playlistID, app.logo);
             event.preventDefault();
             break;
         case "KeyF":
-            if(app.fullscreenStatus === false) { goFullScreen(); }
-            else                               { endFullScreen(); }
+            switchFullscreenMode();
             event.preventDefault();
             break;
         case "KeyT":
@@ -1685,9 +1829,9 @@ function keyHandler()
             break;
         case "ArrowUp":
             try {
-                let prevCh = getCurrentChannelNum() - 1;
-                if(prevCh > 0) {
-                    loadSelectedChannelByNum(prevCh);
+                channelNumUpdate(app.channelNum - 1);
+                if(app.channelNum > 0) {
+                    loadSelectedChannelByNum(app.channelNum);
                 } else {
                     loadSelectedChannelByNum(channelList.length);
                 }
@@ -1697,9 +1841,9 @@ function keyHandler()
             break;
         case "ArrowDown":
             try {
-                let nextCh = getCurrentChannelNum() + 1;
-                if(nextCh <= channelList.length) {
-                    loadSelectedChannelByNum(nextCh);
+                channelNumUpdate(app.channelNum + 1);
+                if(app.channelNum <= channelList.length) {
+                    loadSelectedChannelByNum(app.channelNum);
                 } else {
                     loadSelectedChannelByNum(1);
                 }

@@ -1,6 +1,39 @@
 
 
 
+/*
+
+    function firstVideoDebugTimer()
+    {
+        setTimeout(() => {
+            if((app.firstVideoDebug) && (!app.firstVideoLoaded)) {
+                app.firstVideoDebug = true;
+                loadSelectedChannelByNum(app.channelNum);
+                firstVideoDebugTimer();
+            } else if ((app.firstVideoDebug) && app.alreadyPlayed.length === app.alreadyPlayedErrors.length) {
+                app.firstVideoDebug = true;
+                loadSelectedChannelByNum(app.channelNum);
+                firstVideoDebugTimer();
+            } else {
+                app.firstVideoDebug = false;
+            }
+        }, 2000);
+    }
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 try {
                     /*
                     // https://video.google.com/timedtext?lang=fr&v=E92LE_B7VXs

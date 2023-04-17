@@ -26,7 +26,7 @@
 
 	<body onmousemove="showInterface();" onkeydown="keyHandler();">
 
-		<div id="background" onclick="playOrPause();" ondblclick="goFullScreen();">
+		<div id="background" onclick="playOrPause();" ondblclick="switchFullscreenMode();">
 			<div id="playerContainer">
 				<div id="cropping-div" style="">
 			        <div id="div-to-crop" style="">
@@ -41,6 +41,12 @@
 		</div>
 
 		<div id="alertMsg" style="display: none;"></div>
+
+		<div id="buttonsFeedback" class="hidden">
+			<div id="channelNumFeedback" class="hidden"></div>
+			<div id="volumeFeedback" class="hidden">100</div>
+			<div id="muteFeedback" class="hidden">100</div>
+		</div>
 
 
 		<header class="displayed" onmouseenter="cursorEnterInterface();" onmouseleave="cursorExitInterface();">
@@ -115,7 +121,7 @@
 				</div>
 				<div id="modeControls">
 					<!--<img id="pictureInPicture" src="rsrc/mediaPlayer/fullscreen-icon.svg" onmousedown="togglePictureInPicture();" />-->
-					<img id="mute" src="rsrc/mediaPlayer/fill-mode.svg" onmousedown="muteOrUnmute();" />
+					<img id="mute" src="rsrc/mediaPlayer/sound-3.svg" onmousedown="muteOrUnmute();" />
 					<div id="volumeBarContainer">
 						<input id="volume" type="range" name="volume" min="0" max="100" value="100" oninput="userChangeVolume();" />
 						<div id="webkitProgressFillVolume"></div>
