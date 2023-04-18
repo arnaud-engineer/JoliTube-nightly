@@ -340,10 +340,8 @@ function showInterface()
     app.noUserInterraction = true;
     //}, 3000);
 
-    document.getElementsByTagName('body')[0].classList.remove("nocursor");
-    document.getElementsByTagName('body')[0].classList.add("cursor");
-    document.getElementById("background").classList.remove("nocursor");
-    document.getElementById("background").classList.add("cursor");
+    document.getElementById("backgroundPlexiglass").classList.remove("nocursor");
+    document.getElementById("backgroundPlexiglass").classList.add("cursor");
     app.displayTimerOn = true;
     app.NbDisplayTimer++;
     autoHide();
@@ -383,16 +381,30 @@ function hideInterface()
         channels.classList.add("hidden");
         menuControler.classList.add("hidden");
 
+        document.getElementById("backgroundPlexiglass").classList.remove("cursor");
+        document.getElementById("backgroundPlexiglass").classList.add("nocursor");
+        document.getElementById("backgroundPlexiglass").focus();
+
         header.classList.add("reduced");
         if(app.searchSingleton === false && menuControler.classList.contains("hidden") && app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
             setTimeout(() => {
                 if(app.searchSingleton === false && menuControler.classList.contains("hidden") && app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
                     header.classList.add("disappearing");
                     header.classList.remove("reduced");
+                    document.getElementById("backgroundPlexiglass").classList.remove("cursor");
+                    document.getElementById("backgroundPlexiglass").classList.add("nocursor");
+                    document.getElementById("backgroundPlexiglass").focus();
                     setTimeout(() => {
                         if(app.searchSingleton === false && menuControler.classList.contains("hidden") && app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
                             header.classList.add("hidden");
                             header.classList.remove("disappearing");
+                            setTimeout(() => {
+                                if(app.searchSingleton === false && menuControler.classList.contains("hidden") && app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
+                                    document.getElementById("backgroundPlexiglass").classList.remove("cursor");
+                                    document.getElementById("backgroundPlexiglass").classList.add("nocursor");
+                                    document.getElementById("backgroundPlexiglass").focus();
+                                }
+                            }, app.totalTimeToHide * 2);
                         } else {
                             showInterface();
                         }
@@ -405,39 +417,6 @@ function hideInterface()
             showInterface();
         }
     }
-
-    document.getElementsByTagName('body')[0].classList.remove("cursor");
-    document.getElementById("background").focus();
-    /*
-    document.getElementById("background").classList.remove("cursor");
-    document.getElementById("background").classList.add("nocursor");
-    document.getElementById("playerContainer").classList.remove("cursor");
-    document.getElementById("playerContainer").classList.add("nocursor");
-    document.getElementById("cropping-div").classList.remove("cursor");
-    document.getElementById("cropping-div").classList.add("nocursor");
-    document.getElementById("div-to-crop").classList.remove("cursor");
-    document.getElementById("div-to-crop").classList.add("nocursor");
-    document.getElementById("player-wrapper").classList.remove("cursor");
-    document.getElementById("player-wrapper").classList.add("nocursor");
-    */
-
-    setTimeout(() => {
-        document.getElementsByTagName('body')[0].classList.add("nocursor");
-        /*
-        document.getElementById("background").classList.remove("cursor");
-        document.getElementById("background").classList.add("nocursor");
-        document.getElementById("playerContainer").classList.remove("cursor");
-        document.getElementById("playerContainer").classList.add("nocursor");
-        document.getElementById("cropping-div").classList.remove("cursor");
-        document.getElementById("cropping-div").classList.add("nocursor");
-        document.getElementById("div-to-crop").classList.remove("cursor");
-        document.getElementById("div-to-crop").classList.add("nocursor");
-        document.getElementById("player-wrapper").classList.remove("cursor");
-        document.getElementById("player-wrapper").classList.add("nocursor");
-        */
-    }, 500);
-
-    //url('rsrc/mediaPlayer/voidcursor.png'), 
 }
 
 function autoHide()

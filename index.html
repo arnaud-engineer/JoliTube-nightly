@@ -27,7 +27,7 @@
 
 	<body onmousemove="showInterface();" onkeydown="keyHandler();">
 
-		<div id="background" onclick="playOrPause();" ondblclick="switchFullscreenMode();">
+		<div id="background">
 			<div id="playerContainer">
 				<div id="cropping-div" style="">
 			        <div id="div-to-crop" style="">
@@ -40,6 +40,8 @@
 			        </div>
 			</div>
 		</div>
+
+		<div id="backgroundPlexiglass" onclick="playOrPause();" ondblclick="switchFullscreenMode();"></div>
 
 		<div id="alertMsg" style="display: none;"></div>
 
