@@ -460,10 +460,29 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 					flex-direction: row;
 					align-items: center;
 					align-content: center;
-					justify-content: center;
+					justify-content: flex-start;
 
 					font-size: var(--h1FontSize);
 				}
+
+			#searchBar
+			{
+				all: unset;
+				width: calc(100% - 2vw);
+				height: calc(2.2 * var(--h3FontSize));
+
+				padding-left: 1vw;
+				padding-right: 1vw;
+
+				background-color: var(--backgroundColor);
+				backdrop-filter: blur(10px);
+				border: none;
+				border-bottom: 1px solid #FFFFFF30;
+
+				font-size: var(--h3FontSize);
+				color: white;
+				text-transform: uppercase;
+			}
 
 
 
@@ -474,7 +493,7 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 
 				#menuBar
 				{
-					height: calc(100% - 1 * var(--channelHeight));;
+					height: calc(100% - 1 * var(--channelHeight) - calc(2.2 * var(--h3FontSize)));
 					overflow-y:scroll !important;
 
 					overflow: hidden;
@@ -510,6 +529,11 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 							.elementMenuBar.selected:hover
 							{
 								background-color: #FFFFFF50;
+							}
+
+							.elementMenuBar.hidden
+							{
+								display: none;
 							}
 
 						.elementMenuBar:hover
@@ -769,12 +793,13 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 				position: absolute;
 				top: calc(.2 * var(--dataHeight));
 				left: calc(1 * var(--dataHeight));
+				right: calc(8 * var(--h3FontSize) + 2.75 * var(--h3FontSize));
 				font-size: var(--h1FontSize);
 				text-transform: uppercase;
 
 				white-space: nowrap;
-				overflow: hidden;
 
+				overflow: hidden;
 			}
 
 				#currentChannelNum
@@ -782,7 +807,33 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 					display: inline-block;
 					font-size: var(--h3FontSize);
 
-					transform: translateY(calc(0px - .1 * var(--h1FontSize)));
+					transform: translateY(calc(0px - .15 * var(--h1FontSize)));
+				}
+
+				#currentChannelSeparator
+				{
+					display: inline-block;
+					font-size: var(--h4FontSize);
+
+					padding-left: calc(1 * var(--h3FontSize));
+
+					transform: translateY(calc(0px - .2 * var(--h1FontSize)));
+				}
+
+				a#currentChannelCurator
+				{
+					display: inline-block;
+					text-decoration: none;
+					color: white;
+					font-size: var(--h4FontSize);
+
+					padding-left: calc(1 * var(--h3FontSize));
+
+					transform: translateY(calc(0px - .2 * var(--h1FontSize)));
+					opacity: .8;
+
+					transition: all .3s ease-out;
+					transform-origin: left;
 				}
 
 			#currentVideoNameDisplay
@@ -824,6 +875,7 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 					padding-left: calc(1 * var(--h3FontSize));
 
 					transform: translateY(calc(0px - .1 * var(--h3FontSize)));
+					opacity: .8;
 				}
 
 				#currentVideoAuthor
@@ -834,6 +886,7 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 					padding-left: calc(1 * var(--h3FontSize));
 
 					transform: translateY(calc(0px - .1 * var(--h3FontSize)));
+					opacity: .8;
 				}
 
 
@@ -870,6 +923,8 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 		#playerControls
 		{
 			height: var(--controlsHeight);
+			margin-top: calc(.13 * var(--controlsHeight));
+			margin-bottom: calc(.13 * var(--controlsHeight));
 
 
 			display: flex;
@@ -901,27 +956,22 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 			align-items: center;
 			justify-content: space-between;
 			align-content: center;
+
+			opacity: .8;
 		}
 
 			#settingsControls
 			{
-				margin-left: calc(.35 * var(--currentChannelHeight));
-					display: flex;
+				margin-left: calc(.15 * var(--currentChannelHeight));
+				display: flex;
 				flex-direction: row;
 				align-items: center;
 				justify-content: flex-start;
 				align-content: center;
 
-			}
+				height: var(--settingsHeight);
 
-				#settingsControls label
-				{
-					display: block;
-					color: white;
-					text-transform: uppercase;
-					font-size: var(--h4FontSize);
-					font-weight: 300;
-				}
+			}
 
 				#settingsControls select
 				{
@@ -938,35 +988,36 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 	       	appearance: none;
 
 	       	text-align: left;
-	       	padding-right: 25px;
+	       	padding-right: calc(1 * var(--h3FontSize));
 
-	       	background: url("rsrc/mediaPlayer/select.png") 4% / var(--h4FontSize) no-repeat #ffffff00;/*#ffffff00;*/
+	       	background: url("rsrc/mediaPlayer/select.png") 4% / calc(.7 * var(--h3FontSize)) no-repeat #ffffff00;/*#ffffff00;*/
 
 	       	overflow: visible;
 				}
 
 				#selectAudio			{  }
 
-				#selectResolution	{ width: calc(6 * var(--h2FontSize));}
+				#selectResolution,
+				#settingsControls select#selectResolution:disabled	{ width: calc(7 * var(--h3FontSize)); text-align-last:center;}
 
-				#selectSpeed	{ padding-left: calc(3 * var(--h4FontSize)); overflow: visible; transition: all .3s ease-out; cursor:pointer; }
-					#selectSpeed:disabled:hover	{ cursor:default; opacity:.75; transform:none; }
+				#settingsControls select#selectSpeed	{ padding-left: calc(1.5 * var(--h3FontSize)); overflow: visible; transition: all .3s ease-out; cursor:pointer; }
+					#settingsControls select#selectSpeed:disabled:hover	{ cursor:default; opacity:.75; transform:none; }
 
-				#selectSubtitles	{ padding-left: calc(3 * var(--h4FontSize)); overflow: visible; transition: all .3s ease-out; cursor:pointer; }
-					#selectSubtitles:disabled:hover	{ cursor:default; opacity:.75; transform:none; }
+				#settingsControls select#selectSubtitles	{ padding-left: calc(2 * var(--h3FontSize)); overflow: visible; transition: all .3s ease-out; cursor:pointer; }
+					#settingsControls select#selectSubtitles:disabled:hover	{ cursor:default; opacity:.75; transform:none; }
 
 				#settingsControls select:disabled {
 					background: none;
-					opacity: .75;
+					opacity: .4;
 					padding-left: 0;
 				}
 
 
 			#pictureInPicture
 			{
-				width: calc(.6 * var(--currentChannelHeight));
-				height: calc(.6 * var(--currentChannelHeight));
-				margin: calc(.2 * var(--currentChannelHeight));
+				width: var(--settingsHeight);
+				height: var(--settingsHeight);
+				margin: 0;
 				margin-left: calc(.35 * var(--currentChannelHeight));
 				margin-right: calc(.35 * var(--currentChannelHeight));
 
@@ -975,20 +1026,21 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 
 
 			#modeControls {
+				margin-right: calc(.15 * var(--currentChannelHeight));
+
 				display: flex;
 				flex-direction: row;
 				align-items: center;
 				justify-content: center;
 
-				overflow: hidden;
-
+				height: var(--settingsHeight);
 			}
 
 
 		#volumeBarContainer
 		{
 			position: relative;
-			width: 80px;
+			width: calc(2 * var(--settingsHeight));
 			height: calc(.6 * var(--currentChannelHeight));
 
 			z-index: 100;
@@ -998,8 +1050,8 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 			align-items: center;
 			justify-content: center;
 
-			margin-left: calc(.2 * var(--currentChannelHeight));
-			margin-right: calc(.2 * var(--currentChannelHeight));
+			margin-left: calc(.1 * var(--currentChannelHeight));
+			margin-right: calc(.5 * var(--currentChannelHeight));
 			transition: all .3s ease-out;
 		}
 
@@ -1108,11 +1160,15 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 			#mute
 			{
 				display: inline-block;
-				width: calc(.6 * var(--currentChannelHeight));
-				height: calc(.6 * var(--currentChannelHeight));
+				width: var(--settingsHeight);
+				height: var(--settingsHeight);
+				margin: 0;
+				/*
 				margin: calc(.2 * var(--currentChannelHeight));
-				margin-left: calc(.2 * var(--currentChannelHeight));
-				margin-right: calc(.2 * var(--currentChannelHeight));
+				margin-left: calc(.15 * var(--currentChannelHeight));
+				*/
+
+				margin-left: calc(.35 * var(--currentChannelHeight));
 
 				filter: invert(1);
 
@@ -1120,9 +1176,10 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 				transition: all .3s ease-out;
 			}
 
+				#mute { margin:0; margin-left:0; }
+
 			#fillingmode:hover,
 			#fullscreen:hover,
-			#volumeBarContainer:hover,
 			#mute:hover,
 			#playerControls > *:hover,
 			#selectSubtitles:hover,
@@ -1132,10 +1189,17 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 				transform: scale(1.1);
 			}
 
-			#currentVideoNameDisplay a:hover
+			#currentVideoNameDisplay a:hover,
+			#volumeBarContainer:hover
 			{
 				opacity: .8;
 				transform: scale(1.03);
+			}
+
+			a#currentChannelCurator:hover
+			{
+				opacity: .8;
+				transform: translateY(calc(0px - .2 * var(--h1FontSize))) scale(1.03);
 			}
 
 

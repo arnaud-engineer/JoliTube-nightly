@@ -39,6 +39,10 @@ function shuffleArray(array) {
                 this.logo = null;
                 this.channelNum = 1;
                 this.displayChannelNum = "01";
+                this.currentChannelCuratorName = null;
+                this.currentChannelCuratorURL = null;
+                this.prevChannelNum = 1;
+                this.channelArrowNavigationTracker = 0;
 
                 this.firstVideoLoaded = false;
                 this.firstVideoDebug = false;
@@ -123,7 +127,7 @@ function shuffleArray(array) {
 
 
 
-
+                this.searchSingleton = false;
                 this.feedbackTimerDuration = 2000;
             }
         }
@@ -201,99 +205,6 @@ function shuffleArray(array) {
             userIsUpdatingTimeCode = false;
             showInterface();
         }
-
-
-/* =========================================================================
-    CHANNELS LIST
-   ========================================================================= */
-
-        /*
-        STRUCTURE FOR A CHANNEL :
-          - Title : 21 caracters
-          - Description : 25 caracters
-          - Logo : link to the img in rsrc/channelsLogos/
-          - Playlist ID : you can find it the playlist URL
-          - Nb videos : Number of videos in the playlist (if higher than the real value, might cause bugs in the index random generation)
-        */
-
-        var possibleQualitiesValues = ["hd2160", "hd1440", "hd1080", "hd720", "large", "hd720", "medium", "small", "tiny", "auto"];
-
-        var channelList = [
-        	// Premium
-            ["TEST","TEST","rsrc/channelsLogos/JoliTubePlus.png","PLEJ0pOW0FHeECH6Q4OuOSkujC8Grt11Vo"],
-            ["JoliTube +","Les derniers ajouts","rsrc/channelsLogos/JoliTubePlus.png","PLEJ0pOW0FHeELfQtk-6za-V7Pirc15Nax"],
-            ["JoliTube + Séries","Essayez des séries","rsrc/channelsLogos/JoliTubeSeries.png","PLEJ0pOW0FHeGn_AMco5NL9QbZPdaIJ0sK"],
-            ["JoliTube + Cinéma","Pop-corn vendu séparément","rsrc/channelsLogos/JoliTubeCinema.png","PLEJ0pOW0FHeGv1QU3JIuqYnGoIP3a7J0r"],
-            ["JoliTube + Courts","Comme un long mais court","rsrc/channelsLogos/JoliTubeCourts.png","PLEJ0pOW0FHeF7sE3tM3HsrAEhdQaNT1Zl"],
-            ["JoliTube + Spectacles","Show ou pas show ?","rsrc/channelsLogos/JoliTubeSpectacles.png","PLEJ0pOW0FHeFifm36Yj6WN0OitSMuJ4YR"],
-            // Cinéma
-            ["Old Movies","C'est moins cher que Netflix","rsrc/channelsLogos/OldMovies.png","PLEJ0pOW0FHeFgOC544ujQty-gONR9GJVw"],
-            //["JoliTube Ciné Cancer","C'est meilleur quand c'est nul","rsrc/channelsLogos/JoliTubeWebSeries.png","PLEJ0pOW0FHeFn4qMaIWp-N0XA4rFmrbwW"],
-            // Comédie
-            ["Comédie","Blagues de l\'Internouille","rsrc/channelsLogos/Comedie.png","PLEJ0pOW0FHeGM2aj0qVizu5PFd5OZpfft"],
-            ["Comedy","Jokes made in Internet","rsrc/channelsLogos/Comedy.png","PLEJ0pOW0FHeF2Nr7x5qCipkRAT0-DRi63"],
-            ["Old Comédie","C\'était sympa Dailymotion","rsrc/channelsLogos/OldComedie.png","PLEJ0pOW0FHeHXID5VahhSdu2ZvRWUOM3J"],
-            ["Old Comedy","YouTube used to be funny","rsrc/channelsLogos/OldComedy.png","PLEJ0pOW0FHeFn19WRTmLeNCby6_VB-voT"],
-            ["Funnier MTV","C\'est mieux avec des blagues","rsrc/channelsLogos/FunnierMTV.png","PLEJ0pOW0FHeFGAcuPQTlLpV0beaNyu_Ua"],
-            ["YouTube Poop","Because It\'s where the poop is","rsrc/channelsLogos/ComedieYTP2.png","PLEJ0pOW0FHeForGVS9CZk6riBHOLmQnmj"],
-            //["The Eric Andre Show","Trash & absurd","rsrc/channelsLogos/The_Eric_Andre_Logo.png","PLEJ0pOW0FHeGQyVUPTE-qhJwKKtZQHm4u"],
-            //Musique
-            ["MTV Eclectic Party","Bordel audible de soirée","rsrc/channelsLogos/MTV_Party.png","PLEJ0pOW0FHeF5LvDjIxUMLdv1Xh_Jt-bV"],
-            ["MTV Covers","Les grands artistes volent","rsrc/channelsLogos/MTV_Covers.png","PLEJ0pOW0FHeEOZsliVPFJ0uVYksimlsJt"],
-            ["MTV Mashups","Deux hits valent mieux qu'un","rsrc/channelsLogos/MTV_Mashups.png","PLEJ0pOW0FHeGlfiwS36aYUpV6JJumUeDF"],
-            ["MTV +BCDM","+ Belles chansons du Monde","rsrc/channelsLogos/MTV_BCDM.png","PLEJ0pOW0FHeHhqQqSNbwfkwKbUx1II1Je"],
-            ["MTV Visual","La Musique qui se regarde","rsrc/channelsLogos/MTV_Visual.png","PLEJ0pOW0FHeHq4zPJMSym3v5QQOltZ38A"],
-            ["MTV Random","Surprennament, ça existe","rsrc/channelsLogos/MTV_Random.png","PLEJ0pOW0FHeEFm0IBxq8lzZFfT06d1aLr"],
-            ["MTV Unusual","Sons et instruments bizarres","rsrc/channelsLogos/MTV_Unusual.png","PLEJ0pOW0FHeE0KFtYvOqy-j-dMJrJUNJt"],
-            ["MTV Shitty","Shitty music is the best","rsrc/channelsLogos/MTVShitty.png","PLEJ0pOW0FHeEK-TjsvdDacq3_eDyAQwDh"],
-            ["MTV Otamatone","Tout est mieux à l'Otamatone","rsrc/channelsLogos/MTV_Otamatone.png","PLEJ0pOW0FHeFBnYENy5LWpfAHcJ4NDjCs"],
-            ["MTV Flute","Un instrument sous estimé","rsrc/channelsLogos/MTV_Flute.png","PLEJ0pOW0FHeGfuXlbqgYXiZKWTnEGwCex"],
-            ["Euro 2000","Eurodance & euroambiance","rsrc/channelsLogos/Euro2000.png","PLEJ0pOW0FHeFRwE7WTbteW1OvJ6fTgZQ6"],
-            ["Eurovision","Sans le décompte des points","rsrc/channelsLogos/Eurovision.png","PLEJ0pOW0FHeHnxrwXg_QDKFgs5j7JLdKl"],
-            ["PostModern","Back to the Future","rsrc/channelsLogos/PostMo.png","PLEJ0pOW0FHeHXBa2L9ZA4vURmbpC4mNtx"],
-            ["PostMo 30","30\'s rocks","rsrc/channelsLogos/PostMo30.png","PLEJ0pOW0FHeE2RaM1qJbcLbJ6E03vp6R9"],
-            ["PostMo 60","60\'s Forever","rsrc/channelsLogos/PostMo60.png","PLEJ0pOW0FHeHWT-SDeRgvrZyA6zz8zkcD"],
-            ["PostMo 80","Synthwave partout","rsrc/channelsLogos/PostMo80.png","PLEJ0pOW0FHeExdr1E-CzhMeVwh-ggWBcE"],
-            ["PostMo Symph","Pop-symphonique","rsrc/channelsLogos/PostMoSymph.png","PLEJ0pOW0FHeFbplYMHal9mvYJtQSY7Jhv"],
-            ["Paroles","Les pas plus grands textes","rsrc/channelsLogos/ParolesTV.png","PLEJ0pOW0FHeHfo8D0450uwDXsC2SvBicf"],
-            ["Coco Hits Only","Marx avait raison","rsrc/channelsLogos/CocoTV.png","PLEJ0pOW0FHeFc3nuqu0G7Xsl2ZwOfEsMT"],
-            ["Zik2Kebab","Ambiance ton maître-kebabier","rsrc/channelsLogos/Zik2Kebab.png","PLEJ0pOW0FHeGBqy3eZmsU5jo0v5yBp47d"],
-            ["SilvaGunner","Fake Video Games Music Only","rsrc/channelsLogos/silvaGunner.png","PLEJ0pOW0FHeGRJKoolDq3hruSs7IW1ynF"],
-            ["Britney","100 % Britney Spears","rsrc/channelsLogos/britney.png","PLEJ0pOW0FHeH7eFJ_xhL95mPyUFaPF4DL"],
-            //Jeunesse
-            ["Disney Channel Music","Ton enfance leur appartient","rsrc/channelsLogos/MTVDisneyStore.png","PLEJ0pOW0FHeFq5itu2wEmmHCf7CrJcbp_"],
-            ["Canal J","Tu peux sortir les céréales","rsrc/channelsLogos/CanalJ.png","PLEJ0pOW0FHeHN170F8w7Y5YoXRJI83Fiv"],
-            ["YouTube Kids","C\'est compliqué ...","rsrc/channelsLogos/YouTubeKids.png","PLEJ0pOW0FHeES9YZTEYfo3iJI3inSGBtL"],
-            ["JeuxLeVeux","100% pubs, 0% dessins animés","rsrc/channelsLogos/JeuxLeVeux.png","PLEJ0pOW0FHeEU0Aomd50p-Ps8_6-zUHHH"],
-            // Nouvelle génération
-            ["[adult anim]","Animation pour les grands","rsrc/channelsLogos/AdultAnim.png","PLEJ0pOW0FHeFN5aWnQO026Rq3ybmtaDTq"],
-            ["[sureal anim]","Animation pour les weirdos","rsrc/channelsLogos/AdultAnimSureal.png","PLEJ0pOW0FHeF5dkaPtUFGUL5bKHLIXHxN"],
-            ["Cyriak","Animation surréel et psyché","rsrc/channelsLogos/Cyriak.png","PLEJ0pOW0FHeHfV7ox0iHKFn3Gs6zU8FTc"],
-            // Fond de grille
-            ["Random TV","Ainsi soit-il","rsrc/channelsLogos/randomTV.png","PLEJ0pOW0FHeFLhiQ1-2bi-oIUp-FPMojH"],
-            ["Random TV Speed","Pas le temps de niaiser","rsrc/channelsLogos/randomTVspeed.png","PLEJ0pOW0FHeFeJK_JkPmIGdyHt1q3fGv6"],
-            ["Random TV Petit Tube","Tu n'as jamais vu ces vidéos","rsrc/channelsLogos/randomTVPetitTube.png","PLEJ0pOW0FHeGSac-RPj03xmhYold-8hmO"],
-            ["Memory Hole","L'angoisse des 90's","rsrc/channelsLogos/MemoryHole.png","PLEJ0pOW0FHeE2U_-OtyXrORU-X8ttTUxl"],
-            ["Ads","Vu sur YouTube","rsrc/channelsLogos/ads.png","PLEJ0pOW0FHeFDRzAS6u6m2Oagn0-qClul"],
-            ["SeuNeuCeuFeu TV","Une ambiance de Tchou tchou","rsrc/channelsLogos/SeuNeuCeuFeu.png","PLEJ0pOW0FHeGWvKiPBN0OybmreMjSCOHt"],
-            ["Vidéo Grande Conso","N°1 sur le commerce de détail","rsrc/channelsLogos/VCG.png","PLEJ0pOW0FHeEOjiyKHydyn3Z5IptUayVR"],
-            ["Steve Ballmer","Ce n\'est pas Steve Jobs","rsrc/channelsLogos/Ballmer.png","PLEJ0pOW0FHeGj5HQlf2BoahmvpdNYv9BO"],
-            ["Ambient Music","Musique d'ambiance","rsrc/channelsLogos/AmbientMusic.png","PLEJ0pOW0FHeHjVH8BzOWQG4aDn0pjLfTR"],
-            ["Ambient ScreenSaver","Des visuels pour vos soirées","rsrc/channelsLogos/AmbientScreenSaver.png","PLEJ0pOW0FHeHP5HNjoQdoAPRLI3MZKS_D"],
-            ["Ambient Window","Une fenêtre sur le monde","rsrc/channelsLogos/AmbientWindow.png","PLEJ0pOW0FHeGIgL2QjcYyz0VqHLdctBo7"],
-            ["Ambient Journey","La fenêtre du train en mieux","rsrc/channelsLogos/AmbientJourney.png","PLEJ0pOW0FHeHZoH7H1vak_JV_-xkZSNbQ"],
-            // Étranger
-            ["Planeta HD","Le meilleur de la pop bulgare","rsrc/channelsLogos/PlanetaHD.png","PLEJ0pOW0FHeGqtnSc4a12cE0EWa1Jw5jT"],
-            ["Tiankov","N°1 sur la folk bulgare","rsrc/channelsLogos/Tiankov.png","PLEJ0pOW0FHeHYinJjgquQVGAaGDjLasPV"],
-            ["RTB et amis","Tous tiers-monde d\'un autre","rsrc/channelsLogos/rtb.png","PLEJ0pOW0FHeGgMBBRCEUPVF586EMDKp9o"],
-            ["Téléfrançais","Apprendons le Français","rsrc/channelsLogos/telefrancais.jpg","PLEJ0pOW0FHeGIHzCMPZL9qNn9KdL_RiOU"],
-            //telefrancais.jpg
-            // Fin fond de grille
-            ["ATMO1777","Va voir, tu comprendras","rsrc/channelsLogos/ATMO1777.png","PLxGjXN7GLGCtUer7H5934MwtYXC6dPFyg"],
-            ["ATMO3003","Va comprendre, tu verras","rsrc/channelsLogos/ATMO3003.png","PLxGjXN7GLGCtPSG7Hh4ZQyWiqjdxf_RCQ"],
-            ["Chill of the trade","Keep calm, stay corporate","rsrc/channelsLogos/ChillOfTheTrade.png","PLxGjXN7GLGCsPN51q2a_uVvrY1E_PsHMD"],
-            ["J-TOP","Nolife ne meurt jamais","rsrc/channelsLogos/Jtop.png","PLhPXaGzNx63GViI0aZCYtzttRsjsrNx7_"]
-        ];
 
 /* =========================================================================
     GLOBAL VARIABLES
@@ -465,7 +376,7 @@ function hideInterface()
     let channels = document.getElementById("channels");
     let menuControler = document.getElementById("menuControler");
 
-    if(app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
+    if(app.searchSingleton === false && app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
         header.classList.remove("displayed");
         channels.classList.remove("displayed");
         menuControler.classList.remove("displayed");
@@ -473,18 +384,26 @@ function hideInterface()
         menuControler.classList.add("hidden");
 
         header.classList.add("reduced");
-        setTimeout(() => {
-            if(app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
-                header.classList.add("disappearing");
-                header.classList.remove("reduced");
-                setTimeout(() => {
-                    if(app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
-                        header.classList.add("hidden");
-                        header.classList.remove("disappearing");
-                    }
-                }, 1000);
-            }
-        }, app.totalTimeToHide * 2);
+        if(app.searchSingleton === false && menuControler.classList.contains("hidden") && app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
+            setTimeout(() => {
+                if(app.searchSingleton === false && menuControler.classList.contains("hidden") && app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
+                    header.classList.add("disappearing");
+                    header.classList.remove("reduced");
+                    setTimeout(() => {
+                        if(app.searchSingleton === false && menuControler.classList.contains("hidden") && app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
+                            header.classList.add("hidden");
+                            header.classList.remove("disappearing");
+                        } else {
+                            showInterface();
+                        }
+                    }, app.totalTimeToHide * 2);
+                } else {
+                    showInterface();
+                }
+            }, app.totalTimeToHide * 2);
+        } else {
+            showInterface();
+        }
     }
 
     document.getElementsByTagName('body')[0].classList.remove("cursor");
@@ -715,8 +634,9 @@ function autoHide()
         {
             if(app.randomPlaylist.length === 0 && app.alreadyPlayed.length >= 1) {
                 displayAlert("vous avez vu toutes les vidéos de " + app.playName + " !", "Vous pouvez éteindre JoliTube et reprendre une activité normale");
+                app.prevChannelNum = app.channelNum;
                 app.channelNum = getCurrentChannelNum();
-                loadSelectedChannelByNum(app.channelNum);
+                loadSelectedChannel(app.channelNum);
             }
             else {
                 app.alreadyPlayed.unshift(app.randomPlaylist.shift());
@@ -733,6 +653,7 @@ function autoHide()
         function playOrPause()
         {
             if((!app.inputForbidden)) {
+                app.inputForbidden = true;
                 let isFromPlayPauseButton = false;
                 try {
                     isFromPlayPauseButton = (event.originalTarget.src === document.getElementById("playVideo").src);
@@ -762,9 +683,9 @@ function autoHide()
                     if(app.playing === true) {
                         document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.png";
                         //showInterface();
-                        app.inputForbidden = false;
                     }
                 }, 300);
+                app.inputForbidden = false;
             } catch(e) {}
        }
 
@@ -777,9 +698,9 @@ function autoHide()
                     if(app.playing === false) {
                         document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.png";
                         //showInterface();
-                        app.inputForbidden = false;
                     }
                 }, 300);
+                app.inputForbidden = false;
             } catch(e) {}
        }
 
@@ -830,6 +751,67 @@ function autoHide()
                 document.getElementById("nextVideo").style.cursor = "not-allowed";
             } catch(e) {}
        }
+
+
+
+
+        function allowSearchInput() {
+            event.stopPropagation();
+
+            if(event.code === "Escape") {
+                document.getElementById("searchBar").value = "";
+                searchUpdate();
+            }
+            if(event.code === "Enter" || event.code === "Escape") {
+                quitSearchMode();
+                document.getElementById("searchBar").blur();
+            }
+            else if(event.code === "ArrowDown") {
+                loadNextChannel();
+            }
+            else if(event.code === "ArrowUp") {
+                loadPreviousChannel();
+            }
+        }
+
+        function searchMode() {
+            app.searchSingleton = true;
+            showInterface();
+        }
+
+        function quitSearchMode() {
+            app.searchSingleton = false;
+        }
+
+
+        function searchUpdate()
+        {
+            let inputedText = document.getElementById("searchBar").value;
+            let channels = document.getElementsByClassName("elementMenuBar");
+
+            for( let i=0; i < channels.length ; i++) {
+                if(!channels[i].getElementsByTagName("h1")[0].outerText.toLowerCase().includes(inputedText.toLowerCase())) {
+                    channels[i].classList.add("hidden");
+                } else {
+                    channels[i].classList.remove("hidden");
+                }
+            }
+        }
+
+        function searchReset()
+        {
+            document.getElementById("searchBar").value = "";
+            let channels = document.getElementsByClassName("elementMenuBar");
+            for( let i=0; i < channels.length ; i++) {
+                channels[i].classList.remove("hidden");
+            }
+        }
+
+
+
+
+
+
 
 
     /* -----------------------------
@@ -963,7 +945,11 @@ function autoHide()
             selectSubtitles.style.width = "calc(" + currentOptionWidthVariable + " * var(--h2FontSize) + " + currentOptionWidthFix + " * var(--h4FontSize))";
         }   
 
-        function nextSpeed() {
+        function nextSpeed()
+        {
+            event.stopPropagation();
+            userIsChoosingSpeed();
+
             let possibleSpeedValues = [0.25, 0.5, 1, 1.5, 2];
             let nextValueIndex = possibleSpeedValues.indexOf(app.speed) + 1;
             if(nextValueIndex >= possibleSpeedValues.length) {
@@ -976,27 +962,28 @@ function autoHide()
                 app.speed = nextValue;
 
                 document.getElementById("selectSpeed").value = app.speed;
-                
-                app.userNotChoosingSpeed = true;
-                app.inputForbidden = false;
             } catch(e) {}
+            userIsNotChoosingSpeed();
         }
 
         function userChangeSpeed()
         {
+            event.stopPropagation();
+            userIsChoosingSpeed();
             try {
-                let options = document.getElementById("selectSpeed");
                 player.setPlaybackRate(parseFloat(event.target.value));
                 app.speed = parseFloat(event.target.value);
 
                 document.getElementById("selectSpeed").value = app.speed;
-                
-                app.userNotChoosingSpeed = true;
-                app.inputForbidden = false;
             } catch(e) {}
+            userIsNotChoosingSpeed();
+            // TODO : Quick Fix Cancer
+            playOrPause();
+            playOrPause();
         }
 
         function userIsChoosingSpeed() { app.userNotChoosingSpeed = false; app.inputForbidden = true; }
+        function userIsNotChoosingSpeed() { app.userNotChoosingSpeed = true; app.inputForbidden = false; }
 
         function userChangeCaptions()
         {
@@ -1343,15 +1330,18 @@ function autoHide()
         CHANNEL LOADING
        ----------------------------- */
 
-        function loadSelectedChannelByNum(num)
-        {
-            let i = num - 1;
-            loadSelectedChannel(channelList[i][0], channelList[i][3], channelList[i][2]);
-        }
-
         // CHANGE THE CHANNEL IN THE PLAYER
-        function loadSelectedChannel(playName, playID, logo)
+        function loadSelectedChannel(num)
         {
+            let trueChannelIndex = num - 1;
+            app.currentChannel = num;
+            app.playName = channelList[trueChannelIndex][0];
+            app.playlistID = channelList[trueChannelIndex][3];
+            app.logo = channelList[trueChannelIndex][2];
+            app.currentChannelCuratorName=curratorsList[channelList[trueChannelIndex][4]][0];
+            app.currentChannelCuratorURL=curratorsList[channelList[trueChannelIndex][4]][1];
+
+            //searchReset();
             showInterface();
             hideVideo();
             app.realTimeDataMonitored = false;
@@ -1377,13 +1367,12 @@ function autoHide()
                 '</div>';
             document.getElementById("playerContainer").className = "";
             // Update the global variables
-            app.playlistID = playID;
+            
 
             //app.currentBackToTheFutureCount = 0;
 
-            app.playName = playName;
-            app.logo = logo;
-            channelNumUpdate(getChannelNum(playName));
+            
+            channelNumUpdate(app.currentChannel);
             menuUpdate();
             // Initialise the player
             initYT();
@@ -1409,6 +1398,66 @@ function autoHide()
             }, 20);
         }
 
+        function loadPreviousChannel() {
+            try {
+                let channels = document.getElementsByClassName("elementMenuBar");
+                let cChannelNum = app.channelNum;
+
+                let isFirstDisplayedDisplayedChannel = false;
+                let i = 0;
+                while(!isFirstDisplayedDisplayedChannel) {
+                    i++;
+                    if(cChannelNum - i < 1) {
+                        isFirstDisplayedDisplayedChannel = true;
+                    }
+                    else if(!channels[cChannelNum - 1 - i].classList.contains("hidden")) {
+                        isFirstDisplayedDisplayedChannel = true;
+                    }
+                }
+                cChannelNum = cChannelNum - i;
+                if(cChannelNum <= 0) {
+                    app.channelNum = channelList.length + 1;
+                    loadPreviousChannel();
+                } else {
+                    loadSelectedChannel(cChannelNum);
+                    channelNumUpdate(cChannelNum);
+                    app.channelArrowNavigationTracker--;
+                }
+                
+            } catch(e) { }
+        }
+
+        function loadNextChannel() {
+            try {
+                let channels = document.getElementsByClassName("elementMenuBar");
+                let cChannelNum = app.channelNum;
+
+                let isFirstDisplayedDisplayedChannel = false;
+                let isLastDisplayedDisplayedChannel = false;
+                let fChNum = null;
+                let lChNum = null;
+                let i = 0;
+                for(i=1 ; i < channels.length - cChannelNum + 1 ; i++) {
+                    if(!channels[cChannelNum - 1 + i].classList.contains("hidden")) {
+                        if(isFirstDisplayedDisplayedChannel === false) {
+                            isFirstDisplayedDisplayedChannel = true;
+                            fChNum = cChannelNum + i;
+                        }
+                        isLastDisplayedDisplayedChannel = true;
+                        lChNum = cChannelNum + i;
+                    }
+                }
+                if(fChNum === null) {
+                    app.channelNum = 0;
+                    loadNextChannel();
+                } else {
+                    loadSelectedChannel(fChNum);
+                    channelNumUpdate(fChNum);
+                    app.channelArrowNavigationTracker++;
+                }
+            } catch(e) {}
+        }
+
         function getCurrentChannelNum() {
             getChannelNum(app.channelNum);
         }
@@ -1427,6 +1476,7 @@ function autoHide()
         }
 
         function channelNumUpdate(num) {
+            app.prevChannelNum = app.channelNum;
             app.channelNum = num;
             let res = "" + num;
             if (res.length === 1) {
@@ -1435,27 +1485,62 @@ function autoHide()
             app.displayChannelNum = res;
         }
 
-        // UPDATE THE CHANNEL INFORMATIONS
-        function menuUpdate()
+
+        function channelListRefresh()
         {
-            // Update the control panel display
-            document.getElementById("currentChannelNameDisplay").innerHTML = "<span id='currentChannelNum'>" + app.displayChannelNum + " - </span> " + app.playName;
-            document.getElementById("currentChannelLogo").src = app.logo;
             // Update the selection in the lateral menu
             var childDivs = document.getElementsByClassName('elementMenuBar');
             // for each channel in the menu
-            for(var i=0; i< childDivs.length; i++ )
+            for(var i=0; i < childDivs.length; i++ )
             {
                 // reset the background color
                 childDivs[i].classList.remove("selected");
                 // highlight it only if its the current channel
                 if(childDivs[i].innerHTML.includes("<h1>"+app.playName+"</h1>")) {
                     childDivs[i].classList.add("selected");
-                    let idToDisplayPrevElements = i - 2;
-                    if(idToDisplayPrevElements < 0) { idToDisplayPrevElements = 0; }
-                    childDivs[idToDisplayPrevElements].scrollIntoView();
+                    if(app.channelArrowNavigationTracker >= 3 || app.channelArrowNavigationTracker <= -3 || app.prevChannelNum - app.channelNum > 1 || app.prevChannelNum - app.channelNum < 1) {
+                        // childDivs[idToDisplayPrevElements].scrollIntoView();
+                        //else if(i === childDivs.length - 1) { childDivs[i].scrollIntoView(); }
+                        //else {
+                            let childNodeToDisplayCounter = 0;
+                            let j = null;
+                            let firstJ = null;
+                            let lastJ = null;
+                            for (j=i ; j >= 0 ; j--) {
+                                if(!childDivs[j].classList.contains("hidden")) {
+                                    childNodeToDisplayCounter++;
+                                    if(childNodeToDisplayCounter == 1) {
+                                        firstJ=j;
+                                    }
+                                    if(childNodeToDisplayCounter >= 1) {
+                                        lastJ=j;
+                                    }
+
+                                    if(childNodeToDisplayCounter === 3) {
+                                        childDivs[j].scrollIntoView();
+                                        break;
+                                    }
+                                    else if(j === childDivs.length - 1) { childDivs[firstJ].scrollIntoView(); }
+                                    else if(j === 0) { childDivs[lastJ].scrollIntoView(); }
+                                }
+                            }
+                        //}
+                    }
                 }
             }
+            searchUpdate();
+        }
+
+        // UPDATE THE CHANNEL INFORMATIONS
+        function menuUpdate()
+        {
+            // Update the control panel display
+            let channelNumHtml = "<span id='currentChannelNum'>" + app.displayChannelNum + " - </span> ";
+            let channelNameHtml = "<span id='currentChannelName'>" + app.playName + "</span> ";
+            let curratorHTML = "<a id='currentChannelCurator' href='" + app.currentChannelCuratorURL + "' target='_blank'>" + app.currentChannelCuratorName + "</span>";
+            document.getElementById("currentChannelNameDisplay").innerHTML = channelNumHtml + channelNameHtml + curratorHTML;
+            document.getElementById("currentChannelLogo").src = app.logo;
+            channelListRefresh();
         }
 
     /* -----------------------------
@@ -1533,6 +1618,8 @@ document.addEventListener('DOMContentLoaded', function(event)
         app.playlistID=channelList[0][3];
         app.playName=channelList[0][0];
         app.logo=channelList[0][2];
+        app.currentChannelCuratorName=curratorsList[channelList[0][4]][0];
+        app.currentChannelCuratorURL=curratorsList[channelList[0][4]][1];
 
         //Generation of the miniatures for each channel (HTML)
         var menuBarContent = "";
@@ -1545,7 +1632,7 @@ document.addEventListener('DOMContentLoaded', function(event)
                     displayChannelNum = "0" + displayChannelNum;
                 }
                 channelMiniature = '' +
-                  '<div class="elementMenuBar" onclick="loadSelectedChannel(\'' + currentChannel[0] + '\',\'' + currentChannel[3] + '\',\'' + currentChannel[2] + '\');">' +
+                  '<div class="elementMenuBar" onclick="loadSelectedChannel(' + i + ');">' +
                     '<div class="logoElementMenuBar">' +
                       '<img src="' + currentChannel[2] + '"/>' +
                     '</div>' +
@@ -1581,7 +1668,7 @@ document.addEventListener('DOMContentLoaded', function(event)
 
         //initYT();
 
-        loadSelectedChannelByNum(1);
+        loadSelectedChannel(1);
 
 
 
@@ -1716,7 +1803,7 @@ document.addEventListener('DOMContentLoaded', function(event)
         else {
             app.alreadyPlayedErrors.unshift(app.playerIndexInitAttempt);
             app.playerIndexInitAttempt++;
-            loadSelectedChannelByNum(app.channelNum);
+            loadSelectedChannel(app.channelNum);
         }
     }
 
@@ -1736,7 +1823,7 @@ function loadSelectedChannelByRemote() {
             if(chNum < channelList.length) {
                 showFeedback("channelNumFeedback", app.remoteDigitBuffer);
                 app.remoteDigitBuffer = null;
-                loadSelectedChannelByNum(chNum);
+                loadSelectedChannel(chNum);
                 hideFeedback("channelNumFeedback");
                 clearInterval(checkRemoteInput);
             }
@@ -1763,7 +1850,7 @@ function loadSelectedChannelByRemote() {
             showFeedback("channelNumFeedback", "0" + app.remoteDigitBuffer);
             let chNum = parseInt(app.remoteDigitBuffer);
             app.remoteDigitBuffer = null;
-            loadSelectedChannelByNum(chNum);
+            loadSelectedChannel(chNum);
             hideFeedback("channelNumFeedback");
         }
     }, 2500);
@@ -1803,7 +1890,7 @@ function keyHandler()
     switch(event.code)
     {
         case "KeyR":
-            loadSelectedChannel(app.playName, app.playlistID, app.logo);
+            loadSelectedChannel(app.channelNum);
             event.preventDefault();
             break;
         case "KeyF":
@@ -1828,27 +1915,11 @@ function keyHandler()
             event.preventDefault();
             break;
         case "ArrowUp":
-            try {
-                channelNumUpdate(app.channelNum - 1);
-                if(app.channelNum > 0) {
-                    loadSelectedChannelByNum(app.channelNum);
-                } else {
-                    loadSelectedChannelByNum(channelList.length);
-                }
-            }
-            catch(e) { }
+            loadPreviousChannel();
             event.preventDefault();
             break;
         case "ArrowDown":
-            try {
-                channelNumUpdate(app.channelNum + 1);
-                if(app.channelNum <= channelList.length) {
-                    loadSelectedChannelByNum(app.channelNum);
-                } else {
-                    loadSelectedChannelByNum(1);
-                }
-            }
-            catch(e) { }
+            loadNextChannel();
             event.preventDefault();
             break;
         case "ArrowLeft":
@@ -1983,6 +2054,10 @@ function keyHandler()
             break;
         case "KeyX":
             nextSpeed();
+            event.preventDefault();
+            break;
+        case "KeyS":
+            document.getElementById("searchBar").focus();
             event.preventDefault();
             break;
 
