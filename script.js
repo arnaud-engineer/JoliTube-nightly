@@ -131,6 +131,7 @@ function shuffleArray(array) {
                 this.searchSingleton = false;
                 this.feedbackTimerDuration = 2000;
                 this.videoDisplayed = false;
+                this.alertSingleton = false;
             }
         }
 
@@ -232,13 +233,18 @@ function shuffleArray(array) {
         // DISPLAY AN ALERT MESSAGE ON THE TOP OF THE PLAYER
         function displayAlert(titleAlert, descrAlert)
         {
-            // Replace the text
-            document.getElementById("alertMsg").innerHTML = "<h2>" + titleAlert + "</h2><p>" + descrAlert + "</p>";
-            // Display the message element for 5 seconds
-            document.getElementById("alertMsg").style.display = "block";
-            setTimeout(() => {
-                document.getElementById("alertMsg").style.display = "none";
-            }, 5000);
+            if(app.alertSingleton === false)
+            {
+                app.alertSingleton = true;
+                // Replace the text
+                document.getElementById("alertMsg").innerHTML = "<h2>" + titleAlert + "</h2><p>" + descrAlert + "</p>";
+                // Display the message element for 5 seconds
+                document.getElementById("alertMsg").style.display = "block";
+                setTimeout(() => {
+                    document.getElementById("alertMsg").style.display = "none";
+                    app.alertSingleton = false;
+                }, 10000);
+            }
         }
 
         function emptyPlayerDisplay()
