@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with Vectornator (http://vectornator.io/) -->
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 919.41 926.54" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:vectornator="http://vectornator.io" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<clipPath id="ArtboardFrame">
+<rect height="926.54" width="919.41" x="0" y="0"/>
+</clipPath>
+<g clip-path="url(#ArtboardFrame)" id="Sans-titre" vectornator:layerName="Sans titre">
+<path d="M0.45643 350.41L200.456 350.41L350.456 350.41L350.456 200.41L350.456 0.41L283.86 0.834181L283.86 284.694L0 284.694L0.45643 350.41Z" fill="#000000" fill-rule="nonzero" opacity="1" stroke="none" vectornator:layerName="polygon"/>
+<path d="M568.59 0L569.06 200L569.41 350L719.41 349.65L919.41 349.19L918.643 283.366L635.783 283.95L635.186 0.0903394L568.59 0Z" fill="#000000" fill-rule="nonzero" opacity="1" stroke="none" vectornator:layerName="polygon"/>
+<path d="M919.13 576.81L719.13 576.66L569.13 576.54L569.02 726.54L568.87 926.54L635.542 925.22L635.732 642.36L918.592 642.55L919.13 576.81Z" fill="#000000" fill-rule="nonzero" opacity="1" stroke="none" vectornator:layerName="polygon"/>
+<path d="M350.456 926.41L350.456 726.41L350.456 576.41L200.456 576.41L0.45643 576.41L0 642.112L283.86 642.112L283.86 924.972L350.456 926.41Z" fill="#000000" fill-rule="nonzero" opacity="1" stroke="none" vectornator:layerName="polygon"/>
+</g>
+</svg>

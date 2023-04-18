@@ -956,6 +956,23 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 			transition: all .3s ease-out;
 		}
 
+			#nextVideo,
+			#previousVideo
+			{
+				width: calc(.4 * var(--controlsHeight));
+				height: calc(.4 * var(--controlsHeight));
+			}
+
+			#nextVideo.disabled,
+			#previousVideo.disabled,
+			#nextVideo.disabled:hover,
+			#previousVideo.disabled:hover
+			{
+				cursor: not-allowed;
+				opacity: .5;
+				transform: none;
+			}
+
 		#advancedControls
 		{
 			height: var(--settingsHeight);
@@ -972,7 +989,7 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 
 			#settingsControls
 			{
-				margin-left: calc(.15 * var(--currentChannelHeight));
+				margin-left: calc(.35 * var(--currentChannelHeight));
 				display: flex;
 				flex-direction: row;
 				align-items: center;
@@ -1036,7 +1053,7 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 
 
 			#modeControls {
-				margin-right: calc(.15 * var(--currentChannelHeight));
+				margin-right: calc(.35 * var(--currentChannelHeight));
 
 				display: flex;
 				flex-direction: row;
@@ -1188,6 +1205,10 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 
 				#mute { margin:0; margin-left:0; }
 
+
+			#previousVideo { transform-origin: right; }
+			#nextVideo { transform-origin: left; }
+
 			#fillingmode:hover,
 			#fullscreen:hover,
 			#mute:hover,
@@ -1198,6 +1219,13 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 				opacity: .8;
 				transform: scale(1.1);
 			}
+
+				#previousVideo:hover {
+					transform: scale(1.2) translateX(-.2vw);
+				}
+				#nextVideo:hover {
+					transform: scale(1.2) translateX(.2vw);
+				}
 
 			#currentVideoNameDisplay a:hover,
 			#volumeBarContainer:hover

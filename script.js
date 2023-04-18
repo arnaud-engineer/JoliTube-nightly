@@ -49,6 +49,7 @@ function shuffleArray(array) {
 
                 this.playerIndexInitAttempt = 0;
                 this.playerInitAttemptPassed = false;
+                this.nextVideoInitAttemptPassed = false;
 
 
 
@@ -126,9 +127,10 @@ function shuffleArray(array) {
 
 
 
-
+                this.playerFullyChargedSingleton = false;
                 this.searchSingleton = false;
                 this.feedbackTimerDuration = 2000;
+                this.videoDisplayed = false;
             }
         }
 
@@ -137,7 +139,7 @@ function shuffleArray(array) {
 
         function updateLanguagesRanks(cLang) {
             for(let i=0 ; i < app.subtitlesPrefList.length ; i++) {
-                console.log(cLang + " : " + app.subtitlesPrefMatrice[cLang][i] + " -- VS -- " + i + " : " + app.subtitlesPrefMatrice[i][cLang]);
+                //console.log(cLang + " : " + app.subtitlesPrefMatrice[cLang][i] + " -- VS -- " + i + " : " + app.subtitlesPrefMatrice[i][cLang]);
                 if(app.subtitlesPrefMatrice[cLang][i] > app.subtitlesPrefMatrice[i][cLang]) {
                     if (cLang > i) {
                         app.subtitlesPrefList.splice(i, 0, app.subtitlesPrefList.splice(cLang, 1)[0]);
@@ -162,8 +164,8 @@ function shuffleArray(array) {
 
             }
             updateLanguagesRanks(cLang);
-            console.log(app.subtitlesPrefList);
-            console.log(app.subtitlesPrefMatrice);
+            //console.log(app.subtitlesPrefList);
+            //console.log(app.subtitlesPrefMatrice);
         }
 
 
@@ -185,7 +187,6 @@ function shuffleArray(array) {
 
         function forwardInVideo() {
             try {
-                console.log(player.getCurrentTime());
                 if(player.getCurrentTime() >= 0) {
                     let newTimeCode = Math.round(player.getCurrentTime() + 5);
                     player.seekTo(newTimeCode, true);
@@ -209,10 +210,6 @@ function shuffleArray(array) {
 /* =========================================================================
     GLOBAL VARIABLES
    ========================================================================= */
-
-    //Already played videos
-    var currentChannel = "";
-    app.currentVideoIndex = -2;
 
     //Playback variables
 
@@ -264,19 +261,27 @@ function shuffleArray(array) {
         ---------------------------------------- */
 
 function showVideo() {
-    app.videoIndexBeforePlayerDisplay = app.currentVideoIndex;
-    setTimeout(function() {
-        if(app.videoIndexBeforePlayerDisplay === app.currentVideoIndex) {
-            document.getElementById("playerContainer").classList.remove("hidden");
-            document.getElementById("playerContainer").classList.add("displayed");
-            app.playerInitAttemptPassed = true;
-        }
-    }, 500);
+    if(app.videoDisplayed === false) {
+        app.videoIndexBeforePlayerDisplay = app.currentVideoIndex;
+        var checkIfVideoReadyToDisplay = setInterval(function() {
+            if(app.videoIndexBeforePlayerDisplay === app.currentVideoIndex && player.getPlayerState() === 1) {
+                updateAllData();
+                app.playerInitAttemptPassed = true;
+                app.nextVideoInitAttemptPassed = true;
+                app.videoDisplayed = true;
+                document.getElementById("playerContainer").classList.remove("hidden");
+                document.getElementById("playerContainer").classList.add("displayed");
+                clearInterval(checkIfVideoReadyToDisplay);
+            }
+        }, 100);
+    }
 }
 
 function hideVideo() {
+    app.videoDisplayed = false;
     document.getElementById("playerContainer").classList.remove("displayed");
     document.getElementById("playerContainer").classList.add("hidden");
+    app.nextVideoInitAttemptPassed = false;
     hideVideoTitle();
     hideCaptions();
 }
@@ -475,7 +480,7 @@ function autoHide()
                 // Go fullscreen
                 var body = document.getElementsByTagName("body")[0].requestFullscreen();
                 // Fullscreen button evolves into end fullscreen button
-                document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-end-icon.svg");
+                document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-off.svg");
                 document.getElementById("fullscreen").setAttribute("onmousedown", "endFullScreen();");
                 document.getElementById("fullscreen").setAttribute("display", "block");
                 updateRealTimeData();
@@ -489,7 +494,7 @@ function autoHide()
                 // End fullscreen
                 document.exitFullscreen();
                 // End fullscreen button evolves into fullscreen button
-                document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-icon.svg");
+                document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-on.svg");
                 document.getElementById("fullscreen").setAttribute("onmousedown", "goFullScreen();");
                 document.getElementById("fullscreen").setAttribute("display", "block");
                 app.fullscreenStatus = false;
@@ -500,9 +505,6 @@ function autoHide()
         }
 
         function togglePictureInPicture() {
-            console.log(document.getElementById("player"));
-            console.log("=========");
-            console.log(document.getElementsByTagName('video'));
           if (document.getElementById("player").pictureInPictureElement) {
             document.exitPictureInPicture();
           } else if (document.pictureInPictureEnabled) {
@@ -613,8 +615,6 @@ function autoHide()
         {
             if(app.randomPlaylist.length === 0 && app.alreadyPlayed.length >= 1) {
                 displayAlert("vous avez vu toutes les vidéos de " + app.playName + " !", "Vous pouvez éteindre JoliTube et reprendre une activité normale");
-                app.prevChannelNum = app.channelNum;
-                app.channelNum = getCurrentChannelNum();
                 loadSelectedChannel(app.channelNum);
             }
             else {
@@ -639,47 +639,37 @@ function autoHide()
                 } catch(e) {}
                 if(app.cursorOnInterface === false || isFromPlayPauseButton) {
                     if(app.playing === true) {
-                        app.inputForbidden = true;
                         pauseChannel();
                     }
                     else if(app.playing === false)  {
-                        app.inputForbidden = true;
                         playChannel();
                     }
                 }
-                setTimeout(() => {
-                    app.inputForbidden = false;
-                }, 300);
+                else { app.inputForbidden = false; }
             }
         }
 
        function playChannel()
        {
             try {
+                app.inputForbidden = true;
                 player.playVideo();
                 app.playing = true;
-                setTimeout(() => {
-                    if(app.playing === true) {
-                        document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.png";
-                        //showInterface();
-                    }
-                }, 300);
+                document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.svg";
                 app.inputForbidden = false;
+                //}, 300);
             } catch(e) {}
        }
 
        function pauseChannel()
        {
             try {
+                app.inputForbidden = true;
                 player.pauseVideo();
                 app.playing = false;
-                setTimeout(() => {
-                    if(app.playing === false) {
-                        document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.png";
-                        //showInterface();
-                    }
-                }, 300);
+                document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.svg";
                 app.inputForbidden = false;
+                //}, 300);
             } catch(e) {}
        }
 
@@ -689,29 +679,29 @@ function autoHide()
             //back
             if(app.alreadyPlayed.length <= 1) /* || app.alreadyPlayed.length === app.currentBackToTheFutureCount + 1*/
             {
-                document.getElementById("previousVideo").src = "rsrc/mediaPlayer/backGreyed.png";
                 document.getElementById("previousVideo").onclick = "";
-                document.getElementById("previousVideo").style.cursor = "not-allowed";
+                document.getElementById("previousVideo").classList.add("disabled");
             }
             else
             {
-                document.getElementById("previousVideo").src = "rsrc/mediaPlayer/back.png";
                 document.getElementById("previousVideo").onclick = function() { previousVideo(); };
-                document.getElementById("previousVideo").style.cursor = "pointer";
+                document.getElementById("previousVideo").classList.remove("disabled");
             }
 
             // the player is ready if the function is called, so ensure the availability of the next button
-            document.getElementById("nextVideo").src = "rsrc/mediaPlayer/forward.png";
             document.getElementById("nextVideo").onclick = function() { nextVideo(); };
-            document.getElementById("nextVideo").style.cursor = "pointer";
+            document.getElementById("nextVideo").classList.remove("disabled");
 
+            
             try {
                 if(player.getPlayerState() === 1 && app.playing === false) {
-                    playChannel();
-                } else if(player.getPlayerState() === 0 && app.playing === true) {
                     pauseChannel();
+
+                } else if(player.getPlayerState() === 2 && app.playing === true) {
+                    playChannel();
                 }
             } catch(e) {}
+            
 
 
 
@@ -721,13 +711,11 @@ function autoHide()
        {
             try {
                 // Back
-                document.getElementById("previousVideo").src = "rsrc/mediaPlayer/backGreyed.png";
                 document.getElementById("previousVideo").onclick = "";
-                document.getElementById("previousVideo").style.cursor = "not-allowed";
+                document.getElementById("previousVideo").classList.add("disabled");
                 // Next
-                document.getElementById("nextVideo").src = "rsrc/mediaPlayer/forwardGreyed.png";
-                document.getElementById("nextVideo").onclick = "";
-                document.getElementById("nextVideo").style.cursor = "not-allowed";
+                document.getElementById("nextVideo").onclick = function() { nextVideo(); };
+                document.getElementById("nextVideo").classList.remove("disabled");
             } catch(e) {}
        }
 
@@ -985,10 +973,6 @@ function autoHide()
 
             loadCaptions();
 
-            console.log("LLLLLL : " + currentOption.value);
-
-            //console.log(currentOptionLenght);
-
             app.userNotChoosingSubtitles = true;
         }
 
@@ -1085,7 +1069,6 @@ function autoHide()
                         }
 
                         selectSubtitles.innerHTML = "";
-                        console.log(player.getOption('captions', 'tracklist'));
                         if (captionsList.length === 0) {
                             selectSubtitles.innerHTML += "<option value='off' selected>No Subtitles</option>";
                             selectSubtitles.setAttribute("disabled", "");
@@ -1163,7 +1146,7 @@ function autoHide()
                 app.subtitlesLoadingAttempts=0;
                 app.currentVideoIndex=n;
                 player.playVideoAt(n);
-                updateAllData();
+                playChannel();
             } catch(e) {}
         }
 
@@ -1174,19 +1157,8 @@ function autoHide()
             updatePlayerState();
             loadQuality();
             loadCaptions();
-            menuUpdate();
+            updateChannelData();
             refreshVolume();
-/*
-            setTimeout(() => {
-                updateVideoTitle();
-                updateDuration();
-                updatePlayerState();
-                loadQuality();
-                loadCaptions();
-                menuUpdate();
-                refreshVolume();
-            }, 1000);
-*/
         }
 
         function updateRealTimeData()
@@ -1194,12 +1166,13 @@ function autoHide()
             updateDuration();
             refreshVolume();
             updatePlayerState();
-
+/*
             setTimeout(() => {
                 updateDuration();;
                 refreshVolume();
                 updatePlayerState();
             }, 1000);
+*/
         }
 
         function updateDuration()
@@ -1269,7 +1242,7 @@ function autoHide()
                         let loadedPercent = Math.round(player.getVideoLoadedFraction() * 100);
                         document.getElementById("loadingFill").style.width = loadedPercent + "%";
 
-                        if((durationHH > 0 || durationMM > 0 || durationSS > 0) && player.getCurrentTime() > 0) {
+                        if(player.getCurrentTime() > 0) {
                             showVideo();
                         }
 
@@ -1312,26 +1285,33 @@ function autoHide()
         // CHANGE THE CHANNEL IN THE PLAYER
         function loadSelectedChannel(num)
         {
+            hideVideo();
+            hideChannelData();
+
             let trueChannelIndex = num - 1;
-            app.currentChannel = num;
+            app.channelNum = num;
             app.playName = channelList[trueChannelIndex][0];
             app.playlistID = channelList[trueChannelIndex][3];
             app.logo = channelList[trueChannelIndex][2];
             app.currentChannelCuratorName=curratorsList[channelList[trueChannelIndex][4]][0];
             app.currentChannelCuratorURL=curratorsList[channelList[trueChannelIndex][4]][1];
 
+            updateChannelData();
+
+            app.playerFullyChargedSingleton = false;
+
             //searchReset();
+            disablePlayer();
             showInterface();
-            hideVideo();
             app.realTimeDataMonitored = false;
             app.firstVideoLoaded = false;
             app.nbVideoCurrentChannel = null;
             app.playerInitAttemptPassed = false;
+            app.nextVideoInitAttemptPassed = false;
             app.randomPlaylist = [];
             app.alreadyPlayed = [];
             app.alreadyPlayedErrors = [];
             // disable the controls
-            disablePlayer();
             // Reset the player
             //document.getElementById("playerContainer").innerHTML = '<div id="player"></div>';
             //try { player.stopVideo(); } catch(e) {}
@@ -1346,13 +1326,8 @@ function autoHide()
                 '</div>';
             document.getElementById("playerContainer").className = "";
             // Update the global variables
-            
-
-            //app.currentBackToTheFutureCount = 0;
-
-            
-            channelNumUpdate(app.currentChannel);
-            menuUpdate();
+            hideVideo();
+            channelNumUpdate(app.channelNum);
             // Initialise the player
             initYT();
             //Update the channel informations (global variables and display)
@@ -1363,12 +1338,12 @@ function autoHide()
                 try {
                     app.nbVideoCurrentChannel = player.playerInfo.playlist.length;
                 } catch(e) {}
-                if(app.nbVideoCurrentChannel !== null) {
+                if(app.nbVideoCurrentChannel !== null && app.playerFullyChargedSingleton === false) {
+                    app.playerFullyChargedSingleton = true;
                     createPlaylistOrder();
                     nextVideo();
 
-                    //updateAllData();
-                    console.log("CHANNEL : " + getCurrentChannelNum());
+                    console.log("GO TO CHANNEL : " + app.channelNum);
                     //showInterface();
                     playChannel();
 
@@ -1437,10 +1412,6 @@ function autoHide()
             } catch(e) {}
         }
 
-        function getCurrentChannelNum() {
-            getChannelNum(app.channelNum);
-        }
-
         function getChannelNum(chName) {
             let res = null;
             // for each channel in the menu
@@ -1462,6 +1433,26 @@ function autoHide()
                 res = "0" + app.channelNum;
             }
             app.displayChannelNum = res;
+        }
+
+
+        // UPDATE THE CHANNEL INFORMATIONS
+        function updateChannelData()
+        {
+            // Update the control panel display
+            let channelNumHtml = "<span id='currentChannelNum'>" + app.displayChannelNum + " - </span> ";
+            let channelNameHtml = "<span id='currentChannelName'>" + app.playName + "</span> ";
+            let curratorHTML = "<a id='currentChannelCurator' href='" + app.currentChannelCuratorURL + "' target='_blank'>" + app.currentChannelCuratorName + "</span>";
+            document.getElementById("currentChannelNameDisplay").innerHTML = channelNumHtml + channelNameHtml + curratorHTML;
+            document.getElementById("currentChannelLogo").src = app.logo;
+            channelListRefresh();
+        }
+
+        // UPDATE THE CHANNEL INFORMATIONS
+        function hideChannelData()
+        {
+            document.getElementById("currentChannelNameDisplay").innerHTML = "";
+            document.getElementById("currentChannelLogo").src = "";
         }
 
 
@@ -1508,18 +1499,6 @@ function autoHide()
                 }
             }
             searchUpdate();
-        }
-
-        // UPDATE THE CHANNEL INFORMATIONS
-        function menuUpdate()
-        {
-            // Update the control panel display
-            let channelNumHtml = "<span id='currentChannelNum'>" + app.displayChannelNum + " - </span> ";
-            let channelNameHtml = "<span id='currentChannelName'>" + app.playName + "</span> ";
-            let curratorHTML = "<a id='currentChannelCurator' href='" + app.currentChannelCuratorURL + "' target='_blank'>" + app.currentChannelCuratorName + "</span>";
-            document.getElementById("currentChannelNameDisplay").innerHTML = channelNumHtml + channelNameHtml + curratorHTML;
-            document.getElementById("currentChannelLogo").src = app.logo;
-            channelListRefresh();
         }
 
     /* -----------------------------
@@ -1588,6 +1567,7 @@ function autoHide()
 
 document.addEventListener('DOMContentLoaded', function(event)
 {
+    hideVideo();
 
     /* -----------------------------
         CHANNELS LOADING
@@ -1658,25 +1638,7 @@ document.addEventListener('DOMContentLoaded', function(event)
                 updateDuration();
             }
             catch(e) {}
-        });
-
-/*
-        var timerMouse;
-        var timerNoUser;
-        document.addEventListener('mousemove', function() {
-            if (timerMouse) clearTimeout(timerMouse);
-            if (timerNoUser) clearTimeout(timerNoUser);
-            timerMouse = setTimeout(function() {
-                console.log('mouse hasn\'t moved for 5 seconds');
-                autoHide();
-                timerMouse = setTimeout(function() {
-                    hideInterface();
-                }, 10000);
-            }, 5000);
-        });
-*/
-
-    
+        });    
 });
 
 
@@ -1713,33 +1675,16 @@ document.addEventListener('DOMContentLoaded', function(event)
             }, 100);
         }
 
-        try {
-            /*
-            let tests = player.getPlaylistIndex();
-            if(app.currentVideoIndex !== player.getPlaylistIndex()) {
-                nextVideo();
-            }
-            */
-        } catch(e) {}
-        
-
-        //if(player.getPlayerState() === 2) { // IF PLAY
-            //showVideo();
-        //}
+    
 
         if(event.data === 1 || event.data === 3) {
             app.firstVideoLoaded = true;
         }
         // ENDED VIDEO HANDLING
-        else if ((app.currentVideoIndex !== player.getPlaylistIndex()) && app.firstVideoLoaded) {
+        else if ((app.currentVideoIndex !== player.getPlaylistIndex()) && app.firstVideoLoaded && app.nextVideoInitAttemptPassed === true) {
             nextVideo();
         }
-        /*
-        else if (app.videoTitle !== player.getVideoData().title)
-        {
-            updateAllData();
-        }
-        */
+
 
 
     }
@@ -1748,6 +1693,7 @@ document.addEventListener('DOMContentLoaded', function(event)
     // of embdeding)
     function onPlayerError(event)
     {
+        hideVideo();
         let codeError = event.data;
         switch(parseInt(event.data)) {
             case 2 :
@@ -1865,7 +1811,7 @@ function addToRemoteDigitBuffer(digit)
 
 function keyHandler()
 {
-    console.log(event.code);
+    console.log("key input : " + event.code);
     switch(event.code)
     {
         case "KeyR":
@@ -2080,10 +2026,6 @@ function createPlaylistOrder() {
     }
 
     app.randomPlaylist = shuffleArray(n);
-
-    console.log("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP");
-    console.log(app.randomPlaylist);
-    console.log("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP");
 }
 
 

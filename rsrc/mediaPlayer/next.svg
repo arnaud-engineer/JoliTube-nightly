@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with Vectornator (http://vectornator.io/) -->
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 393.482 453.788" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:vectornator="http://vectornator.io" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<clipPath id="ArtboardFrame">
+<rect height="453.788" width="393.482" x="0" y="0"/>
+</clipPath>
+<g clip-path="url(#ArtboardFrame)" id="Calque-1" vectornator:layerName="Calque 1" visibility="hidden">
+<path d="M-45.5553-44.426L436.461-44.426L436.461 505.421L-45.5553 505.421L-45.5553-44.426Z" fill="#000000" fill-rule="nonzero" opacity="1" stroke="#656565" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="0.533307"/>
+</g>
+<g clip-path="url(#ArtboardFrame)" id="layer1" vectornator:layerName="layer1">
+<path d="M24.3229 6.15517L24.3229 454.126L83.5313 406.009L83.5313 54.2719L24.3229 6.15517Z" fill="#ffffff" fill-rule="nonzero" opacity="1" stroke="none"/>
+<path d="M143.529 38.6409L143.529 417.851L376.771 228.266L143.529 38.6409Z" fill="#ffffff" fill-rule="nonzero" opacity="1" stroke="none"/>
+</g>
+</svg>

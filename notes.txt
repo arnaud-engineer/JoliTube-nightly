@@ -1,4 +1,18 @@
-event.stopPropagation();
+/*
+        var timerMouse;
+        var timerNoUser;
+        document.addEventListener('mousemove', function() {
+            if (timerMouse) clearTimeout(timerMouse);
+            if (timerNoUser) clearTimeout(timerNoUser);
+            timerMouse = setTimeout(function() {
+                console.log('mouse hasn\'t moved for 5 seconds');
+                autoHide();
+                timerMouse = setTimeout(function() {
+                    hideInterface();
+                }, 10000);
+            }, 5000);
+        });
+*/
 
 
 

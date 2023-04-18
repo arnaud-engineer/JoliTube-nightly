@@ -96,9 +96,9 @@
 			</div>
 
 			<div id="playerControls">
-				<img id="previousVideo" title="Previous - P" src="rsrc/mediaPlayer/backGreyed.png" />
-				<img id="playVideo" title="Play - Space" src="rsrc/mediaPlayer/play.png" onclick="playOrPause();" />
-				<img id="nextVideo" title="Next - N" src="rsrc/mediaPlayer/forwardGreyed.png" />
+				<img id="previousVideo" title="Previous - P" src="rsrc/mediaPlayer/previous.svg" />
+				<img id="playVideo" title="Play - Space" src="rsrc/mediaPlayer/play.svg" onclick="playOrPause();" />
+				<img id="nextVideo" title="Next - N" src="rsrc/mediaPlayer/next.svg" />
 			</div>
 
 			<div id="advancedControls">
@@ -111,7 +111,6 @@
 						<option value="auto" selected>AUTO</option>
 					</select>
 					-->
-					<!--<label>VIDEO</label>-->
 					<select id="selectResolution" name="selectResolution" onchange="userChangeQuality();" disabled></select>
 					<select id="selectSpeed"  title="Change playback speed - X" name="selectSpeed" onchange="userChangeSpeed();" onclick="userIsChoosingSpeed();">
 						<option value='0.25'>x 0.25</option>
@@ -120,7 +119,6 @@
 						<option value='1.5'>x 1.5</option>
 						<option value='2'>x 2</option>
 					</select>
-					<!--<label>SOUS-TITRES</label>-->
 					<select id="selectSubtitles" name="selectSubtitles" onchange="userChangeCaptions();" onclick="userIsChoosingCaptions();" style="display:none;"></select>
 				</div>
 				<div id="modeControls">
@@ -131,7 +129,7 @@
 						<div id="webkitProgressFillVolume"></div>
 					</div>
 					<img id="fillingmode" title="Ratio - T" src="rsrc/mediaPlayer/fill-mode.svg" onmousedown="goFillMode();" />
-					<img id="fullscreen" title="Fullscreen - F" src="rsrc/mediaPlayer/fullscreen-icon.svg" onmousedown="goFullScreen();" />
+					<img id="fullscreen" title="Fullscreen - F" src="rsrc/mediaPlayer/fullscreen-on.svg" onmousedown="goFullScreen();" />
 				</div>
 			</div>
 		</div>
@@ -148,7 +146,7 @@
 				<h2 id="currentVideoNameDisplay"></h2>
 				<div id="playerControls">
 					<img id="previousVideo" src="rsrc/mediaPlayer/backGreyed.png" />
-					<img id="playVideo" src="rsrc/mediaPlayer/play.png" onclick="playOrPause();" />
+					<img id="playVideo" src="rsrc/mediaPlayer/play.svg" onclick="playOrPause();" />
 					<img id="nextVideo" src="rsrc/mediaPlayer/forwardGreyed.png" />
 				</div>
 			</div>
