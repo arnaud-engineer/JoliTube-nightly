@@ -76,6 +76,7 @@ function shuffleArray(array) {
                 this.videoTitle = null;
                 this.videoAuthor = null;
                 this.videoUrl = null;
+                this.videoYtId = null;
 
 
                 this.currentQuality = null;
@@ -123,6 +124,8 @@ function shuffleArray(array) {
 
 
 
+                this.videoHistory = [];
+
 
 
 
@@ -132,6 +135,7 @@ function shuffleArray(array) {
                 this.feedbackTimerDuration = 2000;
                 this.videoDisplayed = false;
                 this.alertSingleton = false;
+                this.historyEditionSingleton = false;
             }
         }
 
@@ -277,7 +281,9 @@ function showVideo() {
                 app.videoDisplayed = true;
                 document.getElementById("playerContainer").classList.remove("hidden");
                 document.getElementById("playerContainer").classList.add("displayed");
+                //storeVideoYouTubeId();
                 clearInterval(checkIfVideoReadyToDisplay);
+                getVideoYouTubeId();
             }
         }, 100);
     }
@@ -350,9 +356,7 @@ function showInterface()
     //setTimeout(() => {
     app.noUserInterraction = true;
     //}, 3000);
-
-    document.getElementById("backgroundPlexiglass").classList.remove("nocursor");
-    document.getElementById("backgroundPlexiglass").classList.add("cursor");
+    showCursor();
     app.displayTimerOn = true;
     app.NbDisplayTimer++;
     autoHide();
@@ -366,6 +370,19 @@ function showInterface()
 
     }, app.totalTimeToHide / 2);
 
+}
+
+function showCursor()
+{
+    document.getElementById("backgroundPlexiglass").classList.remove("nocursor");
+    document.getElementById("backgroundPlexiglass").classList.add("cursor");
+}
+
+function hideCursor()
+{
+    document.getElementById("backgroundPlexiglass").classList.remove("cursor");
+    document.getElementById("backgroundPlexiglass").classList.add("nocursor");
+    document.getElementById("backgroundPlexiglass").focus();
 }
 
 function cursorEnterInterface()
@@ -392,9 +409,7 @@ function hideInterface()
         channels.classList.add("hidden");
         menuControler.classList.add("hidden");
 
-        document.getElementById("backgroundPlexiglass").classList.remove("cursor");
-        document.getElementById("backgroundPlexiglass").classList.add("nocursor");
-        document.getElementById("backgroundPlexiglass").focus();
+        hideCursor();
 
         header.classList.add("reduced");
         if(app.searchSingleton === false && menuControler.classList.contains("hidden") && app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
@@ -402,18 +417,14 @@ function hideInterface()
                 if(app.searchSingleton === false && menuControler.classList.contains("hidden") && app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
                     header.classList.add("disappearing");
                     header.classList.remove("reduced");
-                    document.getElementById("backgroundPlexiglass").classList.remove("cursor");
-                    document.getElementById("backgroundPlexiglass").classList.add("nocursor");
-                    document.getElementById("backgroundPlexiglass").focus();
+                    hideCursor();
                     setTimeout(() => {
                         if(app.searchSingleton === false && menuControler.classList.contains("hidden") && app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
                             header.classList.add("hidden");
                             header.classList.remove("disappearing");
                             setTimeout(() => {
                                 if(app.searchSingleton === false && menuControler.classList.contains("hidden") && app.NbDisplayTimer === 0 && app.noUserInterraction === true && app.cursorOnInterface === false && app.playing === true && app.userNotChoosingSubtitles === true && app.userNotChoosingSpeed === true) {
-                                    document.getElementById("backgroundPlexiglass").classList.remove("cursor");
-                                    document.getElementById("backgroundPlexiglass").classList.add("nocursor");
-                                    document.getElementById("backgroundPlexiglass").focus();
+                                    hideCursor();
                                 }
                             }, app.totalTimeToHide * 2);
                         } else {
@@ -663,7 +674,7 @@ function autoHide()
                 app.playing = true;
                 document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.svg";
                 app.inputForbidden = false;
-                //}, 300);
+                hideCursor();
             } catch(e) {}
        }
 
@@ -1151,6 +1162,7 @@ function autoHide()
                 hideVideo();
                 app.subtitlesLoadingAttempts=0;
                 app.currentVideoIndex=n;
+                app.videoYtId = null;
                 player.playVideoAt(n);
                 playChannel();
             } catch(e) {}
@@ -1334,6 +1346,8 @@ function autoHide()
             // Update the global variables
             hideVideo();
             channelNumUpdate(app.channelNum);
+            window.location.hash = app.channelNum;
+            //window.location.href =+ "?c=" + app.channelNum;
             // Initialise the player
             initYT();
             //Update the channel informations (global variables and display)
@@ -1580,11 +1594,16 @@ document.addEventListener('DOMContentLoaded', function(event)
        ----------------------------- */
 
         // Set the default channel (first in the channelList)
-        app.playlistID=channelList[0][3];
-        app.playName=channelList[0][0];
-        app.logo=channelList[0][2];
-        app.currentChannelCuratorName=curratorsList[channelList[0][4]][0];
-        app.currentChannelCuratorURL=curratorsList[channelList[0][4]][1];
+
+        let firstChToLoad = 1;
+        if(window.location.hash.length > 0) { firstChToLoad = parseInt(window.location.hash.substring(1)); }
+        channelNumUpdate(firstChToLoad);
+
+        app.playlistID=channelList[firstChToLoad][3];
+        app.playName=channelList[firstChToLoad][0];
+        app.logo=channelList[firstChToLoad][2];
+        app.currentChannelCuratorName=curratorsList[channelList[firstChToLoad][4]][0];
+        app.currentChannelCuratorURL=curratorsList[channelList[firstChToLoad][4]][1];
 
         //Generation of the miniatures for each channel (HTML)
         var menuBarContent = "";
@@ -1633,7 +1652,7 @@ document.addEventListener('DOMContentLoaded', function(event)
 
         //initYT();
 
-        loadSelectedChannel(1);
+        loadSelectedChannel(firstChToLoad);
 
 
 
@@ -1822,177 +1841,139 @@ function keyHandler()
     {
         case "KeyR":
             loadSelectedChannel(app.channelNum);
-            event.preventDefault();
             break;
         case "KeyF":
             switchFullscreenMode();
-            event.preventDefault();
+            playOrPause();
             break;
         case "KeyT":
             if(app.theaterOn === false) { goTheatherMode(); }
             else                        { goFillMode(); }
-            event.preventDefault();
             break;
         case "KeyK":
             playOrPause();
-            event.preventDefault();
             break;
         case "Space":
             playOrPause();
-            event.preventDefault();
             break;
         case "Escape":
             endFullScreen();
-            event.preventDefault();
             break;
         case "ArrowUp":
             loadPreviousChannel();
-            event.preventDefault();
             break;
         case "ArrowDown":
             loadNextChannel();
-            event.preventDefault();
             break;
         case "ArrowLeft":
             try { backwardInVideo(); }catch(e) { }
-            event.preventDefault();
             break;
         case "KeyJ":
             try { backwardInVideo(); setTimeout(() => { backwardInVideo(); }, 200); } catch(e) { }
-            event.preventDefault();
             break;
         case "ArrowRight":
             try { forwardInVideo(); }catch(e) { }
-            event.preventDefault();
             break;
         case "KeyL":
             try { forwardInVideo(); setTimeout(() => { forwardInVideo(); }, 200); } catch(e) { }
-            event.preventDefault();
             break;
         case "Digit1" :
             addToRemoteDigitBuffer("1");
-            event.preventDefault();
             break;
         case "Numpad1" :
             addToRemoteDigitBuffer("1");
-            event.preventDefault();
             break;
         case "Digit2" :
             addToRemoteDigitBuffer("2");
-            event.preventDefault();
             break;
         case "Numpad2" :
             addToRemoteDigitBuffer("2");
-            event.preventDefault();
             break;
         case "Digit3" :
             addToRemoteDigitBuffer("3");
-            event.preventDefault();
             break;
         case "Numpad3" :
             addToRemoteDigitBuffer("3");
-            event.preventDefault();
             break;
         case "Digit4" :
             addToRemoteDigitBuffer("4");
-            event.preventDefault();
             break;
         case "Numpad4" :
             addToRemoteDigitBuffer("4");
-            event.preventDefault();
             break;
         case "Digit5" :
             addToRemoteDigitBuffer("5");
-            event.preventDefault();
             break;
         case "Numpad5" :
             addToRemoteDigitBuffer("5");
-            event.preventDefault();
             break;
         case "Digit6" :
             addToRemoteDigitBuffer("6");
-            event.preventDefault();
             break;
         case "Numpad6" :
             addToRemoteDigitBuffer("6");
-            event.preventDefault();
             break;
         case "Digit7" :
             addToRemoteDigitBuffer("7");
-            event.preventDefault();
             break;
         case "Numpad7" :
             addToRemoteDigitBuffer("7");
-            event.preventDefault();
             break;
         case "Digit8" :
             addToRemoteDigitBuffer("8");
-            event.preventDefault();
             break;
         case "Numpad8" :
             addToRemoteDigitBuffer("8");
-            event.preventDefault();
             break;
         case "Digit9" :
             addToRemoteDigitBuffer("9");
-            event.preventDefault();
             break;
         case "Numpad9" :
             addToRemoteDigitBuffer("9");
-            event.preventDefault();
             break;
         case "Digit0" :
             addToRemoteDigitBuffer("0");
-            event.preventDefault();
             break;
         case "Numpad0" :
             addToRemoteDigitBuffer("0");
-            event.preventDefault();
             break;
         case "NumpadAdd":
             increaseVolume();
-            event.preventDefault();
             break;
         case "KeyQ":
             increaseVolume();
-            event.preventDefault();
             break;
         case "NumpadSubtract":
             decreaseVolume();
-            event.preventDefault();
             break;
         case "KeyA":
             decreaseVolume();
-            event.preventDefault();
             break;
         case "KeyM":
             muteOrUnmute();
-            event.preventDefault();
             break;
         case "Semicolon":
             muteOrUnmute();
-            event.preventDefault();
             break;
         case "KeyN":
             nextVideo();
-            event.preventDefault();
             break;
         case "KeyP":
             if(app.alreadyPlayed.length > 1) { //if(app.alreadyPlayed.length - app.currentBackToTheFutureCount > 1)
                 previousVideo();
             }
-            event.preventDefault();
             break;
         case "KeyX":
             nextSpeed();
-            event.preventDefault();
             break;
         case "KeyS":
             document.getElementById("searchBar").focus();
-            event.preventDefault();
             break;
 
     }
+
+    hideCursor();
+    event.preventDefault();
 }
 
 /*
@@ -2047,4 +2028,63 @@ setTimeout(() => {}, 5000);
 
 */
 
+
+
+async function getVideoYouTubeId() {
+    if(app.historyEditionSingleton === false) {
+        app.historyEditionSingleton = true;
+        return await new Promise(resolve => {
+            const whileUnknownYtID = setInterval(() => {
+                if(app.historyEditionSingleton === true)
+                {
+                    var res = null;
+                    try {
+                        res = player.playerInfo.videoData.video_id;
+                    } catch(e) {}
+                    if (res !== null && res !== undefined && (!app.videoHistory.includes(res))) {
+                        app.videoYtId = res;
+                        app.videoHistory.unshift(app.videoYtId);
+                        resolve(app.videoYtId);
+                        app.historyEditionSingleton = false;
+                        clearInterval(whileUnknownYtID);
+                    }
+                    else if(app.videoHistory.includes(res) && res !== app.videoYtId) {
+                        resolve(null);
+                        app.historyEditionSingleton = false;
+                        clearInterval(whileUnknownYtID);
+                        nextVideo();
+                    }
+                }
+            }, 20);
+        });
+    }
+    else { return; } 
+}
+
+
+/*
+function storeVideoYouTubeId()
+{
+    if(app.historyEditionSingleton === false) {
+        app.historyEditionSingleton = true;
+        var whileUnknownYtID = setInterval(function() {
+        try {
+            let vidId = player.playerInfo.videoData.video_id;
+            if(app.historyEditionSingleton === true && vidId !== undefined && vidId !== app.videoYtId) {
+                app.videoYtId = vidId;
+                if(app.historyEditionSingleton === true && app.videoHistory.includes(vidId)) {
+                    nextVideo();
+                    clearInterval(whileUnknownYtID);
+                    app.historyEditionSingleton = false;
+                } else if(app.historyEditionSingleton === true) {
+                    app.videoHistory.push(vidId);
+                    clearInterval(whileUnknownYtID);
+                    app.historyEditionSingleton = false;
+                }
+            }
+        } catch(e) {}
+    }, 20);
+    }
+}
+*/
 

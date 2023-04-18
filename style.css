@@ -492,7 +492,15 @@ header.hidden { transform: translateY(-30vh) scale(.5); opacity:0; display: flex
 				font-size: var(--h3FontSize);
 				color: white;
 				text-transform: uppercase;
+
+				transition: all .3s ease-out;
 			}
+
+				#searchBar:hover,
+				#searchBar:focus
+				{
+					filter: contrast(250%);
+				}
 
 
 
