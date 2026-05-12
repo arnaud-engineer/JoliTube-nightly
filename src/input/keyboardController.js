@@ -8,23 +8,40 @@ import { eventBus } from "../core/eventBus.js";
  *
  * During migration, owned shortcuts must stop before reaching legacy/browser/player
  * keyboard handlers.
+ *
+ * Important:
+ * Letter shortcuts are matched by event.key, not only event.code.
+ * This keeps shortcuts semantic on AZERTY layouts where the physical key code
+ * can differ from the displayed letter. Example: the French M key may not emit
+ * code === "KeyM".
  */
 
-const MIGRATED_KEYS = new Set([
+const MIGRATED_CODES = new Set([
     "ArrowLeft",
     "ArrowRight",
-    "KeyA",
-    "KeyF",
-    "KeyM",
-    "KeyN",
-    "KeyP",
-    "KeyQ",
-    "KeyS",
-    "KeyT",
-    "KeyX",
     "Escape",
     "Space",
 ]);
+
+const MIGRATED_KEYS = new Set([
+    "a",
+    "f",
+    "m",
+    "n",
+    "p",
+    "q",
+    "s",
+    "t",
+    "x",
+]);
+
+function normalizedKey(event) {
+    return event.key?.toLowerCase();
+}
+
+function isMigratedShortcut(event) {
+    return MIGRATED_CODES.has(event.code) || MIGRATED_KEYS.has(normalizedKey(event));
+}
 
 function isEditableTarget(target) {
     if (!target) {
@@ -58,7 +75,7 @@ export class KeyboardController {
             return;
         }
 
-        if (!MIGRATED_KEYS.has(event.code)) {
+        if (!isMigratedShortcut(event)) {
             return;
         }
 
@@ -73,6 +90,8 @@ export class KeyboardController {
         event.preventDefault();
         event.stopPropagation();
 
+        const key = normalizedKey(event);
+
         eventBus.emit("input:key", {
             source: "modern-keyboard",
             key: event.key,
@@ -85,54 +104,56 @@ export class KeyboardController {
         switch(event.code) {
             case "ArrowRight":
                 eventBus.emit("input:seek-forward", { source: "modern-keyboard" });
-                break;
+                return;
 
             case "ArrowLeft":
                 eventBus.emit("input:seek-backward", { source: "modern-keyboard" });
-                break;
-
-            case "KeyA":
-                eventBus.emit("input:volume-down", { source: "modern-keyboard" });
-                break;
-
-            case "KeyF":
-                eventBus.emit("input:toggle-fullscreen", { source: "modern-keyboard" });
-                break;
-
-            case "KeyM":
-                eventBus.emit("input:toggle-mute", { source: "modern-keyboard" });
-                break;
-
-            case "KeyN":
-                eventBus.emit("input:zap-next", { source: "modern-keyboard" });
-                break;
-
-            case "KeyP":
-                eventBus.emit("input:zap-previous", { source: "modern-keyboard" });
-                break;
-
-            case "KeyQ":
-                eventBus.emit("input:volume-up", { source: "modern-keyboard" });
-                break;
-
-            case "KeyS":
-                eventBus.emit("input:focus-search", { source: "modern-keyboard" });
-                break;
-
-            case "KeyT":
-                eventBus.emit("input:toggle-theater-mode", { source: "modern-keyboard" });
-                break;
-
-            case "KeyX":
-                eventBus.emit("input:next-speed", { source: "modern-keyboard" });
-                break;
+                return;
 
             case "Escape":
                 eventBus.emit("input:escape", { source: "modern-keyboard" });
-                break;
+                return;
 
             case "Space":
                 eventBus.emit("input:toggle-playback", { source: "modern-keyboard" });
+                return;
+        }
+
+        switch(key) {
+            case "a":
+                eventBus.emit("input:volume-down", { source: "modern-keyboard" });
+                break;
+
+            case "f":
+                eventBus.emit("input:toggle-fullscreen", { source: "modern-keyboard" });
+                break;
+
+            case "m":
+                eventBus.emit("input:toggle-mute", { source: "modern-keyboard" });
+                break;
+
+            case "n":
+                eventBus.emit("input:zap-next", { source: "modern-keyboard" });
+                break;
+
+            case "p":
+                eventBus.emit("input:zap-previous", { source: "modern-keyboard" });
+                break;
+
+            case "q":
+                eventBus.emit("input:volume-up", { source: "modern-keyboard" });
+                break;
+
+            case "s":
+                eventBus.emit("input:focus-search", { source: "modern-keyboard" });
+                break;
+
+            case "t":
+                eventBus.emit("input:toggle-theater-mode", { source: "modern-keyboard" });
+                break;
+
+            case "x":
+                eventBus.emit("input:next-speed", { source: "modern-keyboard" });
                 break;
         }
     }
