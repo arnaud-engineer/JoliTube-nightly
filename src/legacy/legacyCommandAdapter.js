@@ -39,6 +39,49 @@ function toggleLegacyFullscreen() {
     }
 }
 
+function toggleLegacyMute() {
+    /*
+     * Avoid relying on player.isMuted() here.
+     * The keyboard command owns the user intent, so it toggles the app state
+     * then reuses the legacy renderer/applicator.
+     */
+    if (!window.app) {
+        callLegacyFunction("muteOrUnmute");
+        return;
+    }
+
+    window.app.muteOn = !window.app.muteOn;
+    callLegacyFunction("refreshVolume");
+}
+
+function toggleLegacyTheaterMode() {
+    if (window.app?.theaterOn === true) {
+        callLegacyFunction("goFillMode");
+    } else {
+        callLegacyFunction("goTheatherMode");
+    }
+}
+
+function handleLegacyEscape() {
+    const searchBar = document.getElementById("searchBar");
+
+    if (searchBar && document.activeElement === searchBar) {
+        searchBar.value = "";
+
+        if (typeof window.searchUpdate === "function") {
+            window.searchUpdate();
+        }
+
+        searchBar.blur();
+        callLegacyFunction("quitSearchMode");
+        return;
+    }
+
+    if (window.app?.searchSingleton === true) {
+        callLegacyFunction("quitSearchMode");
+    }
+}
+
 function shouldIgnore(payload) {
     return payload?.source === "legacy";
 }
@@ -91,8 +134,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy muteOrUnmute");
-        callLegacyFunction("muteOrUnmute");
+        logger.debug("Command → legacy mute toggle");
+        toggleLegacyMute();
     });
 
     eventBus.on("input:volume-up", (payload) => {
@@ -134,8 +177,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy goFillMode");
-        callLegacyFunction("goFillMode");
+        logger.debug("Command → legacy theater/fill toggle");
+        toggleLegacyTheaterMode();
     });
 
     eventBus.on("input:next-speed", (payload) => {
@@ -153,16 +196,7 @@ export function installLegacyCommandAdapter() {
         }
 
         logger.debug("Command → legacy escape handling");
-
-        const searchBar = document.getElementById("searchBar");
-
-        if (searchBar && document.activeElement === searchBar) {
-            searchBar.blur();
-
-            if (typeof window.quitSearchMode === "function") {
-                window.quitSearchMode();
-            }
-        }
+        handleLegacyEscape();
     });
 
     eventBus.on("input:zap-next", (payload) => {
