@@ -40,10 +40,17 @@ function toggleLegacyPlayback() {
 
 function toggleLegacyFullscreen() {
     /*
-     * Prefer switchFullscreenMode() because it preserves the historical toggle
-     * behavior instead of forcing only enter-fullscreen.
+     * Do not call switchFullscreenMode() from keyboard commands.
+     *
+     * Legacy switchFullscreenMode() toggles fullscreen AND calls playOrPause(),
+     * which changes playback state. The keyboard F command should only toggle
+     * display mode and must preserve current playback.
      */
-    callLegacyFunction("switchFullscreenMode");
+    if (window.app?.fullscreenStatus === true) {
+        callLegacyFunction("endFullScreen");
+    } else {
+        callLegacyFunction("goFullScreen");
+    }
 }
 
 function shouldIgnore(payload) {
@@ -89,7 +96,7 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy switchFullscreenMode");
+        logger.debug("Command → legacy fullscreen toggle without playback change");
         toggleLegacyFullscreen();
     });
 
