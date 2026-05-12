@@ -58,6 +58,24 @@ export function installLegacyCommandAdapter() {
         toggleLegacyPlayback();
     });
 
+    eventBus.on("input:seek-forward", (payload) => {
+        if (shouldIgnore(payload)) {
+            return;
+        }
+
+        logger.debug("Command → legacy forwardVideo");
+        callLegacyFunction("forwardVideo");
+    });
+
+    eventBus.on("input:seek-backward", (payload) => {
+        if (shouldIgnore(payload)) {
+            return;
+        }
+
+        logger.debug("Command → legacy backwardVideo");
+        callLegacyFunction("backwardVideo");
+    });
+
     eventBus.on("input:zap-next", (payload) => {
         if (shouldIgnore(payload)) {
             return;
