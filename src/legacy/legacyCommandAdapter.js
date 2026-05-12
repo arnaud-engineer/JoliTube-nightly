@@ -63,8 +63,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy forwardVideo");
-        callLegacyFunction("forwardVideo");
+        logger.debug("Command → legacy forwardInVideo");
+        callLegacyFunction("forwardInVideo");
     });
 
     eventBus.on("input:seek-backward", (payload) => {
@@ -72,8 +72,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy backwardVideo");
-        callLegacyFunction("backwardVideo");
+        logger.debug("Command → legacy backwardInVideo");
+        callLegacyFunction("backwardInVideo");
     });
 
     eventBus.on("input:zap-next", (payload) => {
