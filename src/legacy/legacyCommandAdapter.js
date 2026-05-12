@@ -156,14 +156,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy previousChannel");
-
-        if (typeof window.previousChannel === "function") {
-            callLegacyFunction("previousChannel");
-            return;
-        }
-
-        callLegacyFunction("switchChannel", app.channelNum - 1);
+        logger.debug("Command → legacy loadPreviousChannel");
+        callLegacyFunction("loadPreviousChannel");
     });
 
     eventBus.on("input:channel-next", (payload) => {
@@ -171,14 +165,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy nextChannel");
-
-        if (typeof window.nextChannel === "function") {
-            callLegacyFunction("nextChannel");
-            return;
-        }
-
-        callLegacyFunction("switchChannel", app.channelNum + 1);
+        logger.debug("Command → legacy loadNextChannel");
+        callLegacyFunction("loadNextChannel");
     });
 
     eventBus.on("input:channel-digit", (payload) => {
