@@ -14,6 +14,7 @@ import { eventBus } from "../core/eventBus.js";
 const MIGRATED_KEYS = new Set([
     "ArrowLeft",
     "ArrowRight",
+    "KeyF",
     "KeyN",
     "KeyP",
     "Space",
@@ -61,6 +62,10 @@ export class KeyboardController {
 
             case "ArrowLeft":
                 eventBus.emit("input:seek-backward", { source: "modern-keyboard" });
+                break;
+
+            case "KeyF":
+                eventBus.emit("input:toggle-fullscreen", { source: "modern-keyboard" });
                 break;
 
             case "KeyN":
