@@ -1,6 +1,7 @@
 import { logger } from "../core/logger.js";
 import { eventBus } from "../core/eventBus.js";
 import { KeyboardController } from "../input/keyboardController.js";
+import { installLegacyCommandAdapter } from "../legacy/legacyCommandAdapter.js";
 
 /*
  * JoliTube runtime bootstrap.
@@ -20,6 +21,8 @@ function bootstrapRuntime() {
     window.__JOLITUBE_RUNTIME_BOOTSTRAPPED__ = true;
 
     logger.info("Bootstrapping modular runtime layer");
+
+    installLegacyCommandAdapter();
 
     const keyboardController = new KeyboardController();
     keyboardController.start();
