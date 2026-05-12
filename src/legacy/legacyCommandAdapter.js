@@ -23,6 +23,21 @@ function callLegacyFunction(functionName) {
     legacyFunction();
 }
 
+function toggleLegacyPlayback() {
+    /*
+     * Do not call playOrPause() from keyboard commands.
+     *
+     * Legacy playOrPause() contains UI/cursor guards that make sense for mouse
+     * clicks but can block keyboard-driven playback when the interface is visible
+     * or when focus is in a weird YouTube iframe state.
+     */
+    if (window.app?.playing === true) {
+        callLegacyFunction("pauseChannel");
+    } else {
+        callLegacyFunction("playChannel");
+    }
+}
+
 function shouldIgnore(payload) {
     return payload?.source === "legacy";
 }
@@ -39,8 +54,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy playOrPause");
-        callLegacyFunction("playOrPause");
+        logger.debug("Command → legacy toggle playback");
+        toggleLegacyPlayback();
     });
 
     eventBus.on("input:zap-next", (payload) => {
