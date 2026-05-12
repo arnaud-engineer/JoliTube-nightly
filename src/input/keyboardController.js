@@ -1,13 +1,21 @@
 import { eventBus } from "../core/eventBus.js";
 
 /*
- * Keyboard controller shell.
+ * Keyboard controller.
  *
  * Goal:
  * progressively isolate keyboard behavior from the legacy runtime.
  *
- * This file intentionally does not replace the old system yet.
+ * During migration, some keyboard shortcuts are owned by this controller.
+ * Those migrated shortcuts must stop before reaching the legacy inline
+ * body handler, otherwise the same action may be triggered twice.
  */
+
+const MIGRATED_KEYS = new Set([
+    "ArrowLeft",
+    "ArrowRight",
+    "Space",
+]);
 
 export class KeyboardController {
     constructor() {
@@ -16,11 +24,11 @@ export class KeyboardController {
     }
 
     start() {
-        window.addEventListener("keydown", this.boundHandler);
+        window.addEventListener("keydown", this.boundHandler, { capture: true });
     }
 
     stop() {
-        window.removeEventListener("keydown", this.boundHandler);
+        window.removeEventListener("keydown", this.boundHandler, { capture: true });
     }
 
     handleKeyDown(event) {
@@ -28,7 +36,15 @@ export class KeyboardController {
             return;
         }
 
+        if (!MIGRATED_KEYS.has(event.code)) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
         eventBus.emit("input:key", {
+            source: "modern-keyboard",
             key: event.key,
             code: event.code,
             ctrl: event.ctrlKey,
@@ -37,24 +53,16 @@ export class KeyboardController {
         });
 
         switch(event.code) {
-            case "ArrowUp":
-                eventBus.emit("input:volume-up");
-                break;
-
-            case "ArrowDown":
-                eventBus.emit("input:volume-down");
-                break;
-
             case "ArrowRight":
-                eventBus.emit("input:zap-next");
+                eventBus.emit("input:zap-next", { source: "modern-keyboard" });
                 break;
 
             case "ArrowLeft":
-                eventBus.emit("input:zap-previous");
+                eventBus.emit("input:zap-previous", { source: "modern-keyboard" });
                 break;
 
             case "Space":
-                eventBus.emit("input:toggle-playback");
+                eventBus.emit("input:toggle-playback", { source: "modern-keyboard" });
                 break;
         }
     }
