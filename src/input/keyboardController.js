@@ -7,13 +7,15 @@ import { eventBus } from "../core/eventBus.js";
  * progressively isolate keyboard behavior from the legacy runtime.
  *
  * During migration, some keyboard shortcuts are owned by this controller.
- * Those migrated shortcuts must stop before reaching the legacy inline
- * body handler, otherwise the same action may be triggered twice.
+ * Those migrated shortcuts must stop before reaching legacy/browser/player
+ * keyboard handlers.
  */
 
 const MIGRATED_KEYS = new Set([
     "ArrowLeft",
     "ArrowRight",
+    "KeyN",
+    "KeyP",
     "Space",
 ]);
 
@@ -54,10 +56,18 @@ export class KeyboardController {
 
         switch(event.code) {
             case "ArrowRight":
-                eventBus.emit("input:zap-next", { source: "modern-keyboard" });
+                eventBus.emit("input:seek-forward", { source: "modern-keyboard" });
                 break;
 
             case "ArrowLeft":
+                eventBus.emit("input:seek-backward", { source: "modern-keyboard" });
+                break;
+
+            case "KeyN":
+                eventBus.emit("input:zap-next", { source: "modern-keyboard" });
+                break;
+
+            case "KeyP":
                 eventBus.emit("input:zap-previous", { source: "modern-keyboard" });
                 break;
 
