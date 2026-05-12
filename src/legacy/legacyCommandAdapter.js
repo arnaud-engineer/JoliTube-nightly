@@ -77,6 +77,76 @@ function handleLegacyEscape() {
     }
 }
 
+function displayLegacyChannelDigitFeedback(displayValue) {
+    if (typeof window.showFeedback === "function") {
+        callLegacyFunction("showFeedback", "channelNumFeedback", displayValue);
+    }
+
+    if (typeof window.hideFeedback === "function") {
+        callLegacyFunction("hideFeedback", "channelNumFeedback");
+    }
+}
+
+function commitLegacyChannelDigitBuffer() {
+    const rawBuffer = window.app?.remoteDigitBuffer;
+    const selectedChannel = Number.parseInt(rawBuffer, 10);
+
+    window.app.remoteDigitBuffer = null;
+    window.app.remoteDigitSingleton = false;
+
+    if (!Number.isFinite(selectedChannel) || selectedChannel <= 0) {
+        return;
+    }
+
+    logger.debug(`Command → legacy loadSelectedChannel ${selectedChannel}`);
+    callLegacyFunction("loadSelectedChannel", selectedChannel);
+}
+
+function handleLegacyChannelDigit(digit) {
+    /*
+     * Recreates the old TV-remote style channel selector.
+     *
+     * Digits are physical top-row keys handled by KeyboardController.
+     * A single digit waits briefly for a possible second digit.
+     * Two digits are committed immediately.
+     *
+     * Examples:
+     * - 5      → shows 05, then loads channel 5 after timeout
+     * - 1 + 2  → shows 12, then loads channel 12 immediately
+     */
+    if (!window.app) {
+        return;
+    }
+
+    const cleanDigit = String(digit ?? "").replace(/\D/g, "");
+
+    if (cleanDigit.length !== 1) {
+        return;
+    }
+
+    if (window.app.remoteDigitBuffer === null || window.app.remoteDigitBuffer === undefined) {
+        window.app.remoteDigitBuffer = cleanDigit;
+    } else {
+        window.app.remoteDigitBuffer = `${window.app.remoteDigitBuffer}${cleanDigit}`.slice(-2);
+    }
+
+    const displayValue = window.app.remoteDigitBuffer.padStart(2, "0");
+    displayLegacyChannelDigitFeedback(displayValue);
+
+    if (window.app.remoteDigitSingleton) {
+        window.clearTimeout(window.app.remoteDigitSingleton);
+    }
+
+    if (window.app.remoteDigitBuffer.length >= 2) {
+        commitLegacyChannelDigitBuffer();
+        return;
+    }
+
+    window.app.remoteDigitSingleton = window.setTimeout(() => {
+        commitLegacyChannelDigitBuffer();
+    }, 1200);
+}
+
 function shouldIgnore(payload) {
     return payload?.source === "legacy";
 }
@@ -175,10 +245,7 @@ export function installLegacyCommandAdapter() {
         }
 
         logger.debug(`Command → legacy channel digit ${payload?.digit}`);
-
-        if (typeof window.remoteDigitInput === "function") {
-            callLegacyFunction("remoteDigitInput", payload?.digit);
-        }
+        handleLegacyChannelDigit(payload?.digit);
     });
 
     eventBus.on("input:focus-search", (payload) => {
