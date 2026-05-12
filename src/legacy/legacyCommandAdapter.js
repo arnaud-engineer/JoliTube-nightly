@@ -12,7 +12,7 @@ import { logger } from "../core/logger.js";
  * To avoid loops, this adapter ignores events coming from source: "legacy".
  */
 
-function callLegacyFunction(functionName) {
+function callLegacyFunction(functionName, ...args) {
     const legacyFunction = window[functionName];
 
     if (typeof legacyFunction !== "function") {
@@ -20,7 +20,7 @@ function callLegacyFunction(functionName) {
         return;
     }
 
-    legacyFunction();
+    legacyFunction(...args);
 }
 
 function toggleLegacyPlayback() {
@@ -40,11 +40,6 @@ function toggleLegacyFullscreen() {
 }
 
 function toggleLegacyMute() {
-    /*
-     * Avoid relying on player.isMuted() here.
-     * The keyboard command owns the user intent, so it toggles the app state
-     * then reuses the legacy renderer/applicator.
-     */
     if (!window.app) {
         callLegacyFunction("muteOrUnmute");
         return;
@@ -154,6 +149,48 @@ export function installLegacyCommandAdapter() {
 
         logger.debug("Command → legacy decreaseVolume");
         callLegacyFunction("decreaseVolume");
+    });
+
+    eventBus.on("input:channel-previous", (payload) => {
+        if (shouldIgnore(payload)) {
+            return;
+        }
+
+        logger.debug("Command → legacy previousChannel");
+
+        if (typeof window.previousChannel === "function") {
+            callLegacyFunction("previousChannel");
+            return;
+        }
+
+        callLegacyFunction("switchChannel", app.channelNum - 1);
+    });
+
+    eventBus.on("input:channel-next", (payload) => {
+        if (shouldIgnore(payload)) {
+            return;
+        }
+
+        logger.debug("Command → legacy nextChannel");
+
+        if (typeof window.nextChannel === "function") {
+            callLegacyFunction("nextChannel");
+            return;
+        }
+
+        callLegacyFunction("switchChannel", app.channelNum + 1);
+    });
+
+    eventBus.on("input:channel-digit", (payload) => {
+        if (shouldIgnore(payload)) {
+            return;
+        }
+
+        logger.debug(`Command → legacy channel digit ${payload?.digit}`);
+
+        if (typeof window.remoteDigitInput === "function") {
+            callLegacyFunction("remoteDigitInput", payload?.digit);
+        }
     });
 
     eventBus.on("input:focus-search", (payload) => {
