@@ -38,6 +38,14 @@ function toggleLegacyPlayback() {
     }
 }
 
+function toggleLegacyFullscreen() {
+    /*
+     * Prefer switchFullscreenMode() because it preserves the historical toggle
+     * behavior instead of forcing only enter-fullscreen.
+     */
+    callLegacyFunction("switchFullscreenMode");
+}
+
 function shouldIgnore(payload) {
     return payload?.source === "legacy";
 }
@@ -74,6 +82,15 @@ export function installLegacyCommandAdapter() {
 
         logger.debug("Command → legacy backwardInVideo");
         callLegacyFunction("backwardInVideo");
+    });
+
+    eventBus.on("input:toggle-fullscreen", (payload) => {
+        if (shouldIgnore(payload)) {
+            return;
+        }
+
+        logger.debug("Command → legacy switchFullscreenMode");
+        toggleLegacyFullscreen();
     });
 
     eventBus.on("input:zap-next", (payload) => {
