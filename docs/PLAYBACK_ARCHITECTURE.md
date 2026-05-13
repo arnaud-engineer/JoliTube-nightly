@@ -60,8 +60,20 @@ Responsibilities:
 - channel playlist state
 - deciding which video should be played next
 - randomization strategy
+- already-played history
+- backtracking history
 
 It should decide what to play, but not directly implement video playback details.
+
+Current observed legacy structures:
+
+```js
+app.randomPlaylist
+app.alreadyPlayed
+app.videoHistory
+```
+
+Those structures are currently mixed directly inside playback logic. They should progressively become owned by ChannelEngine.
 
 ---
 
@@ -107,5 +119,6 @@ The modular runtime already owns:
 - keyboard input
 - alerts
 - feedback HUD
+- basic channel catalog validation
 
 The next phase is to progressively move playback/channel/user-state responsibilities into their own modules while keeping the legacy runtime working.
