@@ -23,6 +23,14 @@ function callLegacyFunction(functionName, ...args) {
     legacyFunction(...args);
 }
 
+function showLegacyAlert(title, description) {
+    if (typeof window.displayAlert === "function") {
+        callLegacyFunction("displayAlert", title, description);
+    } else {
+        logger.warn(`${title}: ${description}`);
+    }
+}
+
 function toggleLegacyPlayback() {
     if (window.app?.playing === true) {
         callLegacyFunction("pauseChannel");
@@ -87,6 +95,39 @@ function displayLegacyChannelDigitFeedback(displayValue) {
     }
 }
 
+function handleReservedChannelZero() {
+    /*
+     * Channel 00 is intentionally reserved for a future JoliTube-specific action.
+     * For now it behaves like an invalid channel, but the branch is explicit so
+     * it can later become home/random/mosaic/easter-egg behavior without digging
+     * through generic validation code.
+     */
+    showLegacyAlert("Chaîne inexistante", "La chaîne 00 est réservée mais pas encore disponible.");
+}
+
+function getChannelCount() {
+    if (Array.isArray(window.channelList)) {
+        return window.channelList.length;
+    }
+
+    return null;
+}
+
+function channelExists(channelNumber) {
+    const channelCount = getChannelCount();
+
+    if (channelCount === null) {
+        return true;
+    }
+
+    return channelNumber >= 1 && channelNumber <= channelCount;
+}
+
+function handleInvalidChannel(channelNumber) {
+    const displayChannel = String(channelNumber).padStart(2, "0");
+    showLegacyAlert("Chaîne inexistante", `La chaîne ${displayChannel} n'existe pas encore.`);
+}
+
 function commitLegacyChannelDigitBuffer() {
     const rawBuffer = window.app?.remoteDigitBuffer;
     const selectedChannel = Number.parseInt(rawBuffer, 10);
@@ -94,7 +135,17 @@ function commitLegacyChannelDigitBuffer() {
     window.app.remoteDigitBuffer = null;
     window.app.remoteDigitSingleton = false;
 
-    if (!Number.isFinite(selectedChannel) || selectedChannel <= 0) {
+    if (!Number.isFinite(selectedChannel)) {
+        return;
+    }
+
+    if (selectedChannel === 0) {
+        handleReservedChannelZero();
+        return;
+    }
+
+    if (!channelExists(selectedChannel)) {
+        handleInvalidChannel(selectedChannel);
         return;
     }
 
@@ -113,6 +164,9 @@ function handleLegacyChannelDigit(digit) {
      * Examples:
      * - 5      → shows 05, then loads channel 5 after timeout
      * - 1 + 2  → shows 12, then loads channel 12 immediately
+     *
+     * TODO: if JoliTube reaches 100+ channels, this two-digit input model must
+     * become configurable or support a third digit before committing.
      */
     if (!window.app) {
         return;
