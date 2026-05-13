@@ -1,5 +1,6 @@
 import { logger } from "../core/logger.js";
 import { eventBus } from "../core/eventBus.js";
+import { channelEngine } from "../channels/ChannelEngine.js";
 import { KeyboardController } from "../input/keyboardController.js";
 import { installLegacyCommandAdapter } from "../legacy/legacyCommandAdapter.js";
 
@@ -22,6 +23,9 @@ function bootstrapRuntime() {
 
     logger.info("Bootstrapping modular runtime layer");
 
+    channelEngine.initialize();
+    window.__JOLITUBE_CHANNEL_ENGINE__ = channelEngine;
+
     installLegacyCommandAdapter();
 
     const keyboardController = new KeyboardController();
@@ -42,6 +46,7 @@ function bootstrapRuntime() {
     window.JoliTubeRuntime = {
         ...(window.JoliTubeRuntime || {}),
         keyboardController,
+        channelEngine,
         eventBus,
         logger,
     };
