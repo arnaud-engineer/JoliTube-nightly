@@ -1,5 +1,7 @@
 import { eventBus } from "../core/eventBus.js";
 import { logger } from "../core/logger.js";
+import { alertController } from "../ui/alerts/AlertController.js";
+import { feedbackController } from "../ui/feedback/FeedbackController.js";
 
 /*
  * Legacy command adapter.
@@ -23,12 +25,8 @@ function callLegacyFunction(functionName, ...args) {
     legacyFunction(...args);
 }
 
-function showLegacyAlert(title, description) {
-    if (typeof window.displayAlert === "function") {
-        callLegacyFunction("displayAlert", title, description);
-    } else {
-        logger.warn(`${title}: ${description}`);
-    }
+function showAlert(title, description) {
+    alertController.show(title, description);
 }
 
 function toggleLegacyPlayback() {
@@ -85,14 +83,8 @@ function handleLegacyEscape() {
     }
 }
 
-function displayLegacyChannelDigitFeedback(displayValue) {
-    if (typeof window.showFeedback === "function") {
-        callLegacyFunction("showFeedback", "channelNumFeedback", displayValue);
-    }
-
-    if (typeof window.hideFeedback === "function") {
-        callLegacyFunction("hideFeedback", "channelNumFeedback");
-    }
+function displayChannelDigitFeedback(displayValue) {
+    feedbackController.show("channelNumFeedback", displayValue);
 }
 
 function handleReservedChannelZero() {
@@ -102,7 +94,7 @@ function handleReservedChannelZero() {
      * it can later become home/random/mosaic/easter-egg behavior without digging
      * through generic validation code.
      */
-    showLegacyAlert("Chaîne inexistante", "La chaîne 00 est réservée mais pas encore disponible.");
+    showAlert("Chaîne inexistante", "La chaîne 00 est réservée mais pas encore disponible.");
 }
 
 function getChannelCount() {
@@ -125,7 +117,7 @@ function channelExists(channelNumber) {
 
 function handleInvalidChannel(channelNumber) {
     const displayChannel = String(channelNumber).padStart(2, "0");
-    showLegacyAlert("Chaîne inexistante", `La chaîne ${displayChannel} n'existe pas encore.`);
+    showAlert("Chaîne inexistante", `La chaîne ${displayChannel} n'existe pas encore.`);
 }
 
 function commitLegacyChannelDigitBuffer() {
@@ -185,7 +177,7 @@ function handleLegacyChannelDigit(digit) {
     }
 
     const displayValue = window.app.remoteDigitBuffer.padStart(2, "0");
-    displayLegacyChannelDigitFeedback(displayValue);
+    displayChannelDigitFeedback(displayValue);
 
     if (window.app.remoteDigitSingleton) {
         window.clearTimeout(window.app.remoteDigitSingleton);
