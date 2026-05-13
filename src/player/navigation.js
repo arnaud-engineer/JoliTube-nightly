@@ -21,6 +21,16 @@ function getVideoIdFromUrl(videoUrl)
     return null;
 }
 
+function getRuntimeApp()
+{
+    return window.app;
+}
+
+function getRuntimePlayer()
+{
+    return window.player;
+}
+
 function shuffleArray(array)
 {
     for(let i = array.length - 1; i > 0; i--)
@@ -50,13 +60,37 @@ function rebuildRandomPlaylist(app, playlistLength)
     return app.randomPlaylist;
 }
 
-function syncPlayerState(app, player)
+function resetRuntimeVideoState(app, reason)
 {
-    console.log("[JT][Navigation] syncPlayerState()");
+    if(!app)
+    {
+        console.warn("[JT][Navigation] reset skipped: app unavailable", { reason });
+        return;
+    }
+
+    app.currentVideoIndex = null;
+    app.videoYtId = null;
+
+    console.log("[JT][Navigation] runtime video state reset", {
+        reason,
+        currentVideoIndex: app.currentVideoIndex,
+        videoYtId: app.videoYtId,
+    });
+}
+
+function syncPlayerState(app, player, reason = "manual")
+{
+    console.log("[JT][Navigation] syncPlayerState()", { reason });
+
+    if(!app)
+    {
+        console.warn("[JT][Navigation] sync aborted: app unavailable", { reason });
+        return;
+    }
 
     if(!player)
     {
-        console.warn("[JT][Navigation] sync aborted: player unavailable");
+        console.warn("[JT][Navigation] sync aborted: player unavailable", { reason });
         return;
     }
 
@@ -78,13 +112,14 @@ function syncPlayerState(app, player)
         }
 
         console.log("[JT][Navigation] synced state", {
+            reason,
             currentVideoIndex: app.currentVideoIndex,
             videoYtId: app.videoYtId,
         });
     }
     catch(e)
     {
-        console.warn("[JT][Navigation] sync failed", e);
+        console.warn("[JT][Navigation] sync failed", { reason, error: e });
     }
 }
 
@@ -141,7 +176,7 @@ function nextVideo(app, player)
 
         setTimeout(function()
         {
-            syncPlayerState(app, player);
+            syncPlayerState(app, player, "nextVideo timeout");
         }, 800);
     }
     catch(e)
@@ -192,7 +227,7 @@ function previousVideo(app, player)
 
         setTimeout(function()
         {
-            syncPlayerState(app, player);
+            syncPlayerState(app, player, "previousVideo timeout");
         }, 800);
     }
     catch(e)
@@ -203,11 +238,66 @@ function previousVideo(app, player)
     console.groupEnd();
 }
 
+function installLegacySyncBridge()
+{
+    if(window.__JOLITUBE_NAVIGATION_SYNC_BRIDGE_INSTALLED__)
+    {
+        return;
+    }
+
+    window.__JOLITUBE_NAVIGATION_SYNC_BRIDGE_INSTALLED__ = true;
+
+    const legacyOnPlayerStateChange = window.onPlayerStateChange;
+
+    if(typeof legacyOnPlayerStateChange === "function")
+    {
+        window.onPlayerStateChange = function(event)
+        {
+            const result = legacyOnPlayerStateChange.apply(this, arguments);
+            const playingState = window.YT?.PlayerState?.PLAYING ?? 1;
+
+            if(event && event.data === playingState)
+            {
+                syncPlayerState(getRuntimeApp(), getRuntimePlayer(), "YT PLAYING event");
+            }
+
+            return result;
+        };
+
+        console.log("[JT][Navigation] onPlayerStateChange sync bridge installed");
+    }
+    else
+    {
+        console.warn("[JT][Navigation] onPlayerStateChange bridge skipped: legacy handler unavailable");
+    }
+
+    const legacyLoadSelectedChannel = window.loadSelectedChannel;
+
+    if(typeof legacyLoadSelectedChannel === "function")
+    {
+        window.loadSelectedChannel = function(channelNum)
+        {
+            resetRuntimeVideoState(getRuntimeApp(), "before loadSelectedChannel(" + channelNum + ")");
+            return legacyLoadSelectedChannel.apply(this, arguments);
+        };
+
+        console.log("[JT][Navigation] loadSelectedChannel reset bridge installed");
+    }
+    else
+    {
+        console.warn("[JT][Navigation] loadSelectedChannel bridge skipped: legacy handler unavailable");
+    }
+}
+
 window.JoliTubeNavigation = {
     nextVideo,
     previousVideo,
     rebuildRandomPlaylist,
+    resetRuntimeVideoState,
     syncPlayerState,
+    installLegacySyncBridge,
 };
+
+installLegacySyncBridge();
 
 console.log("[JT][Navigation] module loaded");
