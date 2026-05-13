@@ -16,8 +16,8 @@ import { eventBus } from "../core/eventBus.js";
  *    across AZERTY/QWERTY/QWERTZ layouts.
  *
  * 2. Spatial controls use event.code.
- *    Example: arrows, Space, Escape and number-row channel selection are physical
- *    controls rather than letters.
+ *    Example: arrows, Space, Escape, number-row channel selection and numpad
+ *    channel selection are physical controls rather than letters.
  *
  * 3. JoliTube-specific channel/menu navigation uses physical Q/A positions.
  *    This deliberately frees ArrowUp/ArrowDown for YouTube-like volume control.
@@ -41,6 +41,16 @@ const MIGRATED_CODES = new Set([
     "Digit7",
     "Digit8",
     "Digit9",
+    "Numpad0",
+    "Numpad1",
+    "Numpad2",
+    "Numpad3",
+    "Numpad4",
+    "Numpad5",
+    "Numpad6",
+    "Numpad7",
+    "Numpad8",
+    "Numpad9",
     "KeyA",
     "KeyQ",
     "Escape",
@@ -59,6 +69,18 @@ const MIGRATED_KEYS = new Set([
 
 function normalizedKey(event) {
     return event.key?.toLowerCase();
+}
+
+function digitFromCode(code) {
+    if (code?.startsWith("Digit")) {
+        return code.replace("Digit", "");
+    }
+
+    if (code?.startsWith("Numpad")) {
+        return code.replace("Numpad", "");
+    }
+
+    return null;
 }
 
 function isMigratedShortcut(event) {
@@ -113,6 +135,7 @@ export class KeyboardController {
         event.stopPropagation();
 
         const key = normalizedKey(event);
+        const digit = digitFromCode(event.code);
 
         eventBus.emit("input:key", {
             source: "modern-keyboard",
@@ -157,10 +180,10 @@ export class KeyboardController {
                 return;
         }
 
-        if (event.code?.startsWith("Digit")) {
+        if (digit !== null) {
             eventBus.emit("input:channel-digit", {
                 source: "modern-keyboard",
-                digit: event.code.replace("Digit", ""),
+                digit,
             });
             return;
         }
