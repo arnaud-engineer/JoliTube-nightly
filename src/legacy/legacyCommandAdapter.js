@@ -1,5 +1,6 @@
 import { eventBus } from "../core/eventBus.js";
 import { logger } from "../core/logger.js";
+import { channelEngine } from "../channels/ChannelEngine.js";
 import { alertController } from "../ui/alerts/AlertController.js";
 import { feedbackController } from "../ui/feedback/FeedbackController.js";
 
@@ -97,24 +98,6 @@ function handleReservedChannelZero() {
     showAlert("Chaîne inexistante", "La chaîne 00 est réservée mais pas encore disponible.");
 }
 
-function getChannelCount() {
-    if (Array.isArray(window.channelList)) {
-        return window.channelList.length;
-    }
-
-    return null;
-}
-
-function channelExists(channelNumber) {
-    const channelCount = getChannelCount();
-
-    if (channelCount === null) {
-        return true;
-    }
-
-    return channelNumber >= 1 && channelNumber <= channelCount;
-}
-
 function handleInvalidChannel(channelNumber) {
     const displayChannel = String(channelNumber).padStart(2, "0");
     showAlert("Chaîne inexistante", `La chaîne ${displayChannel} n'existe pas encore.`);
@@ -122,27 +105,27 @@ function handleInvalidChannel(channelNumber) {
 
 function commitLegacyChannelDigitBuffer() {
     const rawBuffer = window.app?.remoteDigitBuffer;
-    const selectedChannel = Number.parseInt(rawBuffer, 10);
+    const selectedChannel = channelEngine.normalizeChannelNumber(rawBuffer);
 
     window.app.remoteDigitBuffer = null;
     window.app.remoteDigitSingleton = false;
 
-    if (!Number.isFinite(selectedChannel)) {
+    if (selectedChannel === null) {
         return;
     }
 
-    if (selectedChannel === 0) {
+    if (channelEngine.isReservedChannelNumber(selectedChannel)) {
         handleReservedChannelZero();
         return;
     }
 
-    if (!channelExists(selectedChannel)) {
+    if (!channelEngine.channelExists(selectedChannel)) {
         handleInvalidChannel(selectedChannel);
         return;
     }
 
-    logger.debug(`Command → legacy loadSelectedChannel ${selectedChannel}`);
-    callLegacyFunction("loadSelectedChannel", selectedChannel);
+    logger.debug(`Command → ChannelEngine.loadByNumber ${selectedChannel}`);
+    channelEngine.loadByNumber(selectedChannel);
 }
 
 function handleLegacyChannelDigit(digit) {
@@ -272,8 +255,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy loadPreviousChannel");
-        callLegacyFunction("loadPreviousChannel");
+        logger.debug("Command → ChannelEngine.loadPrevious");
+        channelEngine.loadPrevious();
     });
 
     eventBus.on("input:channel-next", (payload) => {
@@ -281,8 +264,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy loadNextChannel");
-        callLegacyFunction("loadNextChannel");
+        logger.debug("Command → ChannelEngine.loadNext");
+        channelEngine.loadNext();
     });
 
     eventBus.on("input:channel-digit", (payload) => {
