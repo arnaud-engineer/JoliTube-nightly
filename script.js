@@ -1446,8 +1446,20 @@ function autoHide()
                 }
             );
         
-            app.playlist = channelList[channelNum - 1].playlist;
-            app.playName = channelList[channelNum - 1].name;
+            const channel =
+                window.__JOLITUBE_CHANNEL_ENGINE__
+                    ?.getChannelByNumber(channelNum);
+            
+            console.log("resolved channel", channel);
+            
+            if(!channel) {
+                console.error("Channel not found", channelNum);
+                console.groupEnd();
+                return;
+            }
+            
+            app.playlist = channel.playlist;
+            app.playName = channel.name;
         
             for(let i = 0; i < app.playlist.length; i++) {
                 app.randomPlaylist.push(i);
