@@ -623,51 +623,116 @@ function autoHide()
         }
 
         // PLAY THE NEXT VIDEO (NEXT IN THE BACKTOTHEFUTURE ORDER OR NEW RANDOM ONE)
-        function nextVideo()
+function nextVideo()
+{
+    console.group("[JT] nextVideo()");
+
+    if(!player || !player.getPlaylistIndex) {
+        console.warn("[JT] nextVideo() aborted: player not ready");
+        console.groupEnd();
+        return;
+    }
+
+    console.log(
+        "alreadyPlayed BEFORE",
+        structuredClone(app.alreadyPlayed)
+    );
+
+    console.log(
+        "randomPlaylist BEFORE",
+        structuredClone(app.randomPlaylist)
+    );
+
+    console.log(
+        "currentVideoIndex BEFORE",
+        app.currentVideoIndex
+    );
+
+    console.log(
+        "videoYtId BEFORE",
+        app.videoYtId
+    );
+
+    const ytPlaylist = player.getPlaylist();
+
+    console.log("YT playlist", ytPlaylist);
+
+    if(!ytPlaylist || ytPlaylist.length === 0) {
+        console.warn("[JT] Empty YouTube playlist");
+        console.groupEnd();
+        return;
+    }
+
+    // Rebuild random playlist if empty
+    if(!app.randomPlaylist || app.randomPlaylist.length === 0)
+    {
+        console.warn("[JT] Rebuilding randomPlaylist");
+
+        app.randomPlaylist = [];
+
+        for(let i = 0; i < ytPlaylist.length; i++) {
+            app.randomPlaylist.push(i);
+        }
+
+        shuffleArray(app.randomPlaylist);
+
+        console.log(
+            "NEW randomPlaylist",
+            structuredClone(app.randomPlaylist)
+        );
+    }
+
+    const nextIndex = app.randomPlaylist.shift();
+
+    console.log("SELECTED nextIndex", nextIndex);
+
+    if(nextIndex === undefined)
+    {
+        console.warn("[JT] No next index available");
+        console.groupEnd();
+        return;
+    }
+
+    app.currentVideoIndex = nextIndex;
+
+    app.alreadyPlayed.push(nextIndex);
+
+    console.log(
+        "alreadyPlayed AFTER PUSH",
+        structuredClone(app.alreadyPlayed)
+    );
+
+    console.log(
+        "randomPlaylist AFTER SHIFT",
+        structuredClone(app.randomPlaylist)
+    );
+
+    player.playVideoAt(nextIndex);
+
+    setTimeout(function()
+    {
+        try
         {
-            if(!player) {
-                console.warn("[JT] nextVideo() aborted: player not ready");
-                console.groupEnd?.();
-                return;
-            }
-            
-            console.group("[JT] nextVideo()");
+            app.videoYtId = player.getVideoData().video_id;
 
-            console.log("alreadyPlayed BEFORE", structuredClone(app.alreadyPlayed));
-            console.log("randomPlaylist BEFORE", structuredClone(app.randomPlaylist));
-            console.log("currentVideoIndex BEFORE", app.currentVideoIndex);
-            console.log("videoYtId BEFORE", app.videoYtId);
-            
-            try {
-                console.log("YT playlist index BEFORE", player.getPlaylistIndex());
-            } catch(e) {
-                console.warn("YT playlist index unavailable", e);
-            }
-            
-            const channelEngine = window.__JOLITUBE_CHANNEL_ENGINE__;
-
-            if(!channelEngine) {
-                return;
-            }
-
-            if(!channelEngine.hasNextVideo() && app.alreadyPlayed.length >= 1) {
-                displayAlert(
-                    "vous avez vu toutes les vidéos de " + app.playName + " !",
-                    "Vous pouvez éteindre JoliTube et reprendre une activité normale"
+            console.log(
+                "SYNCED videoYtId",
+                app.videoYtId
             );
 
-            loadSelectedChannel(app.channelNum);
-            return;
-            }
-
-        const nextVideoIndex = channelEngine.getNextVideoIndex();
-
-        if(nextVideoIndex !== null) {
-            loadVideo(nextVideoIndex);
+            console.log(
+                "SYNCED playlistIndex",
+                player.getPlaylistIndex()
+            );
         }
-
-            console.groupEnd();
+        catch(e)
+        {
+            console.warn("YT sync failed", e);
         }
+    }, 300);
+
+    console.groupEnd();
+}
 
     /* -----------------------------
         VIDEO CONTROL
