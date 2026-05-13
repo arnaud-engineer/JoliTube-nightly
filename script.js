@@ -601,6 +601,12 @@ function autoHide()
         // PLAY THE PREVIOUS VIDEO
         function previousVideo()
         {
+            console.group("[JT] previousVideo()");
+            
+            console.log("alreadyPlayed BEFORE", structuredClone(app.alreadyPlayed));
+            console.log("randomPlaylist BEFORE", structuredClone(app.randomPlaylist));
+            console.log("currentVideoIndex BEFORE", app.currentVideoIndex);
+            
             const channelEngine = window.__JOLITUBE_CHANNEL_ENGINE__;
 
             if(!channelEngine) {
@@ -612,11 +618,26 @@ function autoHide()
             if(previousVideoIndex !== null) {
                 loadVideo(previousVideoIndex);
             }
+
+            console.groupEnd();
         }
 
         // PLAY THE NEXT VIDEO (NEXT IN THE BACKTOTHEFUTURE ORDER OR NEW RANDOM ONE)
         function nextVideo()
         {
+            console.group("[JT] nextVideo()");
+
+            console.log("alreadyPlayed BEFORE", structuredClone(app.alreadyPlayed));
+            console.log("randomPlaylist BEFORE", structuredClone(app.randomPlaylist));
+            console.log("currentVideoIndex BEFORE", app.currentVideoIndex);
+            console.log("videoYtId BEFORE", app.videoYtId);
+            
+            try {
+                console.log("YT playlist index BEFORE", player.getPlaylistIndex());
+            } catch(e) {
+                console.warn("YT playlist index unavailable", e);
+            }
+            
             const channelEngine = window.__JOLITUBE_CHANNEL_ENGINE__;
 
             if(!channelEngine) {
@@ -638,6 +659,8 @@ function autoHide()
         if(nextVideoIndex !== null) {
             loadVideo(nextVideoIndex);
         }
+
+            console.groupEnd();
         }
 
     /* -----------------------------
@@ -1156,16 +1179,78 @@ function autoHide()
         function hideCaptions() { document.getElementById("selectSubtitles").innerHTML = ""; }
 
         // LOAD THE N INDEX VIDEO
-        function loadVideo(n)
+        function loadVideo(videoIndex)
         {
+            console.group("[JT] loadVideo()");
+        
+            console.log("requested videoIndex", videoIndex);
+        
+            console.log(
+                "currentVideoIndex BEFORE",
+                app.currentVideoIndex
+            );
+        
+            console.log(
+                "videoYtId BEFORE",
+                app.videoYtId
+            );
+        
+            console.log(
+                "alreadyPlayed",
+                structuredClone(app.alreadyPlayed)
+            );
+        
+            console.log(
+                "randomPlaylist",
+                structuredClone(app.randomPlaylist)
+            );
+        
             try {
-                hideVideo();
-                app.subtitlesLoadingAttempts=0;
-                app.currentVideoIndex=n;
-                app.videoYtId = null;
-                player.playVideoAt(n);
-                playChannel();
-            } catch(e) {}
+                console.log(
+                    "YT playlist index BEFORE",
+                    player.getPlaylistIndex()
+                );
+        
+                console.log(
+                    "YT player state BEFORE",
+                    player.getPlayerState()
+                );
+        
+                console.log(
+                    "YT current time",
+                    player.getCurrentTime()
+                );
+            } catch(e) {
+                console.warn("YT state unavailable", e);
+            }
+        
+            app.currentVideoIndex = videoIndex;
+        
+            const currentVideo =
+                app.playlist[videoIndex];
+        
+            app.videoYtId = currentVideo.id;
+        
+            console.log(
+                "currentVideoIndex AFTER",
+                app.currentVideoIndex
+            );
+        
+            console.log(
+                "videoYtId AFTER",
+                app.videoYtId
+            );
+        
+            console.log(
+                "currentVideo object",
+                currentVideo
+            );
+        
+            player.loadVideoById(app.videoYtId);
+        
+            console.log("YT loadVideoById SENT");
+        
+            console.groupEnd();
         }
 
         function updateAllData()
@@ -1301,75 +1386,137 @@ function autoHide()
        ----------------------------- */
 
         // CHANGE THE CHANNEL IN THE PLAYER
-        function loadSelectedChannel(num)
+        function loadSelectedChannel(channelNum)
         {
-            hideVideo();
-            hideChannelData();
-
-            let trueChannelIndex = num - 1;
-            app.channelNum = num;
-            app.playName = channelList[trueChannelIndex][0];
-            app.playlistID = channelList[trueChannelIndex][3];
-            app.logo = channelList[trueChannelIndex][2];
-            app.currentChannelCuratorName=curratorsList[channelList[trueChannelIndex][4]][0];
-            app.currentChannelCuratorURL=curratorsList[channelList[trueChannelIndex][4]][1];
-
-            updateChannelData();
-
-            app.playerFullyChargedSingleton = false;
-
-            //searchReset();
-            disablePlayer();
-            showInterface();
-            app.realTimeDataMonitored = false;
-            app.firstVideoLoaded = false;
-            app.nbVideoCurrentChannel = null;
-            app.playerInitAttemptPassed = false;
-            app.nextVideoInitAttemptPassed = false;
-            app.randomPlaylist = [];
+            console.group("[JT] loadSelectedChannel()");
+        
+            console.log("REQUESTED channelNum", channelNum);
+        
+            console.log("app.channelNum BEFORE", app.channelNum);
+            console.log("app.currentVideoIndex BEFORE", app.currentVideoIndex);
+            console.log("app.videoYtId BEFORE", app.videoYtId);
+            console.log("app.playName BEFORE", app.playName);
+        
+            console.log(
+                "alreadyPlayed BEFORE",
+                structuredClone(app.alreadyPlayed)
+            );
+        
+            console.log(
+                "randomPlaylist BEFORE",
+                structuredClone(app.randomPlaylist)
+            );
+        
+            console.log(
+                "videoHistory BEFORE",
+                structuredClone(app.videoHistory)
+            );
+        
+            try {
+                console.log(
+                    "YT playlist index BEFORE",
+                    player.getPlaylistIndex()
+                );
+        
+                console.log(
+                    "YT player state BEFORE",
+                    player.getPlayerState()
+                );
+        
+                console.log(
+                    "YT current time BEFORE",
+                    player.getCurrentTime()
+                );
+            } catch(e) {
+                console.warn("YT state unavailable BEFORE", e);
+            }
+        
+            console.log("GO TO CHANNEL :", channelNum);
+        
+            app.channelNum = channelNum;
+        
             app.alreadyPlayed = [];
-            app.alreadyPlayedErrors = [];
-            // disable the controls
-            // Reset the player
-            //document.getElementById("playerContainer").innerHTML = '<div id="player"></div>';
-            //try { player.stopVideo(); } catch(e) {}
-
-            document.getElementById("playerContainer").innerHTML = "" +
-                '<div id="cropping-div" style="">' +
-                    '<div id="div-to-crop" style="">' +
-                      '<div id="player-wrapper">' +
-                        '<div id="player"></div>' +
-                      '</div>' +
-                    '</div>' +
-                '</div>';
-            document.getElementById("playerContainer").className = "";
-            // Update the global variables
-            hideVideo();
-            channelNumUpdate(app.channelNum);
-            window.location.hash = app.channelNum;
-            //window.location.href =+ "?c=" + app.channelNum;
-            // Initialise the player
-            initYT();
-            //Update the channel informations (global variables and display)
-
-
-            var whilePlayerNotFullyCharged = setInterval(function() {
-                app.nbVideoCurrentChannel = null;
-                try {
-                    app.nbVideoCurrentChannel = player.playerInfo.playlist.length;
-                } catch(e) {}
-                if(app.nbVideoCurrentChannel !== null && app.playerFullyChargedSingleton === false) {
-                    app.playerFullyChargedSingleton = true;
-                    createPlaylistOrder();
-                    nextVideo();
-
-                    console.log("GO TO CHANNEL : " + app.channelNum);
-                    //showInterface();
-                    playChannel();
-
-                    clearInterval(whilePlayerNotFullyCharged);
+            app.randomPlaylist = [];
+        
+            console.log(
+                "STATE RESET DETECTED",
+                {
+                    alreadyPlayed: structuredClone(app.alreadyPlayed),
+                    randomPlaylist: structuredClone(app.randomPlaylist),
                 }
-            }, 20);
+            );
+        
+            app.playlist = channelList[channelNum - 1].playlist;
+            app.playName = channelList[channelNum - 1].name;
+        
+            for(let i = 0; i < app.playlist.length; i++) {
+                app.randomPlaylist.push(i);
+            }
+        
+            shuffleArray(app.randomPlaylist);
+        
+            console.log(
+                "randomPlaylist GENERATED",
+                structuredClone(app.randomPlaylist)
+            );
+        
+            console.log(
+                "randomPlaylist LENGTH",
+                app.randomPlaylist?.length
+            );
+        
+            console.log(
+                "FIRST VIDEO TO LOAD",
+                app.randomPlaylist?.[0]
+            );
+        
+            console.log(
+                "alreadyPlayed BEFORE FIRST LOAD",
+                structuredClone(app.alreadyPlayed)
+            );
+        
+            console.log(
+                "randomPlaylist BEFORE FIRST LOAD",
+                structuredClone(app.randomPlaylist)
+            );
+        
+            nextVideo();
+        
+            console.log("app.channelNum AFTER", app.channelNum);
+            console.log("app.currentVideoIndex AFTER", app.currentVideoIndex);
+            console.log("app.videoYtId AFTER", app.videoYtId);
+            console.log("app.playName AFTER", app.playName);
+        
+            console.log(
+                "alreadyPlayed AFTER",
+                structuredClone(app.alreadyPlayed)
+            );
+        
+            console.log(
+                "randomPlaylist AFTER",
+                structuredClone(app.randomPlaylist)
+            );
+        
+            console.log(
+                "videoHistory AFTER",
+                structuredClone(app.videoHistory)
+            );
+        
+            try {
+                console.log(
+                    "YT playlist index AFTER",
+                    player.getPlaylistIndex()
+                );
+        
+                console.log(
+                    "YT player state AFTER",
+                    player.getPlayerState()
+                );
+            } catch(e) {
+                console.warn("YT state unavailable AFTER", e);
+            }
+        
+            console.groupEnd();
         }
 
         function loadPreviousChannel() {
@@ -1687,32 +1834,76 @@ document.addEventListener('DOMContentLoaded', function(event)
     }
 
     // AT THE END OF THE CURRENT VIDEO
-    function onPlayerStateChange(event)
-    {
-        if(app.eventsTimer === null && app.playerInitAttemptPassed) {
-            app.eventsTimer = setInterval(function () {
-                if(app.realTimeDataMonitored) {
-                    updateRealTimeData();
-                }
-                else {
-                    clearInterval(app.eventsTimer);
-                }
-            }, 100);
+        function onPlayerStateChange(event)
+        {
+            console.group("[JT] onPlayerStateChange()");
+        
+            const states = {
+                [-1]: "UNSTARTED",
+                [0]: "ENDED",
+                [1]: "PLAYING",
+                [2]: "PAUSED",
+                [3]: "BUFFERING",
+                [5]: "CUED",
+            };
+        
+            console.log("event.data", event.data);
+        
+            console.log(
+                "STATE",
+                states[event.data] || event.data
+            );
+        
+            console.log(
+                "currentVideoIndex",
+                app.currentVideoIndex
+            );
+        
+            console.log(
+                "videoYtId",
+                app.videoYtId
+            );
+        
+            console.log(
+                "alreadyPlayed",
+                structuredClone(app.alreadyPlayed)
+            );
+        
+            console.log(
+                "randomPlaylist",
+                structuredClone(app.randomPlaylist)
+            );
+        
+            try {
+                console.log(
+                    "YT playlist index",
+                    player.getPlaylistIndex()
+                );
+        
+                console.log(
+                    "YT player state",
+                    player.getPlayerState()
+                );
+        
+                console.log(
+                    "YT current time",
+                    player.getCurrentTime()
+                );
+        
+                console.log(
+                    "YT video url",
+                    player.getVideoUrl()
+                );
+            } catch(e) {
+                console.warn("YT runtime unavailable", e);
+            }
+        
+            console.groupEnd();
+        
+            if(event.data == 0) {
+                nextVideo();
+            }
         }
-
-    
-
-        if(event.data === 1 || event.data === 3) {
-            app.firstVideoLoaded = true;
-        }
-        // ENDED VIDEO HANDLING
-        else if ((app.currentVideoIndex !== player.getPlaylistIndex()) && app.firstVideoLoaded && app.nextVideoInitAttemptPassed === true) {
-            nextVideo();
-        }
-
-
-
-    }
 
     // AT ERROR (when the video has been delete, got private or forbidden
     // of embdeding)
