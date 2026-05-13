@@ -3,6 +3,7 @@ import { eventBus } from "../core/eventBus.js";
 import { channelEngine } from "../channels/ChannelEngine.js";
 import { KeyboardController } from "../input/keyboardController.js";
 import { installLegacyCommandAdapter } from "../legacy/legacyCommandAdapter.js";
+import { debugOverlay } from "../debug/debugOverlay.js";
 
 /*
  * JoliTube runtime bootstrap.
@@ -31,6 +32,8 @@ function bootstrapRuntime() {
     const keyboardController = new KeyboardController();
     keyboardController.start();
 
+    debugOverlay.start();
+
     eventBus.on("input:toggle-playback", () => {
         logger.debug("input:toggle-playback");
     });
@@ -49,6 +52,7 @@ function bootstrapRuntime() {
         channelEngine,
         eventBus,
         logger,
+        debugOverlay,
     };
 
     logger.info("Modular runtime layer ready");
