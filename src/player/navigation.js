@@ -42,6 +42,51 @@ function shuffleArray(array)
     return array;
 }
 
+function getYTPlaylist(player)
+{
+    if(!player || typeof player.getPlaylist !== "function")
+    {
+        return [];
+    }
+
+    try
+    {
+        return player.getPlaylist() || [];
+    }
+    catch(e)
+    {
+        console.warn("[JT][Navigation] getYTPlaylist() failed", e);
+        return [];
+    }
+}
+
+function setPlaylistReady(app, ready, reason)
+{
+    if(!app)
+    {
+        console.warn("[JT][Navigation] playlistReady update skipped: app unavailable", { reason, ready });
+        return;
+    }
+
+    app.playlistReady = ready;
+
+    console.log("[JT][Navigation] playlistReady updated", {
+        reason,
+        playlistReady: app.playlistReady,
+    });
+}
+
+function isPlaylistReady(app, player)
+{
+    const ytPlaylist = getYTPlaylist(player);
+
+    return Boolean(
+        app
+        && app.playlistReady === true
+        && ytPlaylist.length > 0
+    );
+}
+
 function rebuildRandomPlaylist(app, playlistLength)
 {
     console.log("[JT][Navigation] rebuildRandomPlaylist()", { playlistLength });
@@ -70,11 +115,13 @@ function resetRuntimeVideoState(app, reason)
 
     app.currentVideoIndex = null;
     app.videoYtId = null;
+    setPlaylistReady(app, false, reason + " / runtime reset");
 
     console.log("[JT][Navigation] runtime video state reset", {
         reason,
         currentVideoIndex: app.currentVideoIndex,
         videoYtId: app.videoYtId,
+        playlistReady: app.playlistReady,
     });
 }
 
@@ -96,6 +143,11 @@ function syncPlayerState(app, player, reason = "manual")
 
     try
     {
+        const ytPlaylist = getYTPlaylist(player);
+        const playerState = typeof player.getPlayerState === "function"
+            ? player.getPlayerState()
+            : null;
+
         if(typeof player.getPlaylistIndex === "function")
         {
             app.currentVideoIndex = player.getPlaylistIndex();
@@ -111,10 +163,21 @@ function syncPlayerState(app, player, reason = "manual")
             }
         }
 
+        // YouTube loadPlaylist() is async. A playlist can briefly report [] during
+        // transition, so navigation must stay locked until the player is actually
+        // playing with a non-empty playlist.
+        if(playerState === (window.YT?.PlayerState?.PLAYING ?? 1) && ytPlaylist.length > 0)
+        {
+            setPlaylistReady(app, true, reason + " / YT playlist available");
+        }
+
         console.log("[JT][Navigation] synced state", {
             reason,
             currentVideoIndex: app.currentVideoIndex,
             videoYtId: app.videoYtId,
+            playlistReady: app.playlistReady,
+            ytPlaylistLength: ytPlaylist.length,
+            playerState,
         });
     }
     catch(e)
@@ -134,9 +197,19 @@ function nextVideo(app, player)
         return;
     }
 
-    const ytPlaylist = player.getPlaylist() || [];
+    const ytPlaylist = getYTPlaylist(player);
 
     console.log("[JT][Navigation] YT playlist", ytPlaylist);
+
+    if(!isPlaylistReady(app, player))
+    {
+        console.warn("[JT][Navigation] next blocked: playlist not ready", {
+            playlistReady: app?.playlistReady,
+            ytPlaylistLength: ytPlaylist.length,
+        });
+        console.groupEnd();
+        return;
+    }
 
     if(ytPlaylist.length === 0)
     {
@@ -194,6 +267,18 @@ function previousVideo(app, player)
     if(!player || typeof player.playVideoAt !== "function")
     {
         console.warn("[JT][Navigation] previous aborted: player not ready");
+        console.groupEnd();
+        return;
+    }
+
+    const ytPlaylist = getYTPlaylist(player);
+
+    if(!isPlaylistReady(app, player))
+    {
+        console.warn("[JT][Navigation] previous blocked: playlist not ready", {
+            playlistReady: app?.playlistReady,
+            ytPlaylistLength: ytPlaylist.length,
+        });
         console.groupEnd();
         return;
     }
@@ -295,6 +380,8 @@ window.JoliTubeNavigation = {
     rebuildRandomPlaylist,
     resetRuntimeVideoState,
     syncPlayerState,
+    setPlaylistReady,
+    isPlaylistReady,
     installLegacySyncBridge,
 };
 
