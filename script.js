@@ -1697,7 +1697,7 @@ function autoHide()
             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
             // Call of the YouTube API
-            onYouTubeIframeAPIReady();
+            //onYouTubeIframeAPIReady();
 
         }
 
@@ -1706,6 +1706,7 @@ function autoHide()
         // CALL THE YOUTUBE API TO GET A PLAYER
         function onYouTubeIframeAPIReady()
         {
+            console.log("YT global", window.YT);
             app.alreadyPlayed = [];
             app.alreadyPlayedErrors = [];
             
@@ -1731,6 +1732,7 @@ function autoHide()
                         }
                     });
                     document.getElementById("player").src += "?rel=0";
+                    console.log("[JT] YouTube API READY");
                 } catch(e) {}
             
 
@@ -1833,16 +1835,39 @@ document.addEventListener('DOMContentLoaded', function(event)
     // FIRST LOADING
     function onPlayerReady(event)
     {
+        console.log("[JT] Player READY");
+    
         try
         {
             player.setPlaybackRate(app.speed);
-
-            document.getElementById("player").removeAttribute("allowfullscreen");
-            document.getElementById("player").setAttribute("allowFullScreen", "");
-
+    
+            document.getElementById("player")
+                .removeAttribute("allowfullscreen");
+    
+            document.getElementById("player")
+                .setAttribute("allowFullScreen", "");
+    
             app.realTimeDataMonitored = true;
-        } catch(e) {}  
-
+    
+            // Prevent double boot
+            if(!app.firstVideoLoaded)
+            {
+                app.firstVideoLoaded = true;
+    
+                console.log(
+                    "[JT] Booting first channel",
+                    app.channelNum
+                );
+    
+                loadSelectedChannel(app.channelNum);
+            }
+    
+        } catch(e) {
+            console.error(
+                "[JT] onPlayerReady failed",
+                e
+            );
+        }
     }
 
     // AT THE END OF THE CURRENT VIDEO
