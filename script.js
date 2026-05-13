@@ -601,43 +601,43 @@ function autoHide()
         // PLAY THE PREVIOUS VIDEO
         function previousVideo()
         {
-            if(app.alreadyPlayed.length > 1) {
-                app.randomPlaylist.unshift(app.alreadyPlayed.shift());
-                loadVideo(app.alreadyPlayed[0]);
-            }
-            // If this is the first played video, do nothing
-            /*
-            if(app.alreadyPlayed.length <= 1)
-            {
+            const channelEngine = window.__JOLITUBE_CHANNEL_ENGINE__;
+
+            if(!channelEngine) {
                 return;
             }
-            else
-            {
-                // Take note we are going back in the already played videos
-                //app.currentBackToTheFutureCount++;
-                // Get the index of the previous video
-                //var indexToPlay=app.alreadyPlayed[0];
-                app.randomPlaylist.unshift(app.alreadyPlayed.shift());
-                loadVideo(app.randomPlaylist[0]);
-                //if (app.alreadyPlayed.length - app.currentBackToTheFutureCount - 1 >= 0) {
-                    //indexToPlay = app.alreadyPlayed[app.alreadyPlayed.length - app.currentBackToTheFutureCount - 1];
-                    //loadVideo(indexToPlay);
-                //}
+
+            const previousVideoIndex = channelEngine.getPreviousVideoIndex();
+
+            if(previousVideoIndex !== null) {
+                loadVideo(previousVideoIndex);
             }
-            */
         }
 
         // PLAY THE NEXT VIDEO (NEXT IN THE BACKTOTHEFUTURE ORDER OR NEW RANDOM ONE)
         function nextVideo()
         {
-            if(app.randomPlaylist.length === 0 && app.alreadyPlayed.length >= 1) {
-                displayAlert("vous avez vu toutes les vidéos de " + app.playName + " !", "Vous pouvez éteindre JoliTube et reprendre une activité normale");
-                loadSelectedChannel(app.channelNum);
+            const channelEngine = window.__JOLITUBE_CHANNEL_ENGINE__;
+
+            if(!channelEngine) {
+                return;
             }
-            else {
-                app.alreadyPlayed.unshift(app.randomPlaylist.shift());
-                loadVideo(app.alreadyPlayed[0]);
+
+            if(!channelEngine.hasNextVideo() && app.alreadyPlayed.length >= 1) {
+                displayAlert(
+                    "vous avez vu toutes les vidéos de " + app.playName + " !",
+                    "Vous pouvez éteindre JoliTube et reprendre une activité normale"
+            );
+
+            loadSelectedChannel(app.channelNum);
+            return;
             }
+
+        const nextVideoIndex = channelEngine.getNextVideoIndex();
+
+        if(nextVideoIndex !== null) {
+            loadVideo(nextVideoIndex);
+        }
         }
 
     /* -----------------------------
