@@ -1458,14 +1458,8 @@ function autoHide()
                 return;
             }
             
-            app.playlist = channel[3];
+            app.playlistID = channel[3];
             app.playName = channel[0];
-        
-            for(let i = 0; i < app.playlist.length; i++) {
-                app.randomPlaylist.push(i);
-            }
-        
-            shuffleArray(app.randomPlaylist);
         
             console.log(
                 "randomPlaylist GENERATED",
