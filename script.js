@@ -625,6 +625,12 @@ function autoHide()
         // PLAY THE NEXT VIDEO (NEXT IN THE BACKTOTHEFUTURE ORDER OR NEW RANDOM ONE)
         function nextVideo()
         {
+            if(!player) {
+                console.warn("[JT] nextVideo() aborted: player not ready");
+                console.groupEnd?.();
+                return;
+            }
+            
             console.group("[JT] nextVideo()");
 
             console.log("alreadyPlayed BEFORE", structuredClone(app.alreadyPlayed));
