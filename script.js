@@ -1458,7 +1458,7 @@ function autoHide()
                 return;
             }
             
-            app.playlist = getPlaylist(channel[3]);
+            app.playlist = channel[3];
             app.playName = channel[0];
         
             for(let i = 0; i < app.playlist.length; i++) {
