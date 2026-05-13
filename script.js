@@ -1392,144 +1392,78 @@ function autoHide()
        ----------------------------- */
 
         // CHANGE THE CHANNEL IN THE PLAYER
-        function loadSelectedChannel(channelNum)
-        {
-            console.group("[JT] loadSelectedChannel()");
-        
-            console.log("REQUESTED channelNum", channelNum);
-        
-            console.log("app.channelNum BEFORE", app.channelNum);
-            console.log("app.currentVideoIndex BEFORE", app.currentVideoIndex);
-            console.log("app.videoYtId BEFORE", app.videoYtId);
-            console.log("app.playName BEFORE", app.playName);
-        
-            console.log(
-                "alreadyPlayed BEFORE",
-                structuredClone(app.alreadyPlayed)
-            );
-        
-            console.log(
-                "randomPlaylist BEFORE",
-                structuredClone(app.randomPlaylist)
-            );
-        
-            console.log(
-                "videoHistory BEFORE",
-                structuredClone(app.videoHistory)
-            );
-        
-            try {
-                console.log(
-                    "YT playlist index BEFORE",
-                    player.getPlaylistIndex()
-                );
-        
-                console.log(
-                    "YT player state BEFORE",
-                    player.getPlayerState()
-                );
-        
-                console.log(
-                    "YT current time BEFORE",
-                    player.getCurrentTime()
-                );
-            } catch(e) {
-                console.warn("YT state unavailable BEFORE", e);
-            }
-        
-            console.log("GO TO CHANNEL :", channelNum);
-        
-            app.channelNum = channelNum;
-        
-            app.alreadyPlayed = [];
-            app.randomPlaylist = [];
-        
-            console.log(
-                "STATE RESET DETECTED",
-                {
-                    alreadyPlayed: structuredClone(app.alreadyPlayed),
-                    randomPlaylist: structuredClone(app.randomPlaylist),
-                }
-            );
-        
-            const channel =
-                window.__JOLITUBE_CHANNEL_ENGINE__
-                    ?.getChannelByNumber(channelNum);
-            
-            console.log("resolved channel", channel);
-            
-            if(!channel) {
-                console.error("Channel not found", channelNum);
-                console.groupEnd();
-                return;
-            }
-            
-            app.playlistID = channel[3];
-            app.playName = channel[0];
-        
-            console.log(
-                "randomPlaylist GENERATED",
-                structuredClone(app.randomPlaylist)
-            );
-        
-            console.log(
-                "randomPlaylist LENGTH",
-                app.randomPlaylist?.length
-            );
-        
-            console.log(
-                "FIRST VIDEO TO LOAD",
-                app.randomPlaylist?.[0]
-            );
-        
-            console.log(
-                "alreadyPlayed BEFORE FIRST LOAD",
-                structuredClone(app.alreadyPlayed)
-            );
-        
-            console.log(
-                "randomPlaylist BEFORE FIRST LOAD",
-                structuredClone(app.randomPlaylist)
-            );
-        
-            nextVideo();
-        
-            console.log("app.channelNum AFTER", app.channelNum);
-            console.log("app.currentVideoIndex AFTER", app.currentVideoIndex);
-            console.log("app.videoYtId AFTER", app.videoYtId);
-            console.log("app.playName AFTER", app.playName);
-        
-            console.log(
-                "alreadyPlayed AFTER",
-                structuredClone(app.alreadyPlayed)
-            );
-        
-            console.log(
-                "randomPlaylist AFTER",
-                structuredClone(app.randomPlaylist)
-            );
-        
-            console.log(
-                "videoHistory AFTER",
-                structuredClone(app.videoHistory)
-            );
-        
-            try {
-                console.log(
-                    "YT playlist index AFTER",
-                    player.getPlaylistIndex()
-                );
-        
-                console.log(
-                    "YT player state AFTER",
-                    player.getPlayerState()
-                );
-            } catch(e) {
-                console.warn("YT state unavailable AFTER", e);
-            }
-        
-            console.groupEnd();
-        }
+function loadSelectedChannel(channelNum)
+{
+    console.group("[JT] loadSelectedChannel()");
+
+    console.log("REQUESTED channelNum", channelNum);
+    console.log("app.channelNum BEFORE", app.channelNum);
+    console.log("app.currentVideoIndex BEFORE", app.currentVideoIndex);
+    console.log("app.videoYtId BEFORE", app.videoYtId);
+    console.log("app.playName BEFORE", app.playName);
+    console.log("alreadyPlayed BEFORE", structuredClone(app.alreadyPlayed));
+    console.log("randomPlaylist BEFORE", structuredClone(app.randomPlaylist));
+    console.log("videoHistory BEFORE", structuredClone(app.videoHistory));
+
+    console.log("GO TO CHANNEL :", channelNum);
+
+    app.channelNum = channelNum;
+    app.alreadyPlayed = [];
+    app.randomPlaylist = [];
+
+    const channel =
+        window.__JOLITUBE_CHANNEL_ENGINE__
+            ?.getChannelByNumber(channelNum);
+
+    console.log("resolved channel", channel);
+
+    if(!channel) {
+        console.error("Channel not found", channelNum);
+        console.groupEnd();
+        return;
+    }
+
+    app.playlistID = channel[3];
+    app.playName = channel[0];
+    app.logo = channel[2];
+    app.currentChannelCuratorName = curratorsList[channel[4]][0];
+    app.currentChannelCuratorURL = curratorsList[channel[4]][1];
+
+    hideVideo();
+    hideChannelData();
+    updateChannelData();
+    disablePlayer();
+    showInterface();
+
+    app.playerFullyChargedSingleton = false;
+    app.realTimeDataMonitored = false;
+    app.firstVideoLoaded = false;
+    app.nbVideoCurrentChannel = null;
+    app.playerInitAttemptPassed = false;
+    app.nextVideoInitAttemptPassed = false;
+
+    if(player?.loadPlaylist) {
+        console.log("[JT] Loading YouTube playlist", app.playlistID);
+
+        player.loadPlaylist({
+            listType: "playlist",
+            list: app.playlistID,
+            index: 0
+        });
+    } else {
+        console.warn("[JT] Cannot load playlist: player not ready");
+    }
+
+    console.log("app.channelNum AFTER", app.channelNum);
+    console.log("app.currentVideoIndex AFTER", app.currentVideoIndex);
+    console.log("app.videoYtId AFTER", app.videoYtId);
+    console.log("app.playName AFTER", app.playName);
+    console.log("alreadyPlayed AFTER", structuredClone(app.alreadyPlayed));
+    console.log("randomPlaylist AFTER", structuredClone(app.randomPlaylist));
+    console.log("videoHistory AFTER", structuredClone(app.videoHistory));
+
+    console.groupEnd();
+}
 
         function loadPreviousChannel() {
             try {
@@ -1750,81 +1684,56 @@ document.addEventListener('DOMContentLoaded', function(event)
 {
     hideVideo();
 
-    /* -----------------------------
-        CHANNELS LOADING
-       ----------------------------- */
+    let firstChToLoad = 1;
+    if(window.location.hash.length > 0) {
+        firstChToLoad = parseInt(window.location.hash.substring(1));
+    }
 
-        // Set the default channel (first in the channelList)
+    channelNumUpdate(firstChToLoad);
 
-        let firstChToLoad = 1;
-        if(window.location.hash.length > 0) { firstChToLoad = parseInt(window.location.hash.substring(1)); }
-        channelNumUpdate(firstChToLoad);
+    app.playlistID = channelList[firstChToLoad][3];
+    app.playName = channelList[firstChToLoad][0];
+    app.logo = channelList[firstChToLoad][2];
+    app.currentChannelCuratorName = curratorsList[channelList[firstChToLoad][4]][0];
+    app.currentChannelCuratorURL = curratorsList[channelList[firstChToLoad][4]][1];
 
-        app.playlistID=channelList[firstChToLoad][3];
-        app.playName=channelList[firstChToLoad][0];
-        app.logo=channelList[firstChToLoad][2];
-        app.currentChannelCuratorName=curratorsList[channelList[firstChToLoad][4]][0];
-        app.currentChannelCuratorURL=curratorsList[channelList[firstChToLoad][4]][1];
+    var menuBarContent = "";
+    var channelMiniature = "";
 
-        //Generation of the miniatures for each channel (HTML)
-        var menuBarContent = "";
-        var channelMiniature = "";
-            let i = 0;
-            channelList.forEach(function miniaturesGeneration(currentChannel, index) {
-                i++;
-                let displayChannelNum = "" + i;
-                if (displayChannelNum.length === 1) {
-                    displayChannelNum = "0" + displayChannelNum;
-                }
-                channelMiniature = '' +
-                  '<div class="elementMenuBar" onclick="loadSelectedChannel(' + i + ');">' +
-                    '<div class="logoElementMenuBar">' +
-                      '<img src="' + currentChannel[2] + '"/>' +
-                    '</div>' +
-                    '<div class="titlesElementMenuBar">' +
-                      '<h1>' + currentChannel[0] + '</h1>' +
-                      '<h2>' + currentChannel[1] + '</h2>' +
-                      '<h3>' + displayChannelNum + '</h3>' +
-                    '</div>' +
-                  '</div>';
+    let i = 0;
+    channelList.forEach(function miniaturesGeneration(currentChannel, index) {
+        i++;
+        let displayChannelNum = "" + i;
+        if (displayChannelNum.length === 1) {
+            displayChannelNum = "0" + displayChannelNum;
+        }
 
-                  /*
-                      Result exemple :
-                      <div class="elementMenuBar">
-                          <div class="logoElementMenuBar">
-                              <img src="rsrc/channelsLogos/TCM.png"/>
-                          </div>
-                          <div class="titlesElementMenuBar">
-                              <h1>Court-Métrages TV</h1>
-                              <h2>GIVE US BACK LA TOUR EIFFEL (FEAT WAKALIWOOD) - LE GRABUGE</h2>
-                          </div>
-                      </div>
-                  */
+        channelMiniature = '' +
+          '<div class="elementMenuBar" onclick="loadSelectedChannel(' + i + ');">' +
+            '<div class="logoElementMenuBar">' +
+              '<img src="' + currentChannel[2] + '"/>' +
+            '</div>' +
+            '<div class="titlesElementMenuBar">' +
+              '<h1>' + currentChannel[0] + '</h1>' +
+              '<h2>' + currentChannel[1] + '</h2>' +
+              '<h3>' + displayChannelNum + '</h3>' +
+            '</div>' +
+          '</div>';
 
-                  menuBarContent += channelMiniature;
-            });
-            // Add the generated list of menu elements to the menu
-            document.getElementById("menuBar").innerHTML = menuBarContent;
+          menuBarContent += channelMiniature;
+    });
 
-    /* -----------------------------
-        YOUTUBE PLAYER LOADING
-       ----------------------------- */
+    document.getElementById("menuBar").innerHTML = menuBarContent;
 
+    // YouTube player boot. The first channel will be loaded from onPlayerReady().
+    initYT();
 
-        //initYT();
-
-        loadSelectedChannel(firstChToLoad);
-
-
-
-
-
-        window.addEventListener("message", function(event) {
-            try {
-                updateDuration();
-            }
-            catch(e) {}
-        });    
+    window.addEventListener("message", function(event) {
+        try {
+            updateDuration();
+        }
+        catch(e) {}
+    });    
 });
 
 
