@@ -599,139 +599,15 @@ function autoHide()
 
 
         // PLAY THE PREVIOUS VIDEO
-        function previousVideo()
-        {
-            console.group("[JT] previousVideo()");
-            
-            console.log("alreadyPlayed BEFORE", structuredClone(app.alreadyPlayed));
-            console.log("randomPlaylist BEFORE", structuredClone(app.randomPlaylist));
-            console.log("currentVideoIndex BEFORE", app.currentVideoIndex);
-            
-            const channelEngine = window.__JOLITUBE_CHANNEL_ENGINE__;
-
-            if(!channelEngine) {
-                return;
-            }
-
-            const previousVideoIndex = channelEngine.getPreviousVideoIndex();
-
-            if(previousVideoIndex !== null) {
-                loadVideo(previousVideoIndex);
-            }
-
-            console.groupEnd();
-        }
+function previousVideo()
+{
+    return window.JoliTubeNavigation.previousVideo(app, player);
+}
 
         // PLAY THE NEXT VIDEO (NEXT IN THE BACKTOTHEFUTURE ORDER OR NEW RANDOM ONE)
 function nextVideo()
 {
-    console.group("[JT] nextVideo()");
-
-    if(!player || !player.getPlaylistIndex) {
-        console.warn("[JT] nextVideo() aborted: player not ready");
-        console.groupEnd();
-        return;
-    }
-
-    console.log(
-        "alreadyPlayed BEFORE",
-        structuredClone(app.alreadyPlayed)
-    );
-
-    console.log(
-        "randomPlaylist BEFORE",
-        structuredClone(app.randomPlaylist)
-    );
-
-    console.log(
-        "currentVideoIndex BEFORE",
-        app.currentVideoIndex
-    );
-
-    console.log(
-        "videoYtId BEFORE",
-        app.videoYtId
-    );
-
-    const ytPlaylist = player.getPlaylist();
-
-    console.log("YT playlist", ytPlaylist);
-
-    if(!ytPlaylist || ytPlaylist.length === 0) {
-        console.warn("[JT] Empty YouTube playlist");
-        console.groupEnd();
-        return;
-    }
-
-    // Rebuild random playlist if empty
-    if(!app.randomPlaylist || app.randomPlaylist.length === 0)
-    {
-        console.warn("[JT] Rebuilding randomPlaylist");
-
-        app.randomPlaylist = [];
-
-        for(let i = 0; i < ytPlaylist.length; i++) {
-            app.randomPlaylist.push(i);
-        }
-
-        shuffleArray(app.randomPlaylist);
-
-        console.log(
-            "NEW randomPlaylist",
-            structuredClone(app.randomPlaylist)
-        );
-    }
-
-    const nextIndex = app.randomPlaylist.shift();
-
-    console.log("SELECTED nextIndex", nextIndex);
-
-    if(nextIndex === undefined)
-    {
-        console.warn("[JT] No next index available");
-        console.groupEnd();
-        return;
-    }
-
-    app.currentVideoIndex = nextIndex;
-
-    app.alreadyPlayed.push(nextIndex);
-
-    console.log(
-        "alreadyPlayed AFTER PUSH",
-        structuredClone(app.alreadyPlayed)
-    );
-
-    console.log(
-        "randomPlaylist AFTER SHIFT",
-        structuredClone(app.randomPlaylist)
-    );
-
-    player.playVideoAt(nextIndex);
-
-    setTimeout(function()
-    {
-        try
-        {
-            app.videoYtId = player.getVideoData().video_id;
-
-            console.log(
-                "SYNCED videoYtId",
-                app.videoYtId
-            );
-
-            console.log(
-                "SYNCED playlistIndex",
-                player.getPlaylistIndex()
-            );
-        }
-        catch(e)
-        {
-            console.warn("YT sync failed", e);
-        }
-    }, 300);
-
-    console.groupEnd();
+    return window.JoliTubeNavigation.nextVideo(app, player);
 }
 
     /* -----------------------------
