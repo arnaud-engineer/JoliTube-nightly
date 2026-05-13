@@ -60,6 +60,253 @@ function getYTPlaylist(player)
     }
 }
 
+function ensureNavigationHistory(app)
+{
+    if(!app)
+    {
+        return;
+    }
+
+    if(!Array.isArray(app.navigationHistory))
+    {
+        app.navigationHistory = [];
+    }
+
+    if(typeof app.navigationCursor !== "number")
+    {
+        app.navigationCursor = -1;
+    }
+}
+
+function getChannelFromNumber(channelNumber)
+{
+    return window.__JOLITUBE_CHANNEL_ENGINE__
+        && typeof window.__JOLITUBE_CHANNEL_ENGINE__.getChannelByNumber === "function"
+            ? window.__JOLITUBE_CHANNEL_ENGINE__.getChannelByNumber(channelNumber)
+            : null;
+}
+
+function syncLegacyAlreadyPlayedForControls(app)
+{
+    if(!app)
+    {
+        return;
+    }
+
+    ensureNavigationHistory(app);
+
+    // Legacy script.js still enables/disables the previous button from
+    // app.alreadyPlayed.length. Until that UI logic is extracted too, mirror the
+    // global navigation history enough to keep the control state coherent.
+    app.alreadyPlayed = app.navigationHistory
+        .slice(0, app.navigationCursor + 1)
+        .map(function(entry) {
+            return entry.playlistIndex;
+        });
+}
+
+function getCurrentHistoryEntry(app, player, reason)
+{
+    if(!app || !player)
+    {
+        return null;
+    }
+
+    const playlistIndex = typeof player.getPlaylistIndex === "function"
+        ? player.getPlaylistIndex()
+        : app.currentVideoIndex;
+
+    const videoUrl = typeof player.getVideoUrl === "function"
+        ? player.getVideoUrl()
+        : null;
+
+    const videoId = getVideoIdFromUrl(videoUrl) || app.videoYtId;
+
+    if(videoId == null || playlistIndex == null || playlistIndex < 0)
+    {
+        console.warn("[JT][History] current entry unavailable", {
+            reason,
+            playlistIndex,
+            videoId,
+            videoUrl,
+        });
+        return null;
+    }
+
+    return {
+        channelNumber: app.channelNum,
+        channelName: app.playName,
+        playlistId: app.playlistID,
+        videoId,
+        playlistIndex,
+        playedAt: Date.now(),
+        reason,
+    };
+}
+
+function entriesPointToSameVideo(a, b)
+{
+    return Boolean(
+        a
+        && b
+        && a.playlistId === b.playlistId
+        && a.videoId === b.videoId
+    );
+}
+
+function pushHistoryEntry(app, entry, reason = "manual")
+{
+    if(!app || !entry)
+    {
+        console.warn("[JT][History] push skipped", { reason, hasApp: Boolean(app), hasEntry: Boolean(entry) });
+        return;
+    }
+
+    ensureNavigationHistory(app);
+
+    const currentEntry = app.navigationHistory[app.navigationCursor];
+
+    if(entriesPointToSameVideo(currentEntry, entry))
+    {
+        app.navigationHistory[app.navigationCursor] = {
+            ...currentEntry,
+            ...entry,
+            reason,
+        };
+
+        syncLegacyAlreadyPlayedForControls(app);
+
+        console.log("[JT][History] push deduped current entry", {
+            reason,
+            navigationCursor: app.navigationCursor,
+            entry: app.navigationHistory[app.navigationCursor],
+            historyLength: app.navigationHistory.length,
+        });
+        return;
+    }
+
+    if(app.navigationCursor < app.navigationHistory.length - 1)
+    {
+        app.navigationHistory = app.navigationHistory.slice(0, app.navigationCursor + 1);
+        console.log("[JT][History] forward history truncated", {
+            reason,
+            navigationCursor: app.navigationCursor,
+            historyLength: app.navigationHistory.length,
+        });
+    }
+
+    app.navigationHistory.push({
+        ...entry,
+        reason,
+    });
+
+    app.navigationCursor = app.navigationHistory.length - 1;
+
+    if(!Array.isArray(app.videoHistory))
+    {
+        app.videoHistory = [];
+    }
+
+    if(app.videoHistory[0] !== entry.videoId)
+    {
+        app.videoHistory.unshift(entry.videoId);
+    }
+
+    syncLegacyAlreadyPlayedForControls(app);
+
+    console.log("[JT][History] push", {
+        reason,
+        navigationCursor: app.navigationCursor,
+        historyLength: app.navigationHistory.length,
+        entry,
+    });
+}
+
+function pushCurrentPlaybackToHistory(app, player, reason = "sync")
+{
+    const entry = getCurrentHistoryEntry(app, player, reason);
+
+    if(entry)
+    {
+        pushHistoryEntry(app, entry, reason);
+    }
+}
+
+function loadHistoryEntry(app, player, entry, reason = "manual")
+{
+    console.group("[JT][History] loadHistoryEntry()");
+
+    if(!app || !player || !entry)
+    {
+        console.warn("[JT][History] load aborted", {
+            reason,
+            hasApp: Boolean(app),
+            hasPlayer: Boolean(player),
+            hasEntry: Boolean(entry),
+        });
+        console.groupEnd();
+        return;
+    }
+
+    app.isLoadingHistoryEntry = true;
+    app.channelNum = entry.channelNumber;
+    app.currentVideoIndex = entry.playlistIndex;
+    app.videoYtId = entry.videoId;
+    app.playlistID = entry.playlistId;
+
+    const channel = getChannelFromNumber(entry.channelNumber);
+
+    if(channel)
+    {
+        app.playName = channel[0];
+        app.logo = channel[2];
+        app.playlistID = channel[3] || entry.playlistId;
+    }
+    else
+    {
+        app.playName = entry.channelName;
+    }
+
+    setPlaylistReady(app, false, reason + " / loading history entry");
+
+    console.log("[JT][History] loading", {
+        reason,
+        navigationCursor: app.navigationCursor,
+        entry,
+    });
+
+    try
+    {
+        const currentPlaylist = getYTPlaylist(player);
+        const currentPlaylistId = app.playlistID;
+
+        if(currentPlaylist.length > 0 && currentPlaylistId === entry.playlistId)
+        {
+            player.playVideoAt(entry.playlistIndex);
+        }
+        else
+        {
+            player.loadPlaylist({
+                list: entry.playlistId,
+                index: entry.playlistIndex,
+            });
+        }
+
+        setTimeout(function()
+        {
+            app.isLoadingHistoryEntry = false;
+            syncPlayerState(app, player, "loadHistoryEntry timeout");
+        }, 800);
+    }
+    catch(e)
+    {
+        app.isLoadingHistoryEntry = false;
+        console.error("[JT][History] load failed", e);
+    }
+
+    console.groupEnd();
+}
+
 function setPlaylistReady(app, ready, reason)
 {
     if(!app)
@@ -113,6 +360,8 @@ function resetRuntimeVideoState(app, reason)
         return;
     }
 
+    ensureNavigationHistory(app);
+
     app.currentVideoIndex = null;
     app.videoYtId = null;
     setPlaylistReady(app, false, reason + " / runtime reset");
@@ -122,6 +371,8 @@ function resetRuntimeVideoState(app, reason)
         currentVideoIndex: app.currentVideoIndex,
         videoYtId: app.videoYtId,
         playlistReady: app.playlistReady,
+        navigationCursor: app.navigationCursor,
+        historyLength: app.navigationHistory.length,
     });
 }
 
@@ -140,6 +391,8 @@ function syncPlayerState(app, player, reason = "manual")
         console.warn("[JT][Navigation] sync aborted: player unavailable", { reason });
         return;
     }
+
+    ensureNavigationHistory(app);
 
     try
     {
@@ -169,6 +422,7 @@ function syncPlayerState(app, player, reason = "manual")
         if(playerState === (window.YT?.PlayerState?.PLAYING ?? 1) && ytPlaylist.length > 0)
         {
             setPlaylistReady(app, true, reason + " / YT playlist available");
+            pushCurrentPlaybackToHistory(app, player, reason + " / YT PLAYING");
         }
 
         console.log("[JT][Navigation] synced state", {
@@ -178,6 +432,8 @@ function syncPlayerState(app, player, reason = "manual")
             playlistReady: app.playlistReady,
             ytPlaylistLength: ytPlaylist.length,
             playerState,
+            navigationCursor: app.navigationCursor,
+            historyLength: app.navigationHistory.length,
         });
     }
     catch(e)
@@ -193,6 +449,18 @@ function nextVideo(app, player)
     if(!player || typeof player.getPlaylist !== "function")
     {
         console.warn("[JT][Navigation] next aborted: player not ready");
+        console.groupEnd();
+        return;
+    }
+
+    ensureNavigationHistory(app);
+
+    if(app.navigationCursor < app.navigationHistory.length - 1)
+    {
+        const forwardEntry = app.navigationHistory[app.navigationCursor + 1];
+        app.navigationCursor++;
+        syncLegacyAlreadyPlayedForControls(app);
+        loadHistoryEntry(app, player, forwardEntry, "nextVideo / forward history");
         console.groupEnd();
         return;
     }
@@ -236,13 +504,6 @@ function nextVideo(app, player)
 
     app.currentVideoIndex = nextIndex;
 
-    if(!Array.isArray(app.alreadyPlayed))
-    {
-        app.alreadyPlayed = [];
-    }
-
-    app.alreadyPlayed.push(nextIndex);
-
     try
     {
         player.playVideoAt(nextIndex);
@@ -271,54 +532,34 @@ function previousVideo(app, player)
         return;
     }
 
-    const ytPlaylist = getYTPlaylist(player);
+    ensureNavigationHistory(app);
 
-    if(!isPlaylistReady(app, player))
+    if(app.navigationHistory.length === 0)
     {
-        console.warn("[JT][Navigation] previous blocked: playlist not ready", {
-            playlistReady: app?.playlistReady,
-            ytPlaylistLength: ytPlaylist.length,
+        pushCurrentPlaybackToHistory(app, player, "previousVideo bootstrap current playback");
+    }
+
+    if(app.navigationCursor <= 0)
+    {
+        console.warn("[JT][Navigation] previous aborted: no previous entry in navigation history", {
+            navigationCursor: app.navigationCursor,
+            historyLength: app.navigationHistory.length,
         });
         console.groupEnd();
         return;
     }
 
-    if(!Array.isArray(app.alreadyPlayed) || app.alreadyPlayed.length < 2)
-    {
-        console.warn("[JT][Navigation] previous aborted: no previous video in app history");
-        console.groupEnd();
-        return;
-    }
+    app.navigationCursor--;
 
-    // Remove current video, then go back to the preceding one.
-    app.alreadyPlayed.pop();
-    const previousIndex = app.alreadyPlayed.pop();
+    const previousEntry = app.navigationHistory[app.navigationCursor];
 
-    console.log("[JT][Navigation] selected previousIndex", previousIndex);
+    console.log("[JT][Navigation] selected previous history entry", {
+        navigationCursor: app.navigationCursor,
+        previousEntry,
+    });
 
-    if(previousIndex === undefined)
-    {
-        console.warn("[JT][Navigation] previous aborted: previous index unavailable");
-        console.groupEnd();
-        return;
-    }
-
-    app.currentVideoIndex = previousIndex;
-    app.alreadyPlayed.push(previousIndex);
-
-    try
-    {
-        player.playVideoAt(previousIndex);
-
-        setTimeout(function()
-        {
-            syncPlayerState(app, player, "previousVideo timeout");
-        }, 800);
-    }
-    catch(e)
-    {
-        console.error("[JT][Navigation] previous failed", e);
-    }
+    syncLegacyAlreadyPlayedForControls(app);
+    loadHistoryEntry(app, player, previousEntry, "previousVideo");
 
     console.groupEnd();
 }
@@ -382,6 +623,10 @@ window.JoliTubeNavigation = {
     syncPlayerState,
     setPlaylistReady,
     isPlaylistReady,
+    ensureNavigationHistory,
+    pushHistoryEntry,
+    pushCurrentPlaybackToHistory,
+    loadHistoryEntry,
     installLegacySyncBridge,
 };
 
