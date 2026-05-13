@@ -10,6 +10,7 @@
  * - own channel catalog access
  * - own channel validation
  * - own playback queue structures
+ * - own next/previous video selection
  * - provide safe facades over legacy channel loading functions
  *
  * The legacy runtime still owns actual playback execution.
@@ -141,7 +142,7 @@ export class ChannelEngine {
         return this.getAlreadyPlayed()[0] ?? null;
     }
 
-    consumeNextVideoIndex() {
+    getNextVideoIndex() {
         if (!this.hasNextVideo()) {
             return null;
         }
@@ -159,7 +160,7 @@ export class ChannelEngine {
         return nextVideo;
     }
 
-    restorePreviousVideoIndex() {
+    getPreviousVideoIndex() {
         if (!this.hasPreviousVideo()) {
             return null;
         }
@@ -180,12 +181,6 @@ export class ChannelEngine {
      * ------------------------------------------------------------------ */
 
     loadByNumber(channelNumber) {
-        /*
-         * Transitional facade.
-         *
-         * ChannelEngine now owns the intent and validation boundary, but the
-         * legacy runtime still performs the actual channel loading.
-         */
         const normalized = this.normalizeChannelNumber(channelNumber);
 
         if (normalized === null) {
