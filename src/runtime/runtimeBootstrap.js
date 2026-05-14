@@ -1,6 +1,7 @@
 import { logger } from "../core/logger.js";
 import { eventBus } from "../core/eventBus.js";
 import { channelEngine } from "../channels/ChannelEngine.js";
+import { channelUiController } from "../channels/ChannelUiController.js";
 import { KeyboardController } from "../input/keyboardController.js";
 import { installLegacyCommandAdapter } from "../legacy/legacyCommandAdapter.js";
 import { debugOverlay } from "../debug/debugOverlay.js";
@@ -26,6 +27,7 @@ function bootstrapRuntime() {
 
     channelEngine.initialize();
     window.__JOLITUBE_CHANNEL_ENGINE__ = channelEngine;
+    window.__JOLITUBE_CHANNEL_UI_CONTROLLER__ = channelUiController;
 
     installLegacyCommandAdapter();
 
@@ -50,6 +52,7 @@ function bootstrapRuntime() {
         ...(window.JoliTubeRuntime || {}),
         keyboardController,
         channelEngine,
+        channelUiController,
         eventBus,
         logger,
         debugOverlay,

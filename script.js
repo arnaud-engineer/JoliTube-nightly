@@ -910,25 +910,12 @@ function nextVideo()
 
         function searchUpdate()
         {
-            let inputedText = document.getElementById("searchBar").value;
-            let channels = document.getElementsByClassName("elementMenuBar");
-
-            for( let i=0; i < channels.length ; i++) {
-                if(!channels[i].getElementsByTagName("h1")[0].outerText.toLowerCase().includes(inputedText.toLowerCase())) {
-                    channels[i].classList.add("hidden");
-                } else {
-                    channels[i].classList.remove("hidden");
-                }
-            }
+            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.searchUpdate();
         }
 
         function searchReset()
         {
-            document.getElementById("searchBar").value = "";
-            let channels = document.getElementsByClassName("elementMenuBar");
-            for( let i=0; i < channels.length ; i++) {
-                channels[i].classList.remove("hidden");
-            }
+            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.searchReset();
         }
 
 
@@ -1570,224 +1557,42 @@ function nextVideo()
         // CHANGE THE CHANNEL IN THE PLAYER
 function loadSelectedChannel(channelNum)
 {
-    console.group("[JT] loadSelectedChannel()");
-
-    console.log("REQUESTED channelNum", channelNum);
-    console.log("app.channelNum BEFORE", app.channelNum);
-    console.log("app.currentVideoIndex BEFORE", app.currentVideoIndex);
-    console.log("app.videoYtId BEFORE", app.videoYtId);
-    console.log("app.playName BEFORE", app.playName);
-    console.log("alreadyPlayed BEFORE", structuredClone(app.alreadyPlayed));
-    console.log("randomPlaylist BEFORE", structuredClone(app.randomPlaylist));
-    console.log("videoHistory BEFORE", structuredClone(app.videoHistory));
-
-    console.log("GO TO CHANNEL :", channelNum);
-
-    app.channelNum = channelNum;
-    app.alreadyPlayed = [];
-    app.randomPlaylist = [];
-
-    const channel =
-        window.__JOLITUBE_CHANNEL_ENGINE__
-            ?.getChannelByNumber(channelNum);
-
-    console.log("resolved channel", channel);
-
-    if(!channel) {
-        console.error("Channel not found", channelNum);
-        console.groupEnd();
-        return;
-    }
-
-    app.playlistID = channel[3];
-    app.playName = channel[0];
-    app.logo = channel[2];
-    app.currentChannelCuratorName = curratorsList[channel[4]][0];
-    app.currentChannelCuratorURL = curratorsList[channel[4]][1];
-
-    hideVideo();
-    hideChannelData();
-    updateChannelData();
-    disablePlayer();
-    showInterface();
-
-    app.playerFullyChargedSingleton = false;
-    app.realTimeDataMonitored = false;
-    app.firstVideoLoaded = false;
-    app.nbVideoCurrentChannel = null;
-    app.playerInitAttemptPassed = false;
-    app.nextVideoInitAttemptPassed = false;
-
-    if(player?.loadPlaylist) {
-        console.log("[JT] Loading YouTube playlist", app.playlistID);
-
-        player.loadPlaylist({
-            listType: "playlist",
-            list: app.playlistID,
-            index: app.playerIndexInitAttempt || 0
-        });
-    } else {
-        console.warn("[JT] Cannot load playlist: player not ready");
-    }
-
-    console.log("app.channelNum AFTER", app.channelNum);
-    console.log("app.currentVideoIndex AFTER", app.currentVideoIndex);
-    console.log("app.videoYtId AFTER", app.videoYtId);
-    console.log("app.playName AFTER", app.playName);
-    console.log("alreadyPlayed AFTER", structuredClone(app.alreadyPlayed));
-    console.log("randomPlaylist AFTER", structuredClone(app.randomPlaylist));
-    console.log("videoHistory AFTER", structuredClone(app.videoHistory));
-
-    console.groupEnd();
+    window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.loadSelectedChannel(channelNum);
 }
 
         function loadPreviousChannel() {
-            try {
-                let channels = document.getElementsByClassName("elementMenuBar");
-                let cChannelNum = app.channelNum;
-
-                let isFirstDisplayedDisplayedChannel = false;
-                let i = 0;
-                while(!isFirstDisplayedDisplayedChannel) {
-                    i++;
-                    if(cChannelNum - i < 1) {
-                        isFirstDisplayedDisplayedChannel = true;
-                    }
-                    else if(!channels[cChannelNum - 1 - i].classList.contains("hidden")) {
-                        isFirstDisplayedDisplayedChannel = true;
-                    }
-                }
-                cChannelNum = cChannelNum - i;
-                if(cChannelNum <= 0) {
-                    app.channelNum = channelList.length + 1;
-                    loadPreviousChannel();
-                } else {
-                    loadSelectedChannel(cChannelNum);
-                    channelNumUpdate(cChannelNum);
-                    app.channelArrowNavigationTracker--;
-                }
-                
-            } catch(e) { }
+            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.loadPreviousVisibleChannel();
         }
 
         function loadNextChannel() {
-            try {
-                let channels = document.getElementsByClassName("elementMenuBar");
-                let cChannelNum = app.channelNum;
-
-                let isFirstDisplayedDisplayedChannel = false;
-                let isLastDisplayedDisplayedChannel = false;
-                let fChNum = null;
-                let lChNum = null;
-                let i = 0;
-                for(i=1 ; i < channels.length - cChannelNum + 1 ; i++) {
-                    if(!channels[cChannelNum - 1 + i].classList.contains("hidden")) {
-                        if(isFirstDisplayedDisplayedChannel === false) {
-                            isFirstDisplayedDisplayedChannel = true;
-                            fChNum = cChannelNum + i;
-                        }
-                        isLastDisplayedDisplayedChannel = true;
-                        lChNum = cChannelNum + i;
-                    }
-                }
-                if(fChNum === null) {
-                    app.channelNum = 0;
-                    loadNextChannel();
-                } else {
-                    loadSelectedChannel(fChNum);
-                    channelNumUpdate(fChNum);
-                    app.channelArrowNavigationTracker++;
-                }
-            } catch(e) {}
+            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.loadNextVisibleChannel();
         }
 
         function getChannelNum(chName) {
-            let res = null;
-            // for each channel in the menu
-            for(var i=0; i< channelList.length; i++ )
-            {
-                // highlight it only if its the current channel
-                if(channelList[i][0] == chName) {
-                    res = i + 1;
-                }
-            }
-            return res;
+            return window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.getChannelNumber(chName) ?? null;
         }
 
         function channelNumUpdate(num) {
-            app.prevChannelNum = app.channelNum;
-            app.channelNum = num;
-            let res = "" + num;
-            if (res.length === 1) {
-                res = "0" + app.channelNum;
-            }
-            app.displayChannelNum = res;
+            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.updateChannelNumber(num);
         }
 
 
         // UPDATE THE CHANNEL INFORMATIONS
         function updateChannelData()
         {
-            // Update the control panel display
-            let channelNumHtml = "<span id='currentChannelNum'>" + app.displayChannelNum + " - </span> ";
-            let channelNameHtml = "<span id='currentChannelName'>" + app.playName + "</span> ";
-            let curratorHTML = "<a id='currentChannelCurator' href='" + app.currentChannelCuratorURL + "' target='_blank'>" + app.currentChannelCuratorName + "</span>";
-            document.getElementById("currentChannelNameDisplay").innerHTML = channelNumHtml + channelNameHtml + curratorHTML;
-            document.getElementById("currentChannelLogo").src = app.logo;
-            channelListRefresh();
+            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.updateChannelData();
         }
 
         // UPDATE THE CHANNEL INFORMATIONS
         function hideChannelData()
         {
-            document.getElementById("currentChannelNameDisplay").innerHTML = "";
-            document.getElementById("currentChannelLogo").src = "";
+            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.hideChannelData();
         }
 
 
         function channelListRefresh()
         {
-            // Update the selection in the lateral menu
-            var childDivs = document.getElementsByClassName('elementMenuBar');
-            // for each channel in the menu
-            for(var i=0; i < childDivs.length; i++ )
-            {
-                // reset the background color
-                childDivs[i].classList.remove("selected");
-                // highlight it only if its the current channel
-                if(childDivs[i].innerHTML.includes("<h1>"+app.playName+"</h1>")) {
-                    childDivs[i].classList.add("selected");
-                    if(app.channelArrowNavigationTracker >= 3 || app.channelArrowNavigationTracker <= -3 || app.prevChannelNum - app.channelNum > 1 || app.prevChannelNum - app.channelNum < 1) {
-                        // childDivs[idToDisplayPrevElements].scrollIntoView();
-                        //else if(i === childDivs.length - 1) { childDivs[i].scrollIntoView(); }
-                        //else {
-                            let childNodeToDisplayCounter = 0;
-                            let j = null;
-                            let firstJ = null;
-                            let lastJ = null;
-                            for (j=i ; j >= 0 ; j--) {
-                                if(!childDivs[j].classList.contains("hidden")) {
-                                    childNodeToDisplayCounter++;
-                                    if(childNodeToDisplayCounter == 1) {
-                                        firstJ=j;
-                                    }
-                                    if(childNodeToDisplayCounter >= 1) {
-                                        lastJ=j;
-                                    }
-
-                                    if(childNodeToDisplayCounter === 3) {
-                                        childDivs[j].scrollIntoView();
-                                        break;
-                                    }
-                                    else if(j === childDivs.length - 1) { childDivs[firstJ].scrollIntoView(); }
-                                    else if(j === 0) { childDivs[lastJ].scrollIntoView(); }
-                                }
-                            }
-                        //}
-                    }
-                }
-            }
-            searchUpdate();
+            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.refreshChannelList();
         }
 
     /* -----------------------------
@@ -1869,43 +1674,8 @@ function loadSelectedChannel(channelNum)
 	        firstChToLoad = 1;
 	    }
 
-	    const firstChannel = channelList[firstChToLoad - 1];
-
-	    channelNumUpdate(firstChToLoad);
-
-	    app.playlistID = firstChannel[3];
-	    app.playName = firstChannel[0];
-	    app.logo = firstChannel[2];
-	    app.currentChannelCuratorName = curratorsList[firstChannel[4]][0];
-	    app.currentChannelCuratorURL = curratorsList[firstChannel[4]][1];
-
-    var menuBarContent = "";
-    var channelMiniature = "";
-
-    let i = 0;
-    channelList.forEach(function miniaturesGeneration(currentChannel, index) {
-        i++;
-        let displayChannelNum = "" + i;
-        if (displayChannelNum.length === 1) {
-            displayChannelNum = "0" + displayChannelNum;
-        }
-
-        channelMiniature = '' +
-          '<div class="elementMenuBar" onclick="loadSelectedChannel(' + i + ');">' +
-            '<div class="logoElementMenuBar">' +
-              '<img src="' + currentChannel[2] + '"/>' +
-            '</div>' +
-            '<div class="titlesElementMenuBar">' +
-              '<h1>' + currentChannel[0] + '</h1>' +
-              '<h2>' + currentChannel[1] + '</h2>' +
-              '<h3>' + displayChannelNum + '</h3>' +
-            '</div>' +
-          '</div>';
-
-          menuBarContent += channelMiniature;
-    });
-
-    document.getElementById("menuBar").innerHTML = menuBarContent;
+	    window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.initializeFirstChannel(firstChToLoad);
+	    window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.renderMenu();
 
     window.JoliTubeNavigation?.detectAutoplayPolicy?.(app, player, "DOMContentLoaded");
 
