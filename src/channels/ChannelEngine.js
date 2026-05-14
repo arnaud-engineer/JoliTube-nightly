@@ -176,33 +176,6 @@ export class ChannelEngine {
         return alreadyPlayed[0] ?? null;
     }
 
-    /* ---------------------------------------------------------------------
-     * Transitional legacy facades
-     * ------------------------------------------------------------------ */
-
-    loadByNumber(channelNumber) {
-        const normalized = this.normalizeChannelNumber(channelNumber);
-
-        if (normalized === null) {
-            return;
-        }
-
-        if (typeof window.loadSelectedChannel === "function") {
-            window.loadSelectedChannel(normalized);
-        }
-    }
-
-    loadNext() {
-        if (typeof window.loadNextChannel === "function") {
-            window.loadNextChannel();
-        }
-    }
-
-    loadPrevious() {
-        if (typeof window.loadPreviousChannel === "function") {
-            window.loadPreviousChannel();
-        }
-    }
 }
 
 export const channelEngine = new ChannelEngine();

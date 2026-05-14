@@ -41,6 +41,7 @@ function installLegacyBridge() {
     window.__JOLITUBE_LEGACY_BRIDGE_INSTALLED__ = true;
 
     window.JoliTubeRuntime = {
+        ...(window.JoliTubeRuntime || {}),
         eventBus,
         logger,
     };

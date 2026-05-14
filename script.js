@@ -879,52 +879,6 @@ function nextVideo()
 
 
 
-        function allowSearchInput() {
-            event.stopPropagation();
-
-            if(event.code === "Escape") {
-                document.getElementById("searchBar").value = "";
-                searchUpdate();
-            }
-            if(event.code === "Enter" || event.code === "Escape") {
-                quitSearchMode();
-                document.getElementById("searchBar").blur();
-            }
-            else if(event.code === "ArrowDown") {
-                loadNextChannel();
-            }
-            else if(event.code === "ArrowUp") {
-                loadPreviousChannel();
-            }
-        }
-
-        function searchMode() {
-            app.searchSingleton = true;
-            showInterface();
-        }
-
-        function quitSearchMode() {
-            app.searchSingleton = false;
-        }
-
-
-        function searchUpdate()
-        {
-            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.searchUpdate();
-        }
-
-        function searchReset()
-        {
-            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.searchReset();
-        }
-
-
-
-
-
-
-
-
     /* -----------------------------
         VIDEO LOADING
        ----------------------------- */
@@ -1364,7 +1318,7 @@ function nextVideo()
             updatePlayerState();
             loadQuality();
             loadCaptions();
-            updateChannelData();
+            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.updateChannelData();
             refreshVolume();
         }
 
@@ -1554,47 +1508,6 @@ function nextVideo()
         CHANNEL LOADING
        ----------------------------- */
 
-        // CHANGE THE CHANNEL IN THE PLAYER
-function loadSelectedChannel(channelNum)
-{
-    window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.loadSelectedChannel(channelNum);
-}
-
-        function loadPreviousChannel() {
-            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.loadPreviousVisibleChannel();
-        }
-
-        function loadNextChannel() {
-            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.loadNextVisibleChannel();
-        }
-
-        function getChannelNum(chName) {
-            return window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.getChannelNumber(chName) ?? null;
-        }
-
-        function channelNumUpdate(num) {
-            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.updateChannelNumber(num);
-        }
-
-
-        // UPDATE THE CHANNEL INFORMATIONS
-        function updateChannelData()
-        {
-            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.updateChannelData();
-        }
-
-        // UPDATE THE CHANNEL INFORMATIONS
-        function hideChannelData()
-        {
-            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.hideChannelData();
-        }
-
-
-        function channelListRefresh()
-        {
-            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.refreshChannelList();
-        }
-
     /* -----------------------------
         YOUTUBE PLAYER LOADING
        ----------------------------- */
@@ -1723,7 +1636,7 @@ function loadSelectedChannel(channelNum)
                     app.channelNum
                 );
     
-                loadSelectedChannel(app.channelNum);
+                window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.requestChannelLoad(app.channelNum);
             }
     
         } catch(e) {
@@ -1845,7 +1758,7 @@ function loadSelectedChannel(channelNum)
         else {
             app.alreadyPlayedErrors.unshift(app.playerIndexInitAttempt);
             app.playerIndexInitAttempt++;
-            loadSelectedChannel(app.channelNum);
+            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.requestChannelLoad(app.channelNum);
         }
     }
 
@@ -1854,242 +1767,6 @@ function loadSelectedChannel(channelNum)
 
 
 
-
-
-
-
-function loadSelectedChannelByRemote() {
-    var checkRemoteInput = setInterval(function() {
-        if(app.remoteDigitBuffer.length >= 2 && app.remoteDigitBuffer !== null) {
-            let chNum = parseInt(app.remoteDigitBuffer);
-            if(chNum < channelList.length) {
-                showFeedback("channelNumFeedback", app.remoteDigitBuffer);
-                app.remoteDigitBuffer = null;
-                loadSelectedChannel(chNum);
-                hideFeedback("channelNumFeedback");
-                clearInterval(checkRemoteInput);
-            }
-            else {
-                if(document.getElementById("channelNumFeedback").innerHTML !== "??") {
-                    showFeedback("channelNumFeedback", app.remoteDigitBuffer);
-                    app.remoteDigitSingleton = true;
-                }
-                app.remoteDigitBuffer = null;
-                setTimeout(() => {
-                    showFeedback("channelNumFeedback", "??");
-                    hideFeedback("channelNumFeedback");
-                    setInterval(function() {
-                        app.remoteDigitSingleton = false;
-                    }, app.feedbackTimerDuration * 1.5);
-                }, app.feedbackTimerDuration);
-            }
-        }
-    }, 20);
-
-    setTimeout(() => {
-        if(app.remoteDigitBuffer !== null) {
-            try { clearInterval(checkRemoteInput); } catch(e) {}
-            showFeedback("channelNumFeedback", "0" + app.remoteDigitBuffer);
-            let chNum = parseInt(app.remoteDigitBuffer);
-            app.remoteDigitBuffer = null;
-            loadSelectedChannel(chNum);
-            hideFeedback("channelNumFeedback");
-        }
-    }, 2500);
-}
-
-
-
-function addToRemoteDigitBuffer(digit)
-{
-    if(!app.remoteDigitSingleton) {
-        if(app.remoteDigitBuffer === null) {
-            app.remoteDigitBuffer = "";
-            app.remoteDigitBuffer += digit;
-            loadSelectedChannelByRemote();
-        }
-        else {
-            app.remoteDigitBuffer += digit;
-        }
-
-        var displayTempValue = "" + app.remoteDigitBuffer;
-        if(displayTempValue.length === 1) {
-            displayTempValue = "-" + displayTempValue;
-        }
-
-        showFeedback("channelNumFeedback", displayTempValue);
-
-        showInterface();
-    }
-}
-
-
-
-
-function keyHandler()
-{
-    console.log("key input : " + event.code);
-    switch(event.code)
-    {
-        case "KeyR":
-            loadSelectedChannel(app.channelNum);
-            break;
-        case "KeyF":
-            switchFullscreenMode();
-            playOrPause();
-            break;
-        case "KeyT":
-            if(app.theaterOn === false) { goTheatherMode(); }
-            else                        { goFillMode(); }
-            break;
-        case "KeyK":
-            playOrPause();
-            break;
-        case "Space":
-            playOrPause();
-            break;
-        case "Escape":
-            endFullScreen();
-            break;
-        case "ArrowUp":
-            loadPreviousChannel();
-            break;
-        case "ArrowDown":
-            loadNextChannel();
-            break;
-        case "ArrowLeft":
-            try { backwardInVideo(); }catch(e) { }
-            break;
-        case "KeyJ":
-            try { backwardInVideo(); setTimeout(() => { backwardInVideo(); }, 200); } catch(e) { }
-            break;
-        case "ArrowRight":
-            try { forwardInVideo(); }catch(e) { }
-            break;
-        case "KeyL":
-            try { forwardInVideo(); setTimeout(() => { forwardInVideo(); }, 200); } catch(e) { }
-            break;
-        case "Digit1" :
-            addToRemoteDigitBuffer("1");
-            break;
-        case "Numpad1" :
-            addToRemoteDigitBuffer("1");
-            break;
-        case "Digit2" :
-            addToRemoteDigitBuffer("2");
-            break;
-        case "Numpad2" :
-            addToRemoteDigitBuffer("2");
-            break;
-        case "Digit3" :
-            addToRemoteDigitBuffer("3");
-            break;
-        case "Numpad3" :
-            addToRemoteDigitBuffer("3");
-            break;
-        case "Digit4" :
-            addToRemoteDigitBuffer("4");
-            break;
-        case "Numpad4" :
-            addToRemoteDigitBuffer("4");
-            break;
-        case "Digit5" :
-            addToRemoteDigitBuffer("5");
-            break;
-        case "Numpad5" :
-            addToRemoteDigitBuffer("5");
-            break;
-        case "Digit6" :
-            addToRemoteDigitBuffer("6");
-            break;
-        case "Numpad6" :
-            addToRemoteDigitBuffer("6");
-            break;
-        case "Digit7" :
-            addToRemoteDigitBuffer("7");
-            break;
-        case "Numpad7" :
-            addToRemoteDigitBuffer("7");
-            break;
-        case "Digit8" :
-            addToRemoteDigitBuffer("8");
-            break;
-        case "Numpad8" :
-            addToRemoteDigitBuffer("8");
-            break;
-        case "Digit9" :
-            addToRemoteDigitBuffer("9");
-            break;
-        case "Numpad9" :
-            addToRemoteDigitBuffer("9");
-            break;
-        case "Digit0" :
-            addToRemoteDigitBuffer("0");
-            break;
-        case "Numpad0" :
-            addToRemoteDigitBuffer("0");
-            break;
-        case "NumpadAdd":
-            increaseVolume();
-            break;
-        case "KeyQ":
-            increaseVolume();
-            break;
-        case "NumpadSubtract":
-            decreaseVolume();
-            break;
-        case "KeyA":
-            decreaseVolume();
-            break;
-        case "KeyM":
-            muteOrUnmute();
-            break;
-        case "Semicolon":
-            muteOrUnmute();
-            break;
-        case "KeyN":
-            nextVideo();
-            break;
-        case "KeyP":
-            if(app.alreadyPlayed.length > 1) { //if(app.alreadyPlayed.length - app.currentBackToTheFutureCount > 1)
-                previousVideo();
-            }
-            break;
-        case "KeyX":
-            nextSpeed();
-            break;
-        case "KeyS":
-            document.getElementById("searchBar").focus();
-            break;
-
-    }
-
-    hideCursor();
-    event.preventDefault();
-}
-
-/*
-
-YOUTUBE CMD
-https://support.google.com/youtube/answer/7631406?hl=fr
-
-.   Passer à l'image suivante de la vidéo (lorsqu'elle est en pause).
-,   Passer à l'image précédente de la vidéo (lorsqu'elle est en pause).
-
->   Augmenter la vitesse de lecture de la vidéo.
-<   Diminuer la vitesse de lecture de la vidéo.
-
-Chiffres de 1 à 9 sur la barre de recherche (et non sur le pavé numérique)  Accéder à la vidéo selon un pourcentage d'avancement (de 10 % à 90 %).
-Chiffre 0 sur la barre de recherche (et non sur le pavé numérique)  Accéder au début de la vidéo.
-
-/   Accéder au champ de recherche.
-
-
-c   Activer les sous-titres, s'ils sont disponibles. Pour masquer les sous-titres, appuyez de nouveau sur la touche C.
-
-Touches multimedia
-
-*/
 
 
 

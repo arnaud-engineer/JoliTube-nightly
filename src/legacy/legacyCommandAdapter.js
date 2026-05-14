@@ -1,6 +1,7 @@
 import { eventBus } from "../core/eventBus.js";
 import { logger } from "../core/logger.js";
 import { channelEngine } from "../channels/ChannelEngine.js";
+import { channelUiController } from "../channels/ChannelUiController.js";
 import { alertController } from "../ui/alerts/AlertController.js";
 import { feedbackController } from "../ui/feedback/FeedbackController.js";
 
@@ -68,19 +69,14 @@ function handleLegacyEscape() {
     const searchBar = document.getElementById("searchBar");
 
     if (searchBar && document.activeElement === searchBar) {
-        searchBar.value = "";
-
-        if (typeof window.searchUpdate === "function") {
-            window.searchUpdate();
-        }
-
+        channelUiController.searchReset();
         searchBar.blur();
-        callLegacyFunction("quitSearchMode");
+        channelUiController.exitSearchMode();
         return;
     }
 
     if (window.app?.searchSingleton === true) {
-        callLegacyFunction("quitSearchMode");
+        channelUiController.exitSearchMode();
     }
 }
 
@@ -124,8 +120,8 @@ function commitLegacyChannelDigitBuffer() {
         return;
     }
 
-    logger.debug(`Command → ChannelEngine.loadByNumber ${selectedChannel}`);
-    channelEngine.loadByNumber(selectedChannel);
+    logger.debug(`Command → ChannelUiController.requestChannelLoad ${selectedChannel}`);
+    channelUiController.requestChannelLoad(selectedChannel);
 }
 
 function handleLegacyChannelDigit(digit) {
@@ -255,8 +251,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → ChannelEngine.loadPrevious");
-        channelEngine.loadPrevious();
+        logger.debug("Command → ChannelUiController.loadPreviousVisibleChannel");
+        channelUiController.loadPreviousVisibleChannel();
     });
 
     eventBus.on("input:channel-next", (payload) => {
@@ -264,8 +260,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → ChannelEngine.loadNext");
-        channelEngine.loadNext();
+        logger.debug("Command → ChannelUiController.loadNextVisibleChannel");
+        channelUiController.loadNextVisibleChannel();
     });
 
     eventBus.on("input:channel-digit", (payload) => {
@@ -282,15 +278,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy searchMode");
-
-        const searchBar = document.getElementById("searchBar");
-
-        if (searchBar) {
-            searchBar.focus();
-        }
-
-        callLegacyFunction("searchMode");
+        logger.debug("Command → ChannelUiController.focusSearch");
+        channelUiController.focusSearch();
     });
 
     eventBus.on("input:toggle-theater-mode", (payload) => {

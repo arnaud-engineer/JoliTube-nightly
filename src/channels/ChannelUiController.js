@@ -19,6 +19,7 @@ export class ChannelUiController {
         this.appProvider = appProvider;
         this.playerProvider = playerProvider;
         this.curatorListProvider = curatorListProvider;
+        this.started = false;
     }
 
     get app() {
@@ -51,6 +52,95 @@ export class ChannelUiController {
 
     getSearchInput() {
         return document.getElementById("searchBar");
+    }
+
+    start() {
+        if (this.started) {
+            return;
+        }
+
+        this.started = true;
+        this.installGlobalChannelBridge();
+        this.bindSearchInput();
+    }
+
+    installGlobalChannelBridge() {
+        window.loadSelectedChannel = (channelNumber) => {
+            this.loadSelectedChannel(channelNumber);
+        };
+    }
+
+    bindSearchInput() {
+        const searchInput = this.getSearchInput();
+
+        if (!searchInput) {
+            return;
+        }
+
+        searchInput.addEventListener("input", () => {
+            this.searchUpdate();
+        });
+
+        searchInput.addEventListener("keydown", (event) => {
+            this.handleSearchKeyDown(event);
+        });
+
+        searchInput.addEventListener("focus", () => {
+            this.enterSearchMode();
+        });
+
+        searchInput.addEventListener("focusout", () => {
+            this.exitSearchMode();
+        });
+    }
+
+    enterSearchMode() {
+        const app = this.app;
+
+        if (app) {
+            app.searchSingleton = true;
+        }
+
+        window.showInterface?.();
+    }
+
+    exitSearchMode() {
+        const app = this.app;
+
+        if (app) {
+            app.searchSingleton = false;
+        }
+    }
+
+    focusSearch() {
+        const searchInput = this.getSearchInput();
+
+        if (searchInput) {
+            searchInput.focus();
+        }
+
+        this.enterSearchMode();
+    }
+
+    handleSearchKeyDown(event) {
+        event.stopPropagation();
+
+        if (event.code === "Escape") {
+            this.searchReset();
+        }
+
+        if (event.code === "Enter" || event.code === "Escape") {
+            this.exitSearchMode();
+            this.getSearchInput()?.blur();
+        }
+        else if (event.code === "ArrowDown") {
+            event.preventDefault();
+            this.loadNextVisibleChannel();
+        }
+        else if (event.code === "ArrowUp") {
+            event.preventDefault();
+            this.loadPreviousVisibleChannel();
+        }
     }
 
     getCurator(channel) {
@@ -122,7 +212,7 @@ export class ChannelUiController {
             channelElement.className = "elementMenuBar";
             channelElement.dataset.channelNumber = "" + channelNumber;
             channelElement.addEventListener("click", () => {
-                window.loadSelectedChannel?.(channelNumber);
+                this.requestChannelLoad(channelNumber);
             });
 
             const logoContainer = document.createElement("div");
@@ -205,7 +295,7 @@ export class ChannelUiController {
             .find((channelNumber) => channelNumber < currentChannel)
             ?? visibleChannels[visibleChannels.length - 1];
 
-        window.loadSelectedChannel?.(previousChannel);
+        this.requestChannelLoad(previousChannel);
         app.channelArrowNavigationTracker--;
     }
 
@@ -226,8 +316,12 @@ export class ChannelUiController {
         const nextChannel = visibleChannels.find((channelNumber) => channelNumber > currentChannel)
             ?? visibleChannels[0];
 
-        window.loadSelectedChannel?.(nextChannel);
+        this.requestChannelLoad(nextChannel);
         app.channelArrowNavigationTracker++;
+    }
+
+    requestChannelLoad(channelNumber) {
+        window.loadSelectedChannel?.(channelNumber);
     }
 
     getChannelNumber(channelName) {

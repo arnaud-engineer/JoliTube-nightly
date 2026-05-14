@@ -28,6 +28,7 @@ function bootstrapRuntime() {
     channelEngine.initialize();
     window.__JOLITUBE_CHANNEL_ENGINE__ = channelEngine;
     window.__JOLITUBE_CHANNEL_UI_CONTROLLER__ = channelUiController;
+    channelUiController.start();
 
     installLegacyCommandAdapter();
 
