@@ -131,10 +131,6 @@ function shuffleArray(array) {
                 this.userIsUpdatingTimeCode = false;
 
 
-                this.feedbackTimer = null;
-
-
-
                 this.eventsTimer = null;
 
 
@@ -160,9 +156,7 @@ function shuffleArray(array) {
 
                 this.playerFullyChargedSingleton = false;
                 this.searchSingleton = false;
-                this.feedbackTimerDuration = 2000;
                 this.videoDisplayed = false;
-                this.alertSingleton = false;
                 this.historyEditionSingleton = false;
             }
         }
@@ -257,42 +251,6 @@ function shuffleArray(array) {
 /* =========================================================================
     FUNCTIONS
    ========================================================================= */
-
-    /* -----------------------------
-        DISPLAY MESSAGES
-       ----------------------------- */
-
-        // DISPLAY AN ALERT MESSAGE ON THE TOP OF THE PLAYER
-        function displayAlert(titleAlert, descrAlert)
-        {
-            if(app.alertSingleton === false)
-            {
-                app.alertSingleton = true;
-                // Replace the text
-                document.getElementById("alertMsg").innerHTML = "<h2>" + titleAlert + "</h2><p>" + descrAlert + "</p>";
-                // Display the message element for 5 seconds
-                document.getElementById("alertMsg").style.display = "block";
-                setTimeout(() => {
-                    document.getElementById("alertMsg").style.display = "none";
-                    app.alertSingleton = false;
-                }, 10000);
-            }
-        }
-
-        function emptyPlayerDisplay()
-        {
-            document.getElementById("currentChannelNameDisplay").innerHTML = "";
-            document.getElementById("currentVideoNameDisplay").innerHTML = "";
-            disablePlayer();// TODO se heurte parfois à un timeout
-            setTimeout(() => {
-                disablePlayer();
-            }, 1000);
-        }
-
-
-
-
-
 
     /*  ----------------------------------------
          SHOW / HIDE INTERFACE
@@ -422,45 +380,6 @@ function hideVideo() {
     hideVideoTitle();
     hideCaptions();
 }
-
-
-function showFeedback(paramToDisplay, displayValue)
-{
-    app.feedbackTimer = true;
-    let possibleParameters = document.getElementById("buttonsFeedback").childNodes;
-    for(let i=0 ; i < possibleParameters.length ; i++) {
-        try {
-            if(possibleParameters[i].id !== paramToDisplay) {
-                possibleParameters[i].classList.add("hidden");
-            }
-        } catch(e) {}
-    }
-
-    document.getElementById(paramToDisplay).innerHTML = displayValue;
-
-    document.getElementById(paramToDisplay).classList.remove("hidden");
-    document.getElementById("buttonsFeedback").classList.remove("hidden");
-    document.getElementById("channelNumFeedback").classList.add("displayed");
-    document.getElementById(paramToDisplay).classList.add("displayed");
-}
-
-function hideFeedback(paramToHide)
-{
-        app.feedbackTimer = false;
-        setTimeout(() => {
-            if(app.feedbackTimer === false) {
-                document.getElementById(paramToHide).classList.remove("displayed");
-                document.getElementById("buttonsFeedback").classList.remove("displayed");
-                document.getElementById("buttonsFeedback").classList.add("hidden");
-                setTimeout(() => {
-                    if(app.feedbackTimer === false) {
-                        document.getElementById(paramToHide).classList.add("hidden");
-                    }
-                }, app.feedbackTimerDuration);
-            }
-        }, app.feedbackTimerDuration);
-}
-
 
 
 function showInterface()

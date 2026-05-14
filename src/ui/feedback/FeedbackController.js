@@ -41,6 +41,13 @@ export class FeedbackController {
             return;
         }
 
+        Array.from(container.children).forEach((child) => {
+            if (child.id !== id) {
+                child.classList.add("hidden");
+                child.classList.remove("displayed");
+            }
+        });
+
         element.innerHTML = value;
 
         container.classList.remove("hidden");
