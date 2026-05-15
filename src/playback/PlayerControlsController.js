@@ -1,5 +1,6 @@
 import { interfaceVisibilityController } from "../ui/interfaceVisibility.js";
 import { displayModeController } from "./DisplayModeController.js";
+import { PlaybackSettingsController } from "./PlaybackSettingsController.js";
 import { volumeControlsController } from "./VolumeControlsController.js";
 
 const PLAY_ICON = "rsrc/mediaPlayer/play.svg";
@@ -12,6 +13,7 @@ export class PlayerControlsController {
         navigationProvider = () => window.JoliTubeNavigation,
         interfaceVisibility = interfaceVisibilityController,
         displayModeControls = displayModeController,
+        playbackSettings = null,
         volumeControls = volumeControlsController,
         loadQuality = () => window.loadQuality?.(),
         loadCaptions = () => window.loadCaptions?.(),
@@ -21,9 +23,14 @@ export class PlayerControlsController {
         this.navigationProvider = navigationProvider;
         this.interfaceVisibility = interfaceVisibility;
         this.displayModeControls = displayModeControls;
+        this.playbackSettings = playbackSettings || new PlaybackSettingsController({
+            appProvider,
+            playerProvider,
+            playbackToggle: () => this.playOrPause(),
+            loadQuality,
+            loadCaptions,
+        });
         this.volumeControls = volumeControls;
-        this.loadQualityCallback = loadQuality;
-        this.loadCaptionsCallback = loadCaptions;
         this.started = false;
     }
 
@@ -70,24 +77,24 @@ export class PlayerControlsController {
             this.playOrPause(event);
         });
 
-        this.getResolutionSelect()?.addEventListener("change", (event) => {
-            this.userChangeQuality(event);
+        this.playbackSettings.getResolutionSelect()?.addEventListener("change", (event) => {
+            this.playbackSettings.userChangeQuality(event);
         });
 
-        this.getSpeedSelect()?.addEventListener("click", () => {
-            this.userIsChoosingSpeed();
+        this.playbackSettings.getSpeedSelect()?.addEventListener("click", () => {
+            this.playbackSettings.userIsChoosingSpeed();
         });
 
-        this.getSpeedSelect()?.addEventListener("change", (event) => {
-            this.userChangeSpeed(event);
+        this.playbackSettings.getSpeedSelect()?.addEventListener("change", (event) => {
+            this.playbackSettings.userChangeSpeed(event);
         });
 
-        this.getSubtitlesSelect()?.addEventListener("click", () => {
-            this.userIsChoosingCaptions();
+        this.playbackSettings.getSubtitlesSelect()?.addEventListener("click", () => {
+            this.playbackSettings.userIsChoosingCaptions();
         });
 
-        this.getSubtitlesSelect()?.addEventListener("change", (event) => {
-            this.userChangeCaptions(event);
+        this.playbackSettings.getSubtitlesSelect()?.addEventListener("change", (event) => {
+            this.playbackSettings.userChangeCaptions(event);
         });
 
         this.getMuteButton()?.addEventListener("mousedown", () => {
@@ -125,18 +132,6 @@ export class PlayerControlsController {
 
     getNextButton() {
         return document.getElementById("nextVideo");
-    }
-
-    getResolutionSelect() {
-        return document.getElementById("selectResolution");
-    }
-
-    getSpeedSelect() {
-        return document.getElementById("selectSpeed");
-    }
-
-    getSubtitlesSelect() {
-        return document.getElementById("selectSubtitles");
     }
 
     getMuteButton() {
@@ -410,103 +405,31 @@ export class PlayerControlsController {
     }
 
     userChangeQuality(event) {
-        const app = this.app;
-        const value = event?.target?.value;
-        const possibleQualities = window.possibleQualitiesValues || [];
-
-        if (!app || value === undefined) {
-            return;
-        }
-
-        if (possibleQualities.indexOf(value) >= 1) {
-            app.userSelectedMaxRes = value;
-            app.priorityToMaxRes = false;
-        }
-        else if (possibleQualities.indexOf(value) === 0) {
-            app.userSelectedMaxRes = value;
-            app.priorityToMaxRes = true;
-        }
-
-        app.currentQuality = value;
-        this.loadQualityCallback();
+        this.playbackSettings.userChangeQuality(event);
     }
 
     nextSpeed(event) {
-        event?.stopPropagation?.();
-        this.userIsChoosingSpeed();
-
-        const possibleSpeedValues = [0.25, 0.5, 1, 1.5, 2];
-        let nextValueIndex = possibleSpeedValues.indexOf(this.app?.speed) + 1;
-
-        if (nextValueIndex >= possibleSpeedValues.length) {
-            nextValueIndex = 0;
-        }
-
-        const nextValue = possibleSpeedValues[nextValueIndex];
-
-        try {
-            this.player.setPlaybackRate(nextValue);
-            this.app.speed = nextValue;
-            this.getSpeedSelect().value = this.app.speed;
-        } catch(e) {}
-
-        this.userIsNotChoosingSpeed();
+        this.playbackSettings.nextSpeed(event);
     }
 
     userChangeSpeed(event) {
-        event?.stopPropagation?.();
-        this.userIsChoosingSpeed();
-
-        try {
-            const value = Number.parseFloat(event?.target?.value);
-            this.player.setPlaybackRate(value);
-            this.app.speed = value;
-            this.getSpeedSelect().value = this.app.speed;
-        } catch(e) {}
-
-        this.userIsNotChoosingSpeed();
-        this.playOrPause();
-        this.playOrPause();
+        this.playbackSettings.userChangeSpeed(event);
     }
 
     userIsChoosingSpeed() {
-        if (!this.app) {
-            return;
-        }
-
-        this.app.userNotChoosingSpeed = false;
-        this.app.inputForbidden = true;
+        this.playbackSettings.userIsChoosingSpeed();
     }
 
     userIsNotChoosingSpeed() {
-        if (!this.app) {
-            return;
-        }
-
-        this.app.userNotChoosingSpeed = true;
-        this.app.inputForbidden = false;
+        this.playbackSettings.userIsNotChoosingSpeed();
     }
 
     userChangeCaptions(event) {
-        const app = this.app;
-        const selectSubtitles = event?.target;
-        const currentOption = selectSubtitles?.selectedOptions?.[0];
-
-        if (!app || !currentOption) {
-            return;
-        }
-
-        app.subtitlesManuallySelected = true;
-        app.currentSubtitlesLanguage = currentOption.value;
-        app.subtitlesOn = app.currentSubtitlesLanguage !== "off";
-        this.loadCaptionsCallback();
-        app.userNotChoosingSubtitles = true;
+        this.playbackSettings.userChangeCaptions(event);
     }
 
     userIsChoosingCaptions() {
-        if (this.app) {
-            this.app.userNotChoosingSubtitles = false;
-        }
+        this.playbackSettings.userIsChoosingCaptions();
     }
 }
 

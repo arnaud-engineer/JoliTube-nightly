@@ -5,6 +5,7 @@ import { channelUiController } from "../channels/ChannelUiController.js";
 import { alertController } from "../ui/alerts/AlertController.js";
 import { feedbackController } from "../ui/feedback/FeedbackController.js";
 import { displayModeController } from "../playback/DisplayModeController.js";
+import { playbackSettingsController } from "../playback/PlaybackSettingsController.js";
 import { playerControlsController } from "../playback/PlayerControlsController.js";
 import { volumeControlsController } from "../playback/VolumeControlsController.js";
 
@@ -253,8 +254,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → PlayerControlsController.nextSpeed");
-        playerControlsController.nextSpeed();
+        logger.debug("Command → PlaybackSettingsController.nextSpeed");
+        playbackSettingsController.nextSpeed();
     });
 
     eventBus.on("input:escape", (payload) => {
