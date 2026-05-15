@@ -199,39 +199,19 @@ function shuffleArray(array) {
 
 
         function userTimeCodeSingleton() {
-            userIsUpdatingTimeCode = true;
+            getPlayerControlsController()?.userTimeCodeSingleton();
         }
 
         function userChangesTimeCode() {
-            try {
-                if(event.target.value >= 0) {
-                    let newTimeCode = Math.round(event.target.value / 100);
-                    player.seekTo(newTimeCode, true);
-                }
-            } catch(e) {}
-            userIsUpdatingTimeCode = false;
+            getPlayerControlsController()?.userChangesTimeCode(getCurrentDomEvent());
         }
 
         function forwardInVideo() {
-            try {
-                if(player.getCurrentTime() >= 0) {
-                    let newTimeCode = Math.round(player.getCurrentTime() + 5);
-                    player.seekTo(newTimeCode, true);
-                }
-            } catch(e) {}
-            userIsUpdatingTimeCode = false;
-            getInterfaceVisibilityController()?.show();
+            getPlayerControlsController()?.forwardInVideo();
         }
 
         function backwardInVideo() {
-            try {
-                if(player.getCurrentTime() >= 0) {
-                    let newTimeCode = Math.round(player.getCurrentTime() - 5);
-                    player.seekTo(newTimeCode, true);
-                }
-            } catch(e) {}
-            userIsUpdatingTimeCode = false;
-            getInterfaceVisibilityController()?.show();
+            getPlayerControlsController()?.backwardInVideo();
         }
 
 /* =========================================================================
@@ -283,6 +263,16 @@ function getChannelUiController() {
 
 function getInterfaceVisibilityController() {
     return window.JoliTubeRuntime?.interfaceVisibilityController;
+}
+
+function getPlayerControlsController() {
+    return window.JoliTubeRuntime?.playerControlsController;
+}
+
+function getCurrentDomEvent() {
+    return typeof event !== "undefined"
+        ? event
+        : undefined;
 }
 
 function getSafePlayerPlaylist() {
@@ -395,41 +385,17 @@ function hideVideo() {
         ---------------------------------------- */
 
         function switchFullscreenMode() {
-            if(app.fullscreenStatus === false) { goFullScreen(); }
-            else                               { endFullScreen(); }
-            playOrPause();
+            getPlayerControlsController()?.switchFullscreenMode();
         }
 
         function goFullScreen()
         {
-            if(app.fullscreenStatus === false) {
-                app.fullscreenStatus = true;
-                document.getElementById("fullscreen").setAttribute("display", "none");
-                // Go fullscreen
-                var body = document.getElementsByTagName("body")[0].requestFullscreen();
-                // Fullscreen button evolves into end fullscreen button
-                document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-off.svg");
-                document.getElementById("fullscreen").setAttribute("onmousedown", "endFullScreen();");
-                document.getElementById("fullscreen").setAttribute("display", "block");
-                updateRealTimeData();
-            }
+            getPlayerControlsController()?.goFullScreen();
         }
 
         function endFullScreen()
         {
-            if(app.fullscreenStatus === true) {
-                document.getElementById("fullscreen").setAttribute("display", "none");
-                // End fullscreen
-                document.exitFullscreen();
-                // End fullscreen button evolves into fullscreen button
-                document.getElementById("fullscreen").setAttribute("src", "rsrc/mediaPlayer/fullscreen-on.svg");
-                document.getElementById("fullscreen").setAttribute("onmousedown", "goFullScreen();");
-                document.getElementById("fullscreen").setAttribute("display", "block");
-                app.fullscreenStatus = false;
-                getInterfaceVisibilityController()?.show();
-                updateRealTimeData();
-            }
-
+            getPlayerControlsController()?.endFullScreen();
         }
 
         function togglePictureInPicture() {
@@ -447,28 +413,12 @@ function hideVideo() {
 
         function goFillMode()
         {
-            document.getElementById("fillingmode").setAttribute("display", "none");
-            app.theaterOn = false;
-            // Go fullscreen
-            document.getElementById("playerContainer").classList.add("plain");
-            // Fullscreen button evolves into end fullscreen button
-            document.getElementById("fillingmode").setAttribute("src", "rsrc/mediaPlayer/theater-mode.svg");
-            document.getElementById("fillingmode").setAttribute("onmousedown", "goTheatherMode();");
-            document.getElementById("fillingmode").setAttribute("display", "block");
-            getInterfaceVisibilityController()?.show();
+            getPlayerControlsController()?.goFillMode();
         }
 
         function goTheatherMode()
         {
-            document.getElementById("fillingmode").setAttribute("display", "none");
-            app.theaterOn = true;
-            // Go fullscreen
-            document.getElementById("playerContainer").classList.remove("plain");
-            // Fullscreen button evolves into end fullscreen button
-            document.getElementById("fillingmode").setAttribute("src", "rsrc/mediaPlayer/fill-mode.svg");
-            document.getElementById("fillingmode").setAttribute("onmousedown", "goFillMode();");
-            document.getElementById("fillingmode").setAttribute("display", "block");
-            getInterfaceVisibilityController()?.show();
+            getPlayerControlsController()?.goTheatherMode();
         }
 
 
@@ -512,13 +462,13 @@ function hideVideo() {
         // PLAY THE PREVIOUS VIDEO
 function previousVideo()
 {
-    return window.JoliTubeNavigation.previousVideo(app, player);
+    return getPlayerControlsController()?.previousVideo();
 }
 
         // PLAY THE NEXT VIDEO (NEXT IN THE BACKTOTHEFUTURE ORDER OR NEW RANDOM ONE)
 function nextVideo()
 {
-    return window.JoliTubeNavigation.nextVideo(app, player);
+    return getPlayerControlsController()?.nextVideo();
 }
 
     /* -----------------------------
@@ -529,137 +479,28 @@ function nextVideo()
         // PLAY OR PAUSE THE VIDEO DEPENDING ON THE CURRENT STATE
         function playOrPause()
         {
-            if((!app.inputForbidden)) {
-                if(app.navigationTransition === true && app.playlistReady !== true) {
-                    const kicked = window.JoliTubeNavigation?.kickNavigationTransition?.(
-                        app,
-                        player,
-                        "playback toggle during navigation transition"
-                    );
-                    console.warn("[JT] playback toggle blocked during navigation transition", {
-                        kicked,
-                        navigationTransitionReason: app.navigationTransitionReason,
-                        expected: app.navigationTransitionExpected,
-                        videoUrl: typeof player?.getVideoUrl === "function"
-                            ? player.getVideoUrl()
-                            : null,
-                    });
-                    return;
-                }
-
-                let isFromPlayPauseButton = false;
-                try {
-                    isFromPlayPauseButton = (event.originalTarget.src === document.getElementById("playVideo").src);
-                } catch(e) {}
-                if(app.cursorOnInterface === false || isFromPlayPauseButton) {
-                    if(app.playing === true) {
-                        pauseChannel();
-                    }
-                    else if(app.playing === false)  {
-                        playChannel();
-                    }
-                }
-                else { app.inputForbidden = false; }
-            }
+            getPlayerControlsController()?.playOrPause(getCurrentDomEvent());
         }
 
        function playChannel()
        {
-            try {
-                if(app.navigationTransition === true && app.playlistReady !== true) {
-                    const kicked = window.JoliTubeNavigation?.kickNavigationTransition?.(
-                        app,
-                        player,
-                        "playChannel during navigation transition"
-                    );
-                    console.warn("[JT] play blocked during navigation transition", {
-                        kicked,
-                        currentTime: typeof player?.getCurrentTime === "function"
-                            ? player.getCurrentTime()
-                            : null,
-                        navigationTransitionReason: app.navigationTransitionReason,
-                        expected: app.navigationTransitionExpected,
-                        videoUrl: typeof player?.getVideoUrl === "function"
-                            ? player.getVideoUrl()
-                            : null,
-                    });
-                    app.inputForbidden = false;
-                    return;
-                }
-
-                app.inputForbidden = true;
-                player.playVideo();
-                app.playing = true;
-                document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.svg";
-                app.inputForbidden = false;
-                getInterfaceVisibilityController()?.hideCursor();
-            } catch(e) {}
+            getPlayerControlsController()?.playChannel();
        }
 
        function pauseChannel()
        {
-            try {
-                app.inputForbidden = true;
-                player.pauseVideo();
-                app.playing = false;
-                document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.svg";
-                app.inputForbidden = false;
-                //}, 300);
-            } catch(e) {}
+            getPlayerControlsController()?.pauseChannel();
        }
 
        // UPDATE THE ICON PLAY/PAUSE OF THE CONTROL PANEL DEPENDING ON THE PLAYER STATE
        function updatePlayerState()
        {
-            //back
-            let canGoBack = Array.isArray(app.navigationHistory) && app.navigationCursor > 0;
-
-            if(!canGoBack)
-            {
-                document.getElementById("previousVideo").onclick = "";
-                document.getElementById("previousVideo").classList.add("disabled");
-            }
-            else
-            {
-                document.getElementById("previousVideo").onclick = function() { previousVideo(); };
-                document.getElementById("previousVideo").classList.remove("disabled");
-            }
-
-            // the player is ready if the function is called, so ensure the availability of the next button
-            document.getElementById("nextVideo").onclick = function() { nextVideo(); };
-            document.getElementById("nextVideo").classList.remove("disabled");
-
-            
-            try {
-                const playerState = player.getPlayerState();
-
-                if(app.navigationTransition === true && app.playlistReady !== true) {
-                    document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.svg";
-                    app.playing = false;
-                } else if(playerState === 1) {
-                    app.playing = true;
-                    document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.svg";
-                } else if(playerState === 2) {
-                    app.playing = false;
-                    document.getElementById("playVideo").src = "rsrc/mediaPlayer/play.svg";
-                }
-            } catch(e) {}
-            
-
-
-
+            getPlayerControlsController()?.updatePlayerState();
        }
 
        function disablePlayer()
        {
-            try {
-                // Back
-                document.getElementById("previousVideo").onclick = "";
-                document.getElementById("previousVideo").classList.add("disabled");
-                // Next
-                document.getElementById("nextVideo").onclick = function() { nextVideo(); };
-                document.getElementById("nextVideo").classList.remove("disabled");
-            } catch(e) {}
+            getPlayerControlsController()?.disablePlayer();
        }
 
 
@@ -671,116 +512,33 @@ function nextVideo()
 
 
         function muteOrUnmute() {
-            try {
-                if(player.isMuted() === true) {
-                    app.muteOn = false;
-                    refreshVolume();
-                } else {
-                    app.muteOn = true;
-                    refreshVolume();
-                }
-            } catch(e) {}
+            getPlayerControlsController()?.muteOrUnmute();
         }
 
         function userChangeVolume()
         {
-            try
-            {
-                if(player.isMuted() === true) {
-                    muteOrUnmute()
-                }
-                if(event.target.value >= 0) {
-                    app.volume = event.target.value;
-                    refreshVolume();
-                }
-            }
-            catch(e) {}
+            getPlayerControlsController()?.userChangeVolume(getCurrentDomEvent());
         }
 
         function increaseVolume()
         {
-            try
-            {
-                if(player.isMuted() === true) {
-                    muteOrUnmute()
-                }
-                let roundedVol = Math.ceil(10 * app.volume) / 10;
-                if(roundedVol === app.volume) {
-                    roundedVol += 10;
-                }
-                app.volume = Math.min(roundedVol, 100);
-                refreshVolume();
-            }
-            catch(e) {}
+            getPlayerControlsController()?.increaseVolume();
         }
 
         function decreaseVolume()
         {
-            try
-            {
-                if(player.isMuted() === true) {
-                    muteOrUnmute()
-                }
-                let roundedVol = Math.floor(10 * app.volume) / 10;
-                if(roundedVol === app.volume) {
-                    roundedVol -= 10;
-                }
-                app.volume = Math.max(roundedVol, 0);
-                refreshVolume();
-            }
-            catch(e) {}
+            getPlayerControlsController()?.decreaseVolume();
         }
 
         function refreshVolume() {
-            try
-            {
-                if(app.muteOn) {
-                    player.mute();
-                    document.getElementById("mute").src = "rsrc/mediaPlayer/sound-mute.svg";
-                    document.getElementById("volume").setAttribute("disabled", "");
-                    document.getElementById("volume").value = 0;
-                    document.getElementById("volumeBarContainer").classList.add("disabled");
-                }
-                else
-                {
-                    player.unMute();
-                    document.getElementById("volume").removeAttribute("disabled");
-                    document.getElementById("volumeBarContainer").classList.remove("disabled");
-                    document.getElementById("volume").value = app.volume;
-                    document.getElementById("webkitProgressFillVolume").style.width = app.volume + "%";//"calc(" + app.volume + "% * .785)";
-                    if(app.volume <= 25) {
-                        document.getElementById("mute").src = "rsrc/mediaPlayer/sound-0.svg";
-                    }
-                    else if(app.volume <= 50) {
-                        document.getElementById("mute").src = "rsrc/mediaPlayer/sound-1.svg";
-                    }
-                    else if(app.volume <= 75) {
-                        document.getElementById("mute").src = "rsrc/mediaPlayer/sound-2.svg";
-                    }
-                    else {
-                        document.getElementById("mute").src = "rsrc/mediaPlayer/sound-3.svg";
-                    }
-                }
-                player.setVolume(app.volume);
-            }
-            catch(e) {}
+            getPlayerControlsController()?.refreshVolume();
         }
 
 
 
         function userChangeQuality()
         {
-            // If the user select a quality value < MAX RES
-            if(possibleQualitiesValues.indexOf(event.target.value) >= 1) {
-                app.userSelectedMaxRes = event.target.value;
-                app.priorityToMaxRes = false;
-            }
-            else if(possibleQualitiesValues.indexOf(event.target.value) == 0) {
-                app.userSelectedMaxRes = event.target.value;
-                app.priorityToMaxRes = true;
-            }
-            app.currentQuality = event.target.value;
-            loadQuality();
+            getPlayerControlsController()?.userChangeQuality(getCurrentDomEvent());
         }
 
         function setCaptionsWidth() {
@@ -798,69 +556,23 @@ function nextVideo()
 
         function nextSpeed()
         {
-            event.stopPropagation();
-            userIsChoosingSpeed();
-
-            let possibleSpeedValues = [0.25, 0.5, 1, 1.5, 2];
-            let nextValueIndex = possibleSpeedValues.indexOf(app.speed) + 1;
-            if(nextValueIndex >= possibleSpeedValues.length) {
-                nextValueIndex = 0;
-            }
-            let nextValue = possibleSpeedValues[nextValueIndex];
-            try {
-                let options = document.getElementById("selectSpeed");
-                player.setPlaybackRate(nextValue);
-                app.speed = nextValue;
-
-                document.getElementById("selectSpeed").value = app.speed;
-            } catch(e) {}
-            userIsNotChoosingSpeed();
+            getPlayerControlsController()?.nextSpeed(getCurrentDomEvent());
         }
 
         function userChangeSpeed()
         {
-            event.stopPropagation();
-            userIsChoosingSpeed();
-            try {
-                player.setPlaybackRate(parseFloat(event.target.value));
-                app.speed = parseFloat(event.target.value);
-
-                document.getElementById("selectSpeed").value = app.speed;
-            } catch(e) {}
-            userIsNotChoosingSpeed();
-            // TODO : Quick Fix Cancer
-            playOrPause();
-            playOrPause();
+            getPlayerControlsController()?.userChangeSpeed(getCurrentDomEvent());
         }
 
-        function userIsChoosingSpeed() { app.userNotChoosingSpeed = false; app.inputForbidden = true; }
-        function userIsNotChoosingSpeed() { app.userNotChoosingSpeed = true; app.inputForbidden = false; }
+        function userIsChoosingSpeed() { getPlayerControlsController()?.userIsChoosingSpeed(); }
+        function userIsNotChoosingSpeed() { getPlayerControlsController()?.userIsNotChoosingSpeed(); }
 
         function userChangeCaptions()
         {
-            app.subtitlesManuallySelected = true;
-
-            let selectSubtitles = event.target;
-            let currentOption = selectSubtitles.selectedOptions[0];
-            let currentOptionLenght = currentOption.firstChild.length;
-            let currentOptionWidthVariable = currentOptionLenght * .8;
-            let currentOptionWidthFix = 3;
-
-
-            app.currentSubtitlesLanguage = currentOption.value;
-
-            if(app.currentSubtitlesLanguage === "off") {
-                app.subtitlesOn = false;
-            } else {
-                app.subtitlesOn = true;
-            }
-
-            loadCaptions();
-
-            app.userNotChoosingSubtitles = true;
+            getPlayerControlsController()?.userChangeCaptions(getCurrentDomEvent());
         }
 
-        function userIsChoosingCaptions() { app.userNotChoosingSubtitles = false; }
+        function userIsChoosingCaptions() { getPlayerControlsController()?.userIsChoosingCaptions(); }
 
 
         function loadQuality()

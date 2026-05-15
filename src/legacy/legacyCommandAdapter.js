@@ -4,6 +4,7 @@ import { channelEngine } from "../channels/ChannelEngine.js";
 import { channelUiController } from "../channels/ChannelUiController.js";
 import { alertController } from "../ui/alerts/AlertController.js";
 import { feedbackController } from "../ui/feedback/FeedbackController.js";
+import { playerControlsController } from "../playback/PlayerControlsController.js";
 
 /*
  * Legacy command adapter.
@@ -16,53 +17,8 @@ import { feedbackController } from "../ui/feedback/FeedbackController.js";
  * To avoid loops, this adapter ignores events coming from source: "legacy".
  */
 
-function callLegacyFunction(functionName, ...args) {
-    const legacyFunction = window[functionName];
-
-    if (typeof legacyFunction !== "function") {
-        logger.warn(`Cannot execute legacy command, missing function: ${functionName}`);
-        return;
-    }
-
-    legacyFunction(...args);
-}
-
 function showAlert(title, description) {
     alertController.show(title, description);
-}
-
-function toggleLegacyPlayback() {
-    if (window.app?.playing === true) {
-        callLegacyFunction("pauseChannel");
-    } else {
-        callLegacyFunction("playChannel");
-    }
-}
-
-function toggleLegacyFullscreen() {
-    if (window.app?.fullscreenStatus === true) {
-        callLegacyFunction("endFullScreen");
-    } else {
-        callLegacyFunction("goFullScreen");
-    }
-}
-
-function toggleLegacyMute() {
-    if (!window.app) {
-        callLegacyFunction("muteOrUnmute");
-        return;
-    }
-
-    window.app.muteOn = !window.app.muteOn;
-    callLegacyFunction("refreshVolume");
-}
-
-function toggleLegacyTheaterMode() {
-    if (window.app?.theaterOn === true) {
-        callLegacyFunction("goFillMode");
-    } else {
-        callLegacyFunction("goTheatherMode");
-    }
 }
 
 function handleLegacyEscape() {
@@ -188,8 +144,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy toggle playback");
-        toggleLegacyPlayback();
+        logger.debug("Command → PlayerControlsController.playOrPause");
+        playerControlsController.playOrPause();
     });
 
     eventBus.on("input:seek-forward", (payload) => {
@@ -197,8 +153,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy forwardInVideo");
-        callLegacyFunction("forwardInVideo");
+        logger.debug("Command → PlayerControlsController.forwardInVideo");
+        playerControlsController.forwardInVideo();
     });
 
     eventBus.on("input:seek-backward", (payload) => {
@@ -206,8 +162,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy backwardInVideo");
-        callLegacyFunction("backwardInVideo");
+        logger.debug("Command → PlayerControlsController.backwardInVideo");
+        playerControlsController.backwardInVideo();
     });
 
     eventBus.on("input:toggle-fullscreen", (payload) => {
@@ -215,8 +171,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy fullscreen toggle without playback change");
-        toggleLegacyFullscreen();
+        logger.debug("Command → PlayerControlsController fullscreen toggle");
+        playerControlsController.toggleFullscreenControl();
     });
 
     eventBus.on("input:toggle-mute", (payload) => {
@@ -224,8 +180,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy mute toggle");
-        toggleLegacyMute();
+        logger.debug("Command → PlayerControlsController.muteOrUnmute");
+        playerControlsController.muteOrUnmute();
     });
 
     eventBus.on("input:volume-up", (payload) => {
@@ -233,8 +189,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy increaseVolume");
-        callLegacyFunction("increaseVolume");
+        logger.debug("Command → PlayerControlsController.increaseVolume");
+        playerControlsController.increaseVolume();
     });
 
     eventBus.on("input:volume-down", (payload) => {
@@ -242,8 +198,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy decreaseVolume");
-        callLegacyFunction("decreaseVolume");
+        logger.debug("Command → PlayerControlsController.decreaseVolume");
+        playerControlsController.decreaseVolume();
     });
 
     eventBus.on("input:channel-previous", (payload) => {
@@ -287,8 +243,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy theater/fill toggle");
-        toggleLegacyTheaterMode();
+        logger.debug("Command → PlayerControlsController theater/fill toggle");
+        playerControlsController.toggleTheaterMode();
     });
 
     eventBus.on("input:next-speed", (payload) => {
@@ -296,8 +252,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy nextSpeed");
-        callLegacyFunction("nextSpeed");
+        logger.debug("Command → PlayerControlsController.nextSpeed");
+        playerControlsController.nextSpeed();
     });
 
     eventBus.on("input:escape", (payload) => {
@@ -314,8 +270,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy nextVideo");
-        callLegacyFunction("nextVideo");
+        logger.debug("Command → PlayerControlsController.nextVideo");
+        playerControlsController.nextVideo();
     });
 
     eventBus.on("input:zap-previous", (payload) => {
@@ -323,8 +279,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → legacy previousVideo");
-        callLegacyFunction("previousVideo");
+        logger.debug("Command → PlayerControlsController.previousVideo");
+        playerControlsController.previousVideo();
     });
 
     logger.info("Legacy command adapter installed");

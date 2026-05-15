@@ -6,6 +6,7 @@ import { KeyboardController } from "../input/keyboardController.js";
 import { installLegacyCommandAdapter } from "../legacy/legacyCommandAdapter.js";
 import { debugOverlay } from "../debug/debugOverlay.js";
 import { interfaceVisibilityController } from "../ui/interfaceVisibility.js";
+import { playerControlsController } from "../playback/PlayerControlsController.js";
 
 /*
  * JoliTube runtime bootstrap.
@@ -28,6 +29,7 @@ function bootstrapRuntime() {
 
     channelEngine.initialize();
     interfaceVisibilityController.start();
+    playerControlsController.start();
     channelUiController.start();
 
     installLegacyCommandAdapter();
@@ -55,6 +57,7 @@ function bootstrapRuntime() {
         channelEngine,
         channelUiController,
         interfaceVisibilityController,
+        playerControlsController,
         eventBus,
         logger,
         debugOverlay,
