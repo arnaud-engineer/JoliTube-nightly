@@ -1,28 +1,21 @@
-import { interfaceVisibilityController } from "../ui/interfaceVisibility.js";
 import { displayModeController } from "./DisplayModeController.js";
 import { PlaybackSettingsController } from "./PlaybackSettingsController.js";
+import { transportControlsController } from "./TransportControlsController.js";
 import { volumeControlsController } from "./VolumeControlsController.js";
-
-const PLAY_ICON = "rsrc/mediaPlayer/play.svg";
-const PAUSE_ICON = "rsrc/mediaPlayer/pause.svg";
 
 export class PlayerControlsController {
     constructor({
         appProvider = () => window.app,
         playerProvider = () => window.player,
-        navigationProvider = () => window.JoliTubeNavigation,
-        interfaceVisibility = interfaceVisibilityController,
         displayModeControls = displayModeController,
         playbackSettings = null,
+        transportControls = transportControlsController,
         volumeControls = volumeControlsController,
         loadQuality = () => window.loadQuality?.(),
         loadCaptions = () => window.loadCaptions?.(),
     } = {}) {
-        this.appProvider = appProvider;
-        this.playerProvider = playerProvider;
-        this.navigationProvider = navigationProvider;
-        this.interfaceVisibility = interfaceVisibility;
         this.displayModeControls = displayModeControls;
+        this.transportControls = transportControls;
         this.playbackSettings = playbackSettings || new PlaybackSettingsController({
             appProvider,
             playerProvider,
@@ -32,18 +25,6 @@ export class PlayerControlsController {
         });
         this.volumeControls = volumeControls;
         this.started = false;
-    }
-
-    get app() {
-        return this.appProvider();
-    }
-
-    get player() {
-        return this.playerProvider();
-    }
-
-    get navigation() {
-        return this.navigationProvider();
     }
 
     start() {
@@ -56,25 +37,25 @@ export class PlayerControlsController {
     }
 
     bindDomEvents() {
-        this.getBackgroundPlexiglass()?.addEventListener("click", (event) => {
-            this.playOrPause(event);
+        this.transportControls.getBackgroundPlexiglass()?.addEventListener("click", (event) => {
+            this.transportControls.playOrPause(event);
         });
 
-        this.getBackgroundPlexiglass()?.addEventListener("dblclick", () => {
-            this.switchFullscreenMode();
-            this.playOrPause();
+        this.transportControls.getBackgroundPlexiglass()?.addEventListener("dblclick", () => {
+            this.transportControls.switchFullscreenMode();
+            this.transportControls.playOrPause();
         });
 
-        this.getProgressionBar()?.addEventListener("input", (event) => {
-            this.userChangesTimeCode(event);
+        this.transportControls.getProgressionBar()?.addEventListener("input", (event) => {
+            this.transportControls.userChangesTimeCode(event);
         });
 
-        this.getProgressionBar()?.addEventListener("click", () => {
-            this.userTimeCodeSingleton();
+        this.transportControls.getProgressionBar()?.addEventListener("click", () => {
+            this.transportControls.userTimeCodeSingleton();
         });
 
-        this.getPlayButton()?.addEventListener("click", (event) => {
-            this.playOrPause(event);
+        this.transportControls.getPlayButton()?.addEventListener("click", (event) => {
+            this.transportControls.playOrPause(event);
         });
 
         this.playbackSettings.getResolutionSelect()?.addEventListener("change", (event) => {
@@ -114,26 +95,6 @@ export class PlayerControlsController {
         });
     }
 
-    getBackgroundPlexiglass() {
-        return document.getElementById("backgroundPlexiglass");
-    }
-
-    getProgressionBar() {
-        return document.getElementById("progressionBar");
-    }
-
-    getPlayButton() {
-        return document.getElementById("playVideo");
-    }
-
-    getPreviousButton() {
-        return document.getElementById("previousVideo");
-    }
-
-    getNextButton() {
-        return document.getElementById("nextVideo");
-    }
-
     getMuteButton() {
         return document.getElementById("mute");
     }
@@ -151,54 +112,27 @@ export class PlayerControlsController {
     }
 
     userTimeCodeSingleton() {
-        if (this.app) {
-            this.app.userIsUpdatingTimeCode = true;
-        }
+        this.transportControls.userTimeCodeSingleton();
     }
 
     userChangesTimeCode(event) {
-        const app = this.app;
-        const player = this.player;
-        const value = Number(event?.target?.value);
-
-        try {
-            if (player && value >= 0) {
-                player.seekTo(Math.round(value / 100), true);
-            }
-        } catch(e) {}
-
-        if (app) {
-            app.userIsUpdatingTimeCode = false;
-        }
+        this.transportControls.userChangesTimeCode(event);
     }
 
     seekBy(seconds) {
-        const player = this.player;
-
-        try {
-            if (player?.getCurrentTime() >= 0) {
-                player.seekTo(Math.round(player.getCurrentTime() + seconds), true);
-            }
-        } catch(e) {}
-
-        if (this.app) {
-            this.app.userIsUpdatingTimeCode = false;
-        }
-
-        this.interfaceVisibility.show();
+        this.transportControls.seekBy(seconds);
     }
 
     forwardInVideo() {
-        this.seekBy(5);
+        this.transportControls.forwardInVideo();
     }
 
     backwardInVideo() {
-        this.seekBy(-5);
+        this.transportControls.backwardInVideo();
     }
 
     switchFullscreenMode() {
-        this.displayModeControls.toggleFullscreenControl();
-        this.playOrPause();
+        this.transportControls.switchFullscreenMode();
     }
 
     toggleFullscreenControl() {
@@ -230,158 +164,31 @@ export class PlayerControlsController {
     }
 
     previousVideo() {
-        return this.navigation?.previousVideo?.(this.app, this.player);
+        return this.transportControls.previousVideo();
     }
 
     nextVideo() {
-        return this.navigation?.nextVideo?.(this.app, this.player);
+        return this.transportControls.nextVideo();
     }
 
     playOrPause(event) {
-        const app = this.app;
-
-        if (!app || app.inputForbidden) {
-            return;
-        }
-
-        if (app.navigationTransition === true && app.playlistReady !== true) {
-            const kicked = this.navigation?.kickNavigationTransition?.(
-                app,
-                this.player,
-                "playback toggle during navigation transition"
-            );
-            console.warn("[JT] playback toggle blocked during navigation transition", {
-                kicked,
-                navigationTransitionReason: app.navigationTransitionReason,
-                expected: app.navigationTransitionExpected,
-                videoUrl: typeof this.player?.getVideoUrl === "function"
-                    ? this.player.getVideoUrl()
-                    : null,
-            });
-            return;
-        }
-
-        const playButton = this.getPlayButton();
-        const eventTarget = event?.target || event?.originalTarget;
-        const isFromPlayPauseButton = Boolean(
-            playButton
-            && eventTarget
-            && (
-                eventTarget === playButton
-                || eventTarget.src === playButton.src
-            )
-        );
-
-        if (app.cursorOnInterface === false || isFromPlayPauseButton) {
-            if (app.playing === true) {
-                this.pauseChannel();
-            }
-            else if (app.playing === false) {
-                this.playChannel();
-            }
-        }
-        else {
-            app.inputForbidden = false;
-        }
+        return this.transportControls.playOrPause(event);
     }
 
     playChannel() {
-        const app = this.app;
-        const player = this.player;
-
-        try {
-            if (app?.navigationTransition === true && app.playlistReady !== true) {
-                const kicked = this.navigation?.kickNavigationTransition?.(
-                    app,
-                    player,
-                    "playChannel during navigation transition"
-                );
-                console.warn("[JT] play blocked during navigation transition", {
-                    kicked,
-                    currentTime: typeof player?.getCurrentTime === "function"
-                        ? player.getCurrentTime()
-                        : null,
-                    navigationTransitionReason: app.navigationTransitionReason,
-                    expected: app.navigationTransitionExpected,
-                    videoUrl: typeof player?.getVideoUrl === "function"
-                        ? player.getVideoUrl()
-                        : null,
-                });
-                app.inputForbidden = false;
-                return;
-            }
-
-            app.inputForbidden = true;
-            player.playVideo();
-            app.playing = true;
-            this.getPlayButton().src = PAUSE_ICON;
-            app.inputForbidden = false;
-            this.interfaceVisibility.hideCursor();
-        } catch(e) {}
+        this.transportControls.playChannel();
     }
 
     pauseChannel() {
-        const app = this.app;
-        const player = this.player;
-
-        try {
-            app.inputForbidden = true;
-            player.pauseVideo();
-            app.playing = false;
-            this.getPlayButton().src = PLAY_ICON;
-            app.inputForbidden = false;
-        } catch(e) {}
+        this.transportControls.pauseChannel();
     }
 
     updatePlayerState() {
-        const app = this.app;
-        const player = this.player;
-        const previousButton = this.getPreviousButton();
-        const nextButton = this.getNextButton();
-        const playButton = this.getPlayButton();
-
-        if (!app || !previousButton || !nextButton || !playButton) {
-            return;
-        }
-
-        const canGoBack = Array.isArray(app.navigationHistory) && app.navigationCursor > 0;
-
-        previousButton.onclick = canGoBack
-            ? () => this.previousVideo()
-            : "";
-        previousButton.classList.toggle("disabled", !canGoBack);
-
-        nextButton.onclick = () => this.nextVideo();
-        nextButton.classList.remove("disabled");
-
-        try {
-            const playerState = player.getPlayerState();
-
-            if (app.navigationTransition === true && app.playlistReady !== true) {
-                playButton.src = PLAY_ICON;
-                app.playing = false;
-            }
-            else if (playerState === 1) {
-                app.playing = true;
-                playButton.src = PAUSE_ICON;
-            }
-            else if (playerState === 2) {
-                app.playing = false;
-                playButton.src = PLAY_ICON;
-            }
-        } catch(e) {}
+        this.transportControls.updatePlayerState();
     }
 
     disablePlayer() {
-        try {
-            const previousButton = this.getPreviousButton();
-            const nextButton = this.getNextButton();
-
-            previousButton.onclick = "";
-            previousButton.classList.add("disabled");
-            nextButton.onclick = () => this.nextVideo();
-            nextButton.classList.remove("disabled");
-        } catch(e) {}
+        this.transportControls.disablePlayer();
     }
 
     muteOrUnmute() {
