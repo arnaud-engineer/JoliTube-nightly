@@ -4,7 +4,9 @@ import { channelEngine } from "../channels/ChannelEngine.js";
 import { channelUiController } from "../channels/ChannelUiController.js";
 import { alertController } from "../ui/alerts/AlertController.js";
 import { feedbackController } from "../ui/feedback/FeedbackController.js";
+import { displayModeController } from "../playback/DisplayModeController.js";
 import { playerControlsController } from "../playback/PlayerControlsController.js";
+import { volumeControlsController } from "../playback/VolumeControlsController.js";
 
 /*
  * Legacy command adapter.
@@ -170,8 +172,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → PlayerControlsController fullscreen toggle");
-        playerControlsController.toggleFullscreenControl();
+        logger.debug("Command → DisplayModeController fullscreen toggle");
+        displayModeController.toggleFullscreenControl();
     });
 
     eventBus.on("input:toggle-mute", (payload) => {
@@ -179,8 +181,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → PlayerControlsController.muteOrUnmute");
-        playerControlsController.muteOrUnmute();
+        logger.debug("Command → VolumeControlsController.muteOrUnmute");
+        volumeControlsController.muteOrUnmute();
     });
 
     eventBus.on("input:volume-up", (payload) => {
@@ -188,8 +190,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → PlayerControlsController.increaseVolume");
-        playerControlsController.increaseVolume();
+        logger.debug("Command → VolumeControlsController.increaseVolume");
+        volumeControlsController.increaseVolume();
     });
 
     eventBus.on("input:volume-down", (payload) => {
@@ -197,8 +199,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → PlayerControlsController.decreaseVolume");
-        playerControlsController.decreaseVolume();
+        logger.debug("Command → VolumeControlsController.decreaseVolume");
+        volumeControlsController.decreaseVolume();
     });
 
     eventBus.on("input:channel-previous", (payload) => {
@@ -242,8 +244,8 @@ export function installLegacyCommandAdapter() {
             return;
         }
 
-        logger.debug("Command → PlayerControlsController theater/fill toggle");
-        playerControlsController.toggleTheaterMode();
+        logger.debug("Command → DisplayModeController theater/fill toggle");
+        displayModeController.toggleTheaterMode();
     });
 
     eventBus.on("input:next-speed", (payload) => {

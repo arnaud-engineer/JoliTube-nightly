@@ -1,18 +1,9 @@
 import { interfaceVisibilityController } from "../ui/interfaceVisibility.js";
+import { displayModeController } from "./DisplayModeController.js";
+import { volumeControlsController } from "./VolumeControlsController.js";
 
 const PLAY_ICON = "rsrc/mediaPlayer/play.svg";
 const PAUSE_ICON = "rsrc/mediaPlayer/pause.svg";
-const FULLSCREEN_ON_ICON = "rsrc/mediaPlayer/fullscreen-on.svg";
-const FULLSCREEN_OFF_ICON = "rsrc/mediaPlayer/fullscreen-off.svg";
-const THEATER_ICON = "rsrc/mediaPlayer/theater-mode.svg";
-const FILL_ICON = "rsrc/mediaPlayer/fill-mode.svg";
-const MUTE_ICON = "rsrc/mediaPlayer/sound-mute.svg";
-const SOUND_ICONS = [
-    { max: 25, src: "rsrc/mediaPlayer/sound-0.svg" },
-    { max: 50, src: "rsrc/mediaPlayer/sound-1.svg" },
-    { max: 75, src: "rsrc/mediaPlayer/sound-2.svg" },
-    { max: 100, src: "rsrc/mediaPlayer/sound-3.svg" },
-];
 
 export class PlayerControlsController {
     constructor({
@@ -20,7 +11,8 @@ export class PlayerControlsController {
         playerProvider = () => window.player,
         navigationProvider = () => window.JoliTubeNavigation,
         interfaceVisibility = interfaceVisibilityController,
-        updateRealTimeData = () => window.updateRealTimeData?.(),
+        displayModeControls = displayModeController,
+        volumeControls = volumeControlsController,
         loadQuality = () => window.loadQuality?.(),
         loadCaptions = () => window.loadCaptions?.(),
     } = {}) {
@@ -28,7 +20,8 @@ export class PlayerControlsController {
         this.playerProvider = playerProvider;
         this.navigationProvider = navigationProvider;
         this.interfaceVisibility = interfaceVisibility;
-        this.updateRealTimeDataCallback = updateRealTimeData;
+        this.displayModeControls = displayModeControls;
+        this.volumeControls = volumeControls;
         this.loadQualityCallback = loadQuality;
         this.loadCaptionsCallback = loadCaptions;
         this.started = false;
@@ -98,19 +91,19 @@ export class PlayerControlsController {
         });
 
         this.getMuteButton()?.addEventListener("mousedown", () => {
-            this.muteOrUnmute();
+            this.volumeControls.muteOrUnmute();
         });
 
         this.getVolumeInput()?.addEventListener("input", (event) => {
-            this.userChangeVolume(event);
+            this.volumeControls.userChangeVolume(event);
         });
 
         this.getFillingModeButton()?.addEventListener("mousedown", () => {
-            this.toggleTheaterMode();
+            this.displayModeControls.toggleTheaterMode();
         });
 
         this.getFullscreenButton()?.addEventListener("mousedown", () => {
-            this.toggleFullscreenControl();
+            this.displayModeControls.toggleFullscreenControl();
         });
     }
 
@@ -154,24 +147,12 @@ export class PlayerControlsController {
         return document.getElementById("volume");
     }
 
-    getVolumeBarContainer() {
-        return document.getElementById("volumeBarContainer");
-    }
-
-    getVolumeFill() {
-        return document.getElementById("webkitProgressFillVolume");
-    }
-
     getFillingModeButton() {
         return document.getElementById("fillingmode");
     }
 
     getFullscreenButton() {
         return document.getElementById("fullscreen");
-    }
-
-    getPlayerContainer() {
-        return document.getElementById("playerContainer");
     }
 
     userTimeCodeSingleton() {
@@ -221,95 +202,36 @@ export class PlayerControlsController {
     }
 
     switchFullscreenMode() {
-        this.toggleFullscreenControl();
+        this.displayModeControls.toggleFullscreenControl();
         this.playOrPause();
     }
 
     toggleFullscreenControl() {
-        if (this.app?.fullscreenStatus === false) {
-            this.goFullScreen();
-        }
-        else {
-            this.endFullScreen();
-        }
+        this.displayModeControls.toggleFullscreenControl();
     }
 
     goFullScreen() {
-        const app = this.app;
-        const button = this.getFullscreenButton();
-
-        if (!app || app.fullscreenStatus !== false || !button) {
-            return;
-        }
-
-        app.fullscreenStatus = true;
-        button.setAttribute("display", "none");
-        document.getElementsByTagName("body")[0]?.requestFullscreen?.();
-        button.setAttribute("src", FULLSCREEN_OFF_ICON);
-        button.setAttribute("display", "block");
-        this.updateRealTimeDataCallback();
+        this.displayModeControls.goFullScreen();
     }
 
     endFullScreen() {
-        const app = this.app;
-        const button = this.getFullscreenButton();
-
-        if (!app || app.fullscreenStatus !== true || !button) {
-            return;
-        }
-
-        button.setAttribute("display", "none");
-        document.exitFullscreen?.();
-        button.setAttribute("src", FULLSCREEN_ON_ICON);
-        button.setAttribute("display", "block");
-        app.fullscreenStatus = false;
-        this.interfaceVisibility.show();
-        this.updateRealTimeDataCallback();
+        this.displayModeControls.endFullScreen();
     }
 
     goFillMode() {
-        const app = this.app;
-        const button = this.getFillingModeButton();
-
-        if (!app || !button) {
-            return;
-        }
-
-        button.setAttribute("display", "none");
-        app.theaterOn = false;
-        this.getPlayerContainer()?.classList.add("plain");
-        button.setAttribute("src", THEATER_ICON);
-        button.setAttribute("display", "block");
-        this.interfaceVisibility.show();
+        this.displayModeControls.goFillMode();
     }
 
     goTheaterMode() {
-        const app = this.app;
-        const button = this.getFillingModeButton();
-
-        if (!app || !button) {
-            return;
-        }
-
-        button.setAttribute("display", "none");
-        app.theaterOn = true;
-        this.getPlayerContainer()?.classList.remove("plain");
-        button.setAttribute("src", FILL_ICON);
-        button.setAttribute("display", "block");
-        this.interfaceVisibility.show();
+        this.displayModeControls.goTheaterMode();
     }
 
     goTheatherMode() {
-        this.goTheaterMode();
+        this.displayModeControls.goTheatherMode();
     }
 
     toggleTheaterMode() {
-        if (this.app?.theaterOn === true) {
-            this.goFillMode();
-        }
-        else {
-            this.goTheaterMode();
-        }
+        this.displayModeControls.toggleTheaterMode();
     }
 
     previousVideo() {
@@ -468,91 +390,23 @@ export class PlayerControlsController {
     }
 
     muteOrUnmute() {
-        try {
-            this.app.muteOn = this.player.isMuted() !== true;
-            this.refreshVolume();
-        } catch(e) {}
+        this.volumeControls.muteOrUnmute();
     }
 
     userChangeVolume(event) {
-        try {
-            if (this.player.isMuted() === true) {
-                this.muteOrUnmute();
-            }
-
-            const value = Number(event?.target?.value);
-            if (value >= 0) {
-                this.app.volume = value;
-                this.refreshVolume();
-            }
-        } catch(e) {}
+        this.volumeControls.userChangeVolume(event);
     }
 
     increaseVolume() {
-        try {
-            if (this.player.isMuted() === true) {
-                this.muteOrUnmute();
-            }
-
-            let roundedVolume = Math.ceil(10 * this.app.volume) / 10;
-            if (roundedVolume === this.app.volume) {
-                roundedVolume += 10;
-            }
-
-            this.app.volume = Math.min(roundedVolume, 100);
-            this.refreshVolume();
-        } catch(e) {}
+        this.volumeControls.increaseVolume();
     }
 
     decreaseVolume() {
-        try {
-            if (this.player.isMuted() === true) {
-                this.muteOrUnmute();
-            }
-
-            let roundedVolume = Math.floor(10 * this.app.volume) / 10;
-            if (roundedVolume === this.app.volume) {
-                roundedVolume -= 10;
-            }
-
-            this.app.volume = Math.max(roundedVolume, 0);
-            this.refreshVolume();
-        } catch(e) {}
+        this.volumeControls.decreaseVolume();
     }
 
     refreshVolume() {
-        const app = this.app;
-        const player = this.player;
-        const muteButton = this.getMuteButton();
-        const volumeInput = this.getVolumeInput();
-        const volumeContainer = this.getVolumeBarContainer();
-        const volumeFill = this.getVolumeFill();
-
-        try {
-            if (!app || !player || !muteButton || !volumeInput || !volumeContainer || !volumeFill) {
-                return;
-            }
-
-            if (app.muteOn) {
-                player.mute();
-                muteButton.src = MUTE_ICON;
-                volumeInput.setAttribute("disabled", "");
-                volumeInput.value = 0;
-                volumeContainer.classList.add("disabled");
-            }
-            else {
-                player.unMute();
-                volumeInput.removeAttribute("disabled");
-                volumeContainer.classList.remove("disabled");
-                volumeInput.value = app.volume;
-                volumeFill.style.width = `${app.volume}%`;
-
-                const icon = SOUND_ICONS.find(({ max }) => app.volume <= max) || SOUND_ICONS[SOUND_ICONS.length - 1];
-                muteButton.src = icon.src;
-            }
-
-            player.setVolume(app.volume);
-        } catch(e) {}
+        this.volumeControls.refreshVolume();
     }
 
     userChangeQuality(event) {
