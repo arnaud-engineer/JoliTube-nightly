@@ -1,5 +1,6 @@
 import { channelEngine } from "./ChannelEngine.js";
 import { interfaceVisibilityController } from "../ui/interfaceVisibility.js";
+import { playerControlsController } from "../playback/PlayerControlsController.js";
 
 /*
  * ChannelUiController
@@ -13,12 +14,14 @@ export class ChannelUiController {
     constructor({
         engine = channelEngine,
         interfaceVisibility = interfaceVisibilityController,
+        playerControls = playerControlsController,
         appProvider = () => window.app,
         playerProvider = () => window.player,
         curatorListProvider = () => window.curratorsList,
     } = {}) {
         this.engine = engine;
         this.interfaceVisibility = interfaceVisibility;
+        this.playerControls = playerControls;
         this.appProvider = appProvider;
         this.playerProvider = playerProvider;
         this.curatorListProvider = curatorListProvider;
@@ -474,7 +477,7 @@ export class ChannelUiController {
         window.hideVideo?.();
         this.hideChannelData();
         this.updateChannelData();
-        window.disablePlayer?.();
+        this.playerControls.disablePlayer();
         this.interfaceVisibility.show();
 
         app.playerFullyChargedSingleton = false;

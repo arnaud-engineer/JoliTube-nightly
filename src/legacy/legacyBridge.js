@@ -10,28 +10,9 @@ import { logger } from "../core/logger.js";
  * Important rule:
  * this bridge must preserve legacy behavior.
  *
- * It observes and wraps selected global functions, emits explicit runtime
- * events, then delegates to the original implementation.
+ * It exposes shared runtime services to the older non-module script while the
+ * remaining legacy pieces are moved into modules.
  */
-
-function wrapGlobalFunction(functionName, eventName) {
-    const originalFunction = window[functionName];
-
-    if (typeof originalFunction !== "function") {
-        logger.warn(`Legacy function not found: ${functionName}`);
-        return;
-    }
-
-    window[functionName] = function wrappedLegacyFunction(...args) {
-        eventBus.emit(eventName, {
-            source: "legacy",
-            functionName,
-            args,
-        });
-
-        return originalFunction.apply(this, args);
-    };
-}
 
 function installLegacyBridge() {
     if (window.__JOLITUBE_LEGACY_BRIDGE_INSTALLED__) {
@@ -45,10 +26,6 @@ function installLegacyBridge() {
         eventBus,
         logger,
     };
-
-    wrapGlobalFunction("playOrPause", "player:toggle-requested");
-    wrapGlobalFunction("nextVideo", "input:zap-next");
-    wrapGlobalFunction("previousVideo", "input:zap-previous");
 
     eventBus.on("ui:show-requested", () => {
         logger.debug("ui:show-requested");

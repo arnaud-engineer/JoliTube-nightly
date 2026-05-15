@@ -12,9 +12,8 @@ import { playerControlsController } from "../playback/PlayerControlsController.j
  * This adapter lets the new modular runtime command the legacy app
  * without duplicating legacy implementation details.
  *
- * Important:
- * The legacy bridge also emits events when legacy functions are called.
- * To avoid loops, this adapter ignores events coming from source: "legacy".
+ * Events marked source: "legacy" are ignored defensively for compatibility
+ * with older bridges that may still emit mirrored commands.
  */
 
 function showAlert(title, description) {

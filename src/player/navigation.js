@@ -1,4 +1,5 @@
 import { channelEngine } from "../channels/ChannelEngine.js";
+import { playerControlsController } from "../playback/PlayerControlsController.js";
 
 // JoliTube player navigation helpers.
 //
@@ -738,27 +739,22 @@ function getChannelFromNumber(channelNumber)
     return channelEngine.getChannelByNumber(channelNumber);
 }
 
-function refreshLegacyPlaybackControls(reason = "history sync")
+function refreshPlaybackControls(reason = "history sync")
 {
-    if(typeof window.updatePlayerState !== "function")
-    {
-        return;
-    }
-
     try
     {
-        window.updatePlayerState();
+        playerControlsController.updatePlayerState();
     }
     catch(e)
     {
-        console.warn("[JT][Navigation] legacy playback controls refresh failed", {
+        console.warn("[JT][Navigation] playback controls refresh failed", {
             reason,
             error: e,
         });
     }
 }
 
-function syncLegacyAlreadyPlayedForControls(app)
+function syncAlreadyPlayedForControls(app)
 {
     if(!app)
     {
@@ -767,16 +763,13 @@ function syncLegacyAlreadyPlayedForControls(app)
 
     ensureNavigationHistory(app);
 
-    // Legacy script.js still enables/disables the previous button from
-    // app.alreadyPlayed.length. Until that UI logic is extracted too, mirror the
-    // current channel navigation history enough to keep the control state coherent.
     app.alreadyPlayed = app.navigationHistory
         .slice(0, app.navigationCursor + 1)
         .map(function(entry) {
             return entry.playlistIndex;
         });
 
-    refreshLegacyPlaybackControls("alreadyPlayed sync");
+    refreshPlaybackControls("alreadyPlayed sync");
 }
 
 function resetCurrentNavigationHistory(app, reason = "manual")
@@ -789,7 +782,7 @@ function resetCurrentNavigationHistory(app, reason = "manual")
     app.navigationHistory = [];
     app.navigationCursor = -1;
     app.navigationAbortedHistoryTransitionRecovery = null;
-    syncLegacyAlreadyPlayedForControls(app);
+    syncAlreadyPlayedForControls(app);
 
     console.log("[JT][History] current navigation history reset", {
         reason,
@@ -821,7 +814,7 @@ function pruneForwardHistoryFromCursor(app, reason = "manual")
     }
 
     app.navigationHistory = app.navigationHistory.slice(0, app.navigationCursor + 1);
-    syncLegacyAlreadyPlayedForControls(app);
+    syncAlreadyPlayedForControls(app);
 
     console.log("[JT][History] forward history pruned", {
         reason,
@@ -912,7 +905,7 @@ function pushHistoryEntry(app, entry, reason = "manual")
             reason,
         };
 
-        syncLegacyAlreadyPlayedForControls(app);
+        syncAlreadyPlayedForControls(app);
 
         console.log("[JT][History] push deduped current entry", {
             reason,
@@ -950,7 +943,7 @@ function pushHistoryEntry(app, entry, reason = "manual")
         app.videoHistory.unshift(entry.videoId);
     }
 
-    syncLegacyAlreadyPlayedForControls(app);
+    syncAlreadyPlayedForControls(app);
 
     console.log("[JT][History] push", {
         reason,
@@ -990,7 +983,7 @@ function replaceCurrentHistoryEntry(app, entry, reason = "manual")
         app.videoHistory.unshift(entry.videoId);
     }
 
-    syncLegacyAlreadyPlayedForControls(app);
+    syncAlreadyPlayedForControls(app);
 
     console.log("[JT][History] replaced current entry", {
         reason,
@@ -1580,7 +1573,7 @@ function handleHistoryEntryPlayerError(app, player, expected, errorCode, reason)
                 skipHistoryRecovery: true,
             }
         );
-        syncLegacyAlreadyPlayedForControls(app);
+        syncAlreadyPlayedForControls(app);
         return true;
     }
 
@@ -1601,7 +1594,7 @@ function handleHistoryEntryPlayerError(app, player, expected, errorCode, reason)
         failedHistoryEntry: failedEntry,
     };
 
-    syncLegacyAlreadyPlayedForControls(app);
+    syncAlreadyPlayedForControls(app);
     setPlaylistReady(app, false, reason + " / restoring after failed history entry");
 
     console.warn("[JT][History] failed history entry removed; restoring nearest entry", {
@@ -2375,7 +2368,7 @@ function nextVideo(app, player)
         }
 
         app.navigationCursor++;
-        syncLegacyAlreadyPlayedForControls(app);
+        syncAlreadyPlayedForControls(app);
         loadHistoryEntry(app, player, forwardEntry, "nextVideo / forward history");
         console.groupEnd();
         return;
@@ -2421,7 +2414,7 @@ function previousVideo(app, player)
     if(!entryBelongsToActiveChannel(app, previousEntry))
     {
         app.navigationCursor++;
-        syncLegacyAlreadyPlayedForControls(app);
+        syncAlreadyPlayedForControls(app);
 
         console.warn("[JT][Navigation] previous blocked: entry belongs to another channel", {
             navigationCursor: app.navigationCursor,
@@ -2438,7 +2431,7 @@ function previousVideo(app, player)
         previousEntry,
     });
 
-    syncLegacyAlreadyPlayedForControls(app);
+    syncAlreadyPlayedForControls(app);
     loadHistoryEntry(app, player, previousEntry, "previousVideo");
 
     console.groupEnd();
