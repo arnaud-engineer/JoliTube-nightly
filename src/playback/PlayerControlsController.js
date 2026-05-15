@@ -2,6 +2,7 @@ import { displayModeController } from "./DisplayModeController.js";
 import { PlaybackSettingsController } from "./PlaybackSettingsController.js";
 import { transportControlsController } from "./TransportControlsController.js";
 import { volumeControlsController } from "./VolumeControlsController.js";
+import { youTubeSettingsLoader } from "./YouTubeSettingsLoader.js";
 
 export class PlayerControlsController {
     constructor({
@@ -11,8 +12,8 @@ export class PlayerControlsController {
         playbackSettings = null,
         transportControls = transportControlsController,
         volumeControls = volumeControlsController,
-        loadQuality = () => window.loadQuality?.(),
-        loadCaptions = () => window.loadCaptions?.(),
+        loadQuality = () => youTubeSettingsLoader.loadQuality(),
+        loadCaptions = () => youTubeSettingsLoader.loadCaptions(),
     } = {}) {
         this.displayModeControls = displayModeControls;
         this.transportControls = transportControls;

@@ -164,36 +164,6 @@ function shuffleArray(array) {
         var app = new AppPreferences();
 
 
-        function updateLanguagesRanks(cLang) {
-            for(let i=0 ; i < app.subtitlesPrefList.length ; i++) {
-                //console.log(cLang + " : " + app.subtitlesPrefMatrice[cLang][i] + " -- VS -- " + i + " : " + app.subtitlesPrefMatrice[i][cLang]);
-                if(app.subtitlesPrefMatrice[cLang][i] > app.subtitlesPrefMatrice[i][cLang]) {
-                    if (cLang > i) {
-                        app.subtitlesPrefList.splice(i, 0, app.subtitlesPrefList.splice(cLang, 1)[0]);
-                        app.subtitlesPrefMatrice.splice(i, 0, app.subtitlesPrefMatrice.splice(cLang, 1)[0]);
-                    }
-                }
-            }
-        }
-
-
-        function updateLanguagesStats(cLang, availableTracks)
-        {
-            for(let i=0 ; i < app.subtitlesPrefMatrice[cLang].length ; i++) {
-                for(let j=0 ; j < availableTracks.length ; j++) {
-                    if(app.subtitlesPrefList[i] === availableTracks[j].languageCode) {
-                        app.subtitlesPrefMatrice[cLang][i]++;
-                    }
-                }
-                if(app.subtitlesPrefList[i] === "off") {
-                    app.subtitlesPrefMatrice[cLang][app.subtitlesPrefList.indexOf("off")]++;
-                } 
-
-            }
-            updateLanguagesRanks(cLang);
-            //console.log(app.subtitlesPrefList);
-            //console.log(app.subtitlesPrefMatrice);
-        }
 /* =========================================================================
     GLOBAL VARIABLES
    ========================================================================= */
@@ -247,6 +217,10 @@ function getInterfaceVisibilityController() {
 
 function getPlayerControlsController() {
     return window.JoliTubeRuntime?.playerControlsController;
+}
+
+function getYouTubeSettingsLoader() {
+    return window.JoliTubeRuntime?.youTubeSettingsLoader;
 }
 
 function getSafePlayerPlaylist() {
@@ -350,180 +324,8 @@ function hideVideo() {
     document.getElementById("playerContainer").classList.add("hidden");
     app.nextVideoInitAttemptPassed = false;
     hideVideoTitle();
-    hideCaptions();
+    getYouTubeSettingsLoader()?.hideCaptions();
 }
-
-        function setCaptionsWidth() {
-            let selectSubtitles = event.target;
-            let currentOption = selectSubtitles.selectedOptions[0];
-            let currentOptionLenght = currentOption.firstChild.length;
-            let currentOptionWidthVariable = currentOptionLenght * .8;
-            let currentOptionWidthFix = 3;
-            selectSubtitles.style.width = "calc(" + currentOptionWidthVariable + " * var(--h2FontSize) + " + currentOptionWidthFix + " * var(--h4FontSize))";
-        }
-
-        function setManualCaptionsWidth(currentOptionWidthVariable, currentOptionWidthFix) {
-            selectSubtitles.style.width = "calc(" + currentOptionWidthVariable + " * var(--h2FontSize) + " + currentOptionWidthFix + " * var(--h4FontSize))";
-        }   
-
-        function loadQuality()
-        {
-            var whileVideoQualitiesNotFullyCharged = setInterval(function()
-            {
-                try {
-                    app.availablesQualities = player.getAvailableQualityLevels();
-
-                    if(app.availablesQualities.length > 0) {
-                        if(app.currentQuality == null) {
-                            app.currentQuality = player.getPlaybackQuality();
-                        }
-
-                        if((!app.availablesQualities.includes(app.currentQuality)) || app.priorityToMaxRes) {
-                            if(app.priorityToMaxRes) {
-                                app.currentQuality = app.availablesQualities[0];
-                            }
-                            else {
-                                let currentQualityIndex = possibleQualitiesValues.indexOf(app.currentQuality);
-                                for(let i=currentQualityIndex+1; i < possibleQualitiesValues.length ; i++) {
-                                    if(app.availablesQualities.indexOf(possibleQualitiesValues[i]) >= 0) {
-                                        app.currentQuality = app.availablesQualities.indexOf(possibleQualitiesValues[i]);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        let selectResolution = document.getElementById("selectResolution");
-
-                        selectResolution.innerHTML = "";
-                        for(let i=0; i < app.availablesQualities.length ; i++) {
-                            let isSelected = "";
-                            if(app.availablesQualities[i] === app.currentQuality) {
-                                isSelected = " selected";
-                            }
-                            switch(app.availablesQualities[i])
-                            {
-                                case "hd2160" :
-                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">4K - 2160p</option>";
-                                    break;
-                                case "hd1440" :
-                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HD - 1440p</option>";
-                                    break;
-                                case "hd1080" :
-                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HD - 1080p</option>";
-                                    break;
-                                case "hd720" :
-                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">HQ - 720p</option>";
-                                    break;
-                                case "large" :
-                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 480p</option>";
-                                    break;
-                                case "medium" :
-                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 360p</option>";
-                                    break;
-                                case "small" :
-                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 240p</option>";
-                                    break;
-                                case "tiny" :
-                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">SD - 144p</option>";
-                                    break;
-                                case "auto" :
-                                    selectResolution.innerHTML += "<option value='" + app.availablesQualities[i] + "'" + isSelected + ">AUTO</option>";
-                                    break;
-                            }
-                        }
-
-                        player.setPlaybackQuality(app.currentQuality);
-                        clearInterval(whileVideoQualitiesNotFullyCharged);
-                    }
-
-                    
-                } catch(e) { }    
-            }, 20);   
-        }
-
-        function loadCaptions() {
-            var whileVideoCaptionsNotFullyCharged = setInterval(function()
-            {
-                try {
-                    let captionsList = player.getOption('captions', 'tracklist');
-                    let captionSelected = player.getOption('captions', 'track').languageCode;
-                    let selectSubtitles = document.getElementById("selectSubtitles");
-
-                    if(captionsList !== undefined) {
-                        if(app.currentSubtitlesLanguage === null) {
-                            app.currentSubtitlesLanguage = captionSelected;
-                        }
-
-                        selectSubtitles.innerHTML = "";
-                        if (captionsList.length === 0) {
-                            selectSubtitles.innerHTML += "<option value='off' selected>No Subtitles</option>";
-                            selectSubtitles.setAttribute("disabled", "");
-                            player.unloadModule("captions");
-                            setManualCaptionsWidth(10, 0);
-                            app.subtitlesLoadingAttempts++;
-                        }
-                        else if (captionsList.length > 0) {
-                            player.loadModule("captions"); 
-
-                            if(!app.subtitlesManuallySelected) {
-                                let currentBestRankedLanguage = null;
-                                for(let i=0 ; i < captionsList.length ; i++) {
-                                    for(let j=0 ; j < app.subtitlesPrefList.length ; j++) {
-                                        if(currentBestRankedLanguage > j || currentBestRankedLanguage === null) {
-                                            if(captionsList[i].languageCode === app.subtitlesPrefList[j] || app.subtitlesPrefList.indexOf("off") === app.subtitlesPrefList[j]) {
-                                                currentBestRankedLanguage = j;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                app.currentSubtitlesLanguage = app.subtitlesPrefList[currentBestRankedLanguage];
-                            } else {
-                                let selectedLang = app.subtitlesPrefList.indexOf(app.currentSubtitlesLanguage);
-                                if(selectedLang >= 0) {
-                                    updateLanguagesStats(selectedLang, captionsList);
-                                }
-                            }
-                            
-                            for(let i=0 ; i < captionsList.length ; i++) {
-                                let isSelected = "";
-                                if(captionsList[i].languageCode === app.currentSubtitlesLanguage) {
-                                    isSelected = " selected";
-                                }
-                                selectSubtitles.innerHTML += "<option value='" + captionsList[i].languageCode + "'" + isSelected + ">" + captionsList[i].languageName + "</option>";
-                            }
-                            let nosub = "";
-                            if(app.subtitlesOn === false) {
-                                nosub = " selected";
-                            }
-                            selectSubtitles.innerHTML += "<option value='off'" + nosub + ">Off</option>";
-
-                            selectSubtitles.removeAttribute("disabled");
-
-                            if(app.subtitlesOn === true) {
-                                player.setOption("captions", "track", {"languageCode": app.currentSubtitlesLanguage});
-                            } else {
-                                player.unloadModule("captions"); 
-                            }
-
-                            setCaptionsWidth();
-                            app.subtitlesManuallySelected = false;
-
-                            if(app.subtitlesLoadingAttempts > 50 || captionsList.length > 0) {
-                                clearInterval(whileVideoCaptionsNotFullyCharged);
-                            }
-                        }
-                    }
-
-                    
-                }
-                catch(e) { /*console.log("ERR - NO CAPTIONS RETURNED ...");*/ }
-
-            }, 150);
-        }
-
-        function hideCaptions() { document.getElementById("selectSubtitles").innerHTML = ""; }
 
         // LOAD THE N INDEX VIDEO
         function loadVideo(videoIndex)
@@ -605,8 +407,8 @@ function hideVideo() {
             updateVideoTitle();
             updateDuration();
             getPlayerControlsController()?.updatePlayerState();
-            loadQuality();
-            loadCaptions();
+            getYouTubeSettingsLoader()?.loadQuality();
+            getYouTubeSettingsLoader()?.loadCaptions();
             getChannelUiController()?.updateChannelData();
             getPlayerControlsController()?.refreshVolume();
         }

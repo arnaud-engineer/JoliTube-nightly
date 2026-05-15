@@ -1,3 +1,5 @@
+import { youTubeSettingsLoader } from "./YouTubeSettingsLoader.js";
+
 const SPEED_VALUES = [0.25, 0.5, 1, 1.5, 2];
 
 export class PlaybackSettingsController {
@@ -5,8 +7,8 @@ export class PlaybackSettingsController {
         appProvider = () => window.app,
         playerProvider = () => window.player,
         playbackToggle = () => {},
-        loadQuality = () => window.loadQuality?.(),
-        loadCaptions = () => window.loadCaptions?.(),
+        loadQuality = () => youTubeSettingsLoader.loadQuality(),
+        loadCaptions = () => youTubeSettingsLoader.loadCaptions(),
     } = {}) {
         this.appProvider = appProvider;
         this.playerProvider = playerProvider;

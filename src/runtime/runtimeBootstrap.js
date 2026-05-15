@@ -7,6 +7,7 @@ import { installLegacyCommandAdapter } from "../legacy/legacyCommandAdapter.js";
 import { debugOverlay } from "../debug/debugOverlay.js";
 import { interfaceVisibilityController } from "../ui/interfaceVisibility.js";
 import { playerControlsController } from "../playback/PlayerControlsController.js";
+import { youTubeSettingsLoader } from "../playback/YouTubeSettingsLoader.js";
 
 /*
  * JoliTube runtime bootstrap.
@@ -58,6 +59,7 @@ function bootstrapRuntime() {
         channelUiController,
         interfaceVisibilityController,
         playerControlsController,
+        youTubeSettingsLoader,
         eventBus,
         logger,
         debugOverlay,
