@@ -220,7 +220,7 @@ function shuffleArray(array) {
                 }
             } catch(e) {}
             userIsUpdatingTimeCode = false;
-            showInterface();
+            getInterfaceVisibilityController()?.show();
         }
 
         function backwardInVideo() {
@@ -231,7 +231,7 @@ function shuffleArray(array) {
                 }
             } catch(e) {}
             userIsUpdatingTimeCode = false;
-            showInterface();
+            getInterfaceVisibilityController()?.show();
         }
 
 /* =========================================================================
@@ -275,6 +275,14 @@ function escapeVideoTitleMarkup(value) {
             "'": "&#39;",
         }[character];
     });
+}
+
+function getChannelUiController() {
+    return window.JoliTubeRuntime?.channelUiController;
+}
+
+function getInterfaceVisibilityController() {
+    return window.JoliTubeRuntime?.interfaceVisibilityController;
 }
 
 function getSafePlayerPlaylist() {
@@ -418,7 +426,7 @@ function hideVideo() {
                 document.getElementById("fullscreen").setAttribute("onmousedown", "goFullScreen();");
                 document.getElementById("fullscreen").setAttribute("display", "block");
                 app.fullscreenStatus = false;
-                showInterface();
+                getInterfaceVisibilityController()?.show();
                 updateRealTimeData();
             }
 
@@ -447,7 +455,7 @@ function hideVideo() {
             document.getElementById("fillingmode").setAttribute("src", "rsrc/mediaPlayer/theater-mode.svg");
             document.getElementById("fillingmode").setAttribute("onmousedown", "goTheatherMode();");
             document.getElementById("fillingmode").setAttribute("display", "block");
-            showInterface();
+            getInterfaceVisibilityController()?.show();
         }
 
         function goTheatherMode()
@@ -460,7 +468,7 @@ function hideVideo() {
             document.getElementById("fillingmode").setAttribute("src", "rsrc/mediaPlayer/fill-mode.svg");
             document.getElementById("fillingmode").setAttribute("onmousedown", "goFillMode();");
             document.getElementById("fillingmode").setAttribute("display", "block");
-            showInterface();
+            getInterfaceVisibilityController()?.show();
         }
 
 
@@ -584,7 +592,7 @@ function nextVideo()
                 app.playing = true;
                 document.getElementById("playVideo").src = "rsrc/mediaPlayer/pause.svg";
                 app.inputForbidden = false;
-                hideCursor();
+                getInterfaceVisibilityController()?.hideCursor();
             } catch(e) {}
        }
 
@@ -1096,7 +1104,7 @@ function nextVideo()
             updatePlayerState();
             loadQuality();
             loadCaptions();
-            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.updateChannelData();
+            getChannelUiController()?.updateChannelData();
             refreshVolume();
         }
 
@@ -1343,7 +1351,6 @@ function nextVideo()
             
 
 
-                //let interfaceAutoHidding = setInterval(function () { autoHide(); }, 100);
                 
         }
 
@@ -1365,8 +1372,8 @@ function nextVideo()
 	        firstChToLoad = 1;
 	    }
 
-	    window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.initializeFirstChannel(firstChToLoad);
-	    window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.renderMenu();
+	    getChannelUiController()?.initializeFirstChannel(firstChToLoad);
+	    getChannelUiController()?.renderMenu();
 
     window.JoliTubeNavigation?.detectAutoplayPolicy?.(app, player, "DOMContentLoaded");
 
@@ -1414,7 +1421,7 @@ function nextVideo()
                     app.channelNum
                 );
     
-                window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.requestChannelLoad(app.channelNum);
+                getChannelUiController()?.requestChannelLoad(app.channelNum);
             }
     
         } catch(e) {
@@ -1536,7 +1543,7 @@ function nextVideo()
         else {
             app.alreadyPlayedErrors.unshift(app.playerIndexInitAttempt);
             app.playerIndexInitAttempt++;
-            window.__JOLITUBE_CHANNEL_UI_CONTROLLER__?.requestChannelLoad(app.channelNum);
+            getChannelUiController()?.requestChannelLoad(app.channelNum);
         }
     }
 

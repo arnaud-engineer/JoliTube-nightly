@@ -46,8 +46,6 @@ function installLegacyBridge() {
         logger,
     };
 
-    wrapGlobalFunction("showInterface", "ui:show-requested");
-    wrapGlobalFunction("hideInterface", "ui:hide-requested");
     wrapGlobalFunction("playOrPause", "player:toggle-requested");
     wrapGlobalFunction("nextVideo", "input:zap-next");
     wrapGlobalFunction("previousVideo", "input:zap-previous");

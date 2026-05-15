@@ -1,3 +1,5 @@
+import { channelEngine } from "../channels/ChannelEngine.js";
+
 // JoliTube player navigation helpers.
 //
 // This module is intentionally exposed on window instead of imported directly from
@@ -733,10 +735,7 @@ function ensureNavigationHistory(app)
 
 function getChannelFromNumber(channelNumber)
 {
-    return window.__JOLITUBE_CHANNEL_ENGINE__
-        && typeof window.__JOLITUBE_CHANNEL_ENGINE__.getChannelByNumber === "function"
-            ? window.__JOLITUBE_CHANNEL_ENGINE__.getChannelByNumber(channelNumber)
-            : null;
+    return channelEngine.getChannelByNumber(channelNumber);
 }
 
 function refreshLegacyPlaybackControls(reason = "history sync")

@@ -100,7 +100,7 @@ export class DebugOverlay {
 
         const appState = window.app;
         const player = window.player;
-        const channelEngine = window.__JOLITUBE_CHANNEL_ENGINE__;
+        const channelEngine = window.JoliTubeRuntime?.channelEngine;
 
         const currentVideoIndex = this.safeRead(() => appState.currentVideoIndex);
         const youtubePlaylistIndex = this.safeRead(() => player.getPlaylistIndex());

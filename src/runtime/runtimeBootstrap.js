@@ -27,9 +27,6 @@ function bootstrapRuntime() {
     logger.info("Bootstrapping modular runtime layer");
 
     channelEngine.initialize();
-    window.__JOLITUBE_CHANNEL_ENGINE__ = channelEngine;
-    window.__JOLITUBE_CHANNEL_UI_CONTROLLER__ = channelUiController;
-    window.__JOLITUBE_INTERFACE_VISIBILITY_CONTROLLER__ = interfaceVisibilityController;
     interfaceVisibilityController.start();
     channelUiController.start();
 

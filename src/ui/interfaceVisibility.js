@@ -1,7 +1,9 @@
+import { eventBus } from "../core/eventBus.js";
+
 /*
  * InterfaceVisibilityController
  *
- * Owns the legacy chrome visibility behavior:
+ * Owns the chrome visibility behavior:
  * - show/hide header, channel menu, and control panel
  * - cursor visibility over the player glass
  * - inactivity-driven auto-hide timers
@@ -26,38 +28,7 @@ export class InterfaceVisibilityController {
         }
 
         this.started = true;
-        this.installGlobalBridge();
         this.bindDomEvents();
-    }
-
-    installGlobalBridge() {
-        window.showInterface = () => {
-            this.show();
-        };
-
-        window.hideInterface = () => {
-            this.hide();
-        };
-
-        window.showCursor = () => {
-            this.showCursor();
-        };
-
-        window.hideCursor = () => {
-            this.hideCursor();
-        };
-
-        window.cursorEnterInterface = () => {
-            this.cursorEnter();
-        };
-
-        window.cursorExitInterface = () => {
-            this.cursorExit();
-        };
-
-        window.autoHide = () => {
-            this.autoHide();
-        };
     }
 
     bindDomEvents() {
@@ -148,6 +119,9 @@ export class InterfaceVisibilityController {
         app.displayTimerOn = true;
         app.NbDisplayTimer++;
         this.autoHide();
+        eventBus.emit("ui:show-requested", {
+            source: "interface-visibility-controller",
+        });
 
         window.setTimeout(() => {
             if (app.NbDisplayTimer > 0) {
@@ -210,6 +184,10 @@ export class InterfaceVisibilityController {
         if (!app || !header || !channels || !menuController || !this.isHideAllowed()) {
             return;
         }
+
+        eventBus.emit("ui:hide-requested", {
+            source: "interface-visibility-controller",
+        });
 
         header.classList.remove("displayed");
         channels.classList.remove("displayed");

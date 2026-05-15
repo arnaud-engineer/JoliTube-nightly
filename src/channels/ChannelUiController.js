@@ -1,21 +1,24 @@
 import { channelEngine } from "./ChannelEngine.js";
+import { interfaceVisibilityController } from "../ui/interfaceVisibility.js";
 
 /*
  * ChannelUiController
  *
  * Transitional owner for channel menu rendering, search filtering, and
  * selected-channel UI state. The legacy script still owns the YouTube player
- * runtime, so this controller intentionally calls the existing global helpers.
+ * runtime, so this controller still calls a few playback helpers globally.
  */
 
 export class ChannelUiController {
     constructor({
         engine = channelEngine,
+        interfaceVisibility = interfaceVisibilityController,
         appProvider = () => window.app,
         playerProvider = () => window.player,
         curatorListProvider = () => window.curratorsList,
     } = {}) {
         this.engine = engine;
+        this.interfaceVisibility = interfaceVisibility;
         this.appProvider = appProvider;
         this.playerProvider = playerProvider;
         this.curatorListProvider = curatorListProvider;
@@ -101,7 +104,7 @@ export class ChannelUiController {
             app.searchSingleton = true;
         }
 
-        window.showInterface?.();
+        this.interfaceVisibility.show();
     }
 
     exitSearchMode() {
@@ -472,7 +475,7 @@ export class ChannelUiController {
         this.hideChannelData();
         this.updateChannelData();
         window.disablePlayer?.();
-        window.showInterface?.();
+        this.interfaceVisibility.show();
 
         app.playerFullyChargedSingleton = false;
         app.realTimeDataMonitored = false;
